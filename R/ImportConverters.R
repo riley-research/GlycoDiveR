@@ -1,4 +1,4 @@
-MSFraggerConverter <- function(unfiltereddf){
+MSFraggerConverter <- function(unfiltereddf, annotationdf){
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
 
@@ -24,7 +24,7 @@ MSFraggerConverter <- function(unfiltereddf){
   if ("Delta.Mass" %in% existingCols) {filtereddf <- cbind(filtereddf, DeltaMass = as.double(unfiltereddf$Delta.Mass))}
   else {stop("The column Delta.Mass was not found in the input dataframe.")}
 
-  if ("Hyperscore" %in% existingCols) {filtereddf <- cbind(filtereddf, Hyperscore = as.double(unfiltereddf$Hyperscore))}
+  if ("Hyperscore" %in% existingCols) {filtereddf <- cbind(filtereddf, PeptideScore = as.double(unfiltereddf$Hyperscore))}
   else{stop("The column Hyperscore was not found in the input dataframe.")}
 
   if ("Nextscore" %in% existingCols) {filtereddf <- cbind(filtereddf, Nextscore = as.double(unfiltereddf$Nextscore))}
@@ -56,6 +56,13 @@ MSFraggerConverter <- function(unfiltereddf){
 
   if ("Mapped.Genes" %in% existingCols) {filtereddf <- cbind(filtereddf, MappedGenes = as.character(unfiltereddf$Mapped.Genes))}
   else {stop("The column Mapped.Genes was not found in the input dataframe.")}
+
+  filtereddf <- filtereddf %>%
+    dplyr::left_join(annotationdf)
+
+  if(anyNA(filtereddf[c("Condition", "BioReplicate", "TechReplicate", "Alias")])){
+    warning("NA detected. Please verify annotation dataframe!")
+  }
 
   if(FALSE){
     filtereddf <- unfiltereddf[,c("Run", "Modified.Peptide", "Intensity", "Charge",

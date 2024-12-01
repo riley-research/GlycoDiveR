@@ -1,6 +1,6 @@
 source(here::here("R/ImportConverters.R"))
 
-MSFraggerImporter <- function(path, annotation, hyperScoreCutoff, glycanScoreCutoff){
+MSFraggerImporter <- function(path, annotation, peptideScoreCutoff, glycanScoreCutoff){
   #path = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlyco"
   #annotation = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlyco/annotation.csv"
   unfiltereddf <- data.frame()
@@ -17,21 +17,14 @@ MSFraggerImporter <- function(path, annotation, hyperScoreCutoff, glycanScoreCut
   lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 
-  unfiltereddf <- unfiltereddf %>%
-    dplyr::left_join(annotationdf)
-
-  if(anyNA(unfiltereddf[c("Condition", "BioReplicate", "TechReplicate")])){
-    warning("NA detected. Please verify annotation dataframe!")
-  }
-
-  filtereddf <- MSFraggerConverter(unfiltereddf)
+  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf)
 
   data <- list(PSMTable = filtereddf,
                rawPSMTable = unfiltereddf,
                annotation = annotationdf,
                glycoType = "N",
                searchEngine = "MSFragger",
-               hyperScoreCutoff = hyperScoreCutoff,
+               peptideScoreCutoff = peptideScoreCutoff,
                glycanScoreCutoff = glycanScoreCutoff)
 
   class(data)
@@ -41,5 +34,5 @@ MSFraggerImporter <- function(path, annotation, hyperScoreCutoff, glycanScoreCut
 
 #MSFraggerImporter(path = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlyco",
 #                  annotation = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlyco/annotation.csv",
-#                  hyperScoreCutoff = 40,
+#                  peptideScoreCutoff = 40,
 #                  glycanScoreCutoff = -100)
