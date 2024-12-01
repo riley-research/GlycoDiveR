@@ -11,4 +11,5 @@ RoxygenNote: 7.0.0
 Imports: 
     dplyr,
     here,
+    plyr,
     utils
