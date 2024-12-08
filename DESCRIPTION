@@ -13,4 +13,5 @@ Imports:
     ggplot2,
     here,
     plyr,
+    seqinr,
     utils
