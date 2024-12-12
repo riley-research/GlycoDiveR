@@ -46,10 +46,13 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 #                  peptideScoreCutoff = 40,
 #                  glycanScoreCutoff = -100)
 
-testcase <-
+testcase <- testdf$PTMTable %>%
+  dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", AssignedModifications))
+extractt <- unique(testcase$Genes)[13]
+testcase <- testcase %>% dplyr::filter(Genes == extractt)
+
 ggplot2::ggplot(testcase) +
   geom_line(data = data.frame(x = seq(1,850), y = 1), aes(x = x, y = y), size = 2) +
   geom_point(data = testcase, aes(x= ProteinPTMLocalization, y = 1), color = "white", fill = "red") +
  ggrepel::geom_label_repel(data = distinct(testcase[c("ProteinPTMLocalization", "ModificationID")]), aes(x =ProteinPTMLocalization, y = 1, label = ModificationID)) +
   theme_void()
-
