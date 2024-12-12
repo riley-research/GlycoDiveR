@@ -19,3 +19,22 @@ GetProteinLength <- function(IDVec, fastaFile){
   protLength <- nrow(as.data.frame(IDhit[[1]]))
   return(as.integer(protLength))
 }
+
+PSMToPTMTable <- function(PSMTable){
+  tempdf <- PSMTable %>%
+      dplyr::filter(!is.na(AssignedModifications) & AssignedModifications != "") %>%
+      tidyr::separate_rows(AssignedModifications, sep = ",")
+
+  tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
+
+  tempdf <- tempdf %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("^[0-9]+", AssignedModifications))[[1]]),
+                    ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
+                    ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
+                    ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
+
+  message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
+
+  return(tempdf)
+}

@@ -13,6 +13,7 @@ Imports:
     ggplot2,
     ggrepel,
     here,
+    magrittr,
     plyr,
     seqinr,
     utils
