@@ -1,7 +1,7 @@
 source(here::here("R/GlycoDiveRUtils.R"))
 
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
-  message("INFO : NOW STARTING IMPORT")
+  message("INFO: NOW STARTING IMPORT")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
 
@@ -80,6 +80,10 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
         dplyr::ungroup()
     }else{warning("Fasta path did not exist.")}
   }
+
+  if ("Protein.Start" %in% existingCols) {filtereddf <- cbind(filtereddf, ProteinStart = as.numeric(unfiltereddf$Protein.Start))}
+  else {filtereddf$ProteinStart = NA
+    warning("The column Is.Unique was not found in the input dataframe.")}
 
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf)

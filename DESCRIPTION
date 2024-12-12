@@ -11,6 +11,7 @@ RoxygenNote: 7.0.0
 Imports: 
     dplyr,
     ggplot2,
+    ggrepel,
     here,
     plyr,
     seqinr,
