@@ -46,6 +46,7 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 #                  peptideScoreCutoff = 40,
 #                  glycanScoreCutoff = -100)
 
+testing = FALSE
 if(testing){
   testcase <- testdf$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", AssignedModifications))

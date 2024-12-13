@@ -34,7 +34,33 @@ PSMToPTMTable <- function(PSMTable){
                     ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
                     ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
 
+  tempdf$NGlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
 
   return(tempdf)
+}
+
+GlycanComptToGlycanType <- function(mod, glycanComp){
+  if(is.na(mod) | mod == ""){return("NotGlyco")}
+  else{
+    #glycanComp = "HexNAc(4)Hex(5)NeuAc(1) % 1913.6771"
+    glycanMass = strsplit(glycanComp, "%")[[1]][2]
+    glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
+
+    if(TRUE %in% grepl(glycanMass, mod)){
+      hexNAc_count <- as.numeric(sub(".*HexNAc\\(([0-9]+)\\).*", "\\1", glycanComp))
+      hex_count <- as.numeric(sub(".*Hex\\(([0-9]+)\\).*", "\\1", glycanComp))
+
+      glycanCat <- case_when(
+        grepl("NeuAc", glycanComp) & grepl("Fuc", glycanComp) ~ "Sialyl+Fucose",
+        grepl("NeuAc", glycanComp) ~ "Sialyl",
+        grepl("Fuc", glycanComp) ~ "Fucose",
+        !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 4 ~ "High Mannose",
+        TRUE ~ "Complex/Hybrid"
+      )
+      return(glycanCat)
+    }else{
+        return("NotGlyco")}
+  }
 }
