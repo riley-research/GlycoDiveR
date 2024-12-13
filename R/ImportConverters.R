@@ -14,7 +14,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   if("Modified.Peptide" %in% existingCols){
     filtereddf <- cbind(filtereddf, ModifiedPeptide = as.character(unfiltereddf$Modified.Peptide))
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully imported Modified Peptide column.\033[0m")}
-  else(stop("The column Modified.Peptide was not found in the input dataframe."))
+  else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
   if("Intensity" %in% existingCols) {
     filtereddf <- cbind(filtereddf, Intensity = as.character(unfiltereddf$Run))
