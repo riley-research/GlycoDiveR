@@ -64,3 +64,17 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
         return("NotGlyco")}
   }
 }
+
+GetPeptide <- function(pep, modpep){
+  if(!is.na(modpep) & modpep != ""){
+    return(modpep)}
+  else {
+    return(pep)
+  }
+}
+
+GetMeanTechReps <- function(df){
+  #if("Condition" %in% names(df) & "BioReplicate" %in% names(df) & ModifiedPeptide )
+  #df <- df %>%
+  #  dplyr::group_by(Condition, BioReplicate)
+}
