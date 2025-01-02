@@ -16,6 +16,7 @@ Imports:
     ggrepel,
     here,
     magrittr,
+    patchwork,
     plyr,
     seqinr,
     utils

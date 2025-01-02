@@ -18,6 +18,12 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath)
 
+  if(sum(!is.na(filtereddf$Intensity)) > 0){
+    quantAvailable <- TRUE
+  }else{
+    quantAvailable <- FALSE
+    }
+
   PTMdf <- PSMToPTMTable(filtereddf)
 
   data <- list(PSMTable = filtereddf,
@@ -27,7 +33,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
                glycoType = "N",
                searchEngine = "MSFragger",
                peptideScoreCutoff = peptideScoreCutoff,
-               glycanScoreCutoff = glycanScoreCutoff)
+               glycanScoreCutoff = glycanScoreCutoff,
+               quantAvailable = quantAvailable)
 
   class(data)
 
@@ -36,7 +43,7 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 
 #MSFraggerImporter(path = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlycoV1/NGlycosylation",
                   #                  annotation = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlycoV1/annotation.csv",
-                  #                  fastaPath = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/2024-02-25-decoys-2024-02-25-SeerDB-SI4.fasta.fas"
+                  #                  fastaPath = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/2024-02-25-decoys-2024-02-25-SeerDB-SI4.fasta.fas",
                   #                  peptideScoreCutoff = 40,
                   #                  glycanScoreCutoff = -100)
 
@@ -50,7 +57,7 @@ testing = FALSE
 if(testing){
   testcase <- testdf$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", AssignedModifications))
-  extractt <- unique(testcase$Genes)[13]
+  extractt <- unique(testcase$Genes)[15]
   testcase <- testcase %>% dplyr::filter(Genes == extractt)
 
   ggplot2::ggplot(testcase) +
@@ -58,4 +65,11 @@ if(testing){
     geom_point(data = testcase, aes(x= ProteinPTMLocalization, y = 1), color = "white", fill = "red") +
     ggrepel::geom_label_repel(data = distinct(testcase[c("ProteinPTMLocalization", "ModificationID")]), aes(x =ProteinPTMLocalization, y = 1, label = ModificationID)) +
     theme_void()
+
+  PlotPTMQuantification(testdf, unique(testdf$PTMTable$Genes)[18])
+
+  testing <- subset(testdf$PTMTable, ModifiedPeptide == "YVTSAPM[147]PEPQAPGR")
+  testing <- subset(testing, Run == "240419_ES_R00006_MG_c00001_SA_NPB_2_i1")
+
+  GetMeanTechReps(testing)
   }

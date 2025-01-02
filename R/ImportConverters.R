@@ -18,7 +18,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
   if("Intensity" %in% existingCols) {
-    filtereddf <- cbind(filtereddf, Intensity = as.character(unfiltereddf$Run))
+    filtereddf <- cbind(filtereddf, Intensity = as.numeric(unfiltereddf$Intensity))
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully imported Intensity column.\033[0m")}
   else{filtereddf <- cbind(filtereddf, Intensity = as.numeric(NA))
        warning("Intensity column not found. Filled with NA.")}
@@ -76,7 +76,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
         dplyr::group_by(UniprotIDs) %>%
         dplyr::mutate(ProteinLength = GetProteinLength(IDVec = UniprotIDs, fastaFile = fastaFile)) %>%
         dplyr::ungroup()
-    }else{warning("Fasta path did not exist.")}
+    }else{warning("Fasta path does not exist.")}
   }
 
   if ("Protein.Start" %in% existingCols) {
@@ -85,6 +85,8 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     warning("The column Is.Unique was not found in the input dataframe.")}
 
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  filtereddf <- filtereddf %>%
+    mutate(GlycanType = sapply(GlycanType, toString))
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully added GlycanType column.\033[0m")
 
   filtereddf <- filtereddf %>%
