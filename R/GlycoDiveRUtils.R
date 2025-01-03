@@ -114,3 +114,12 @@ GetMeanTechReps <- function(df){
 
   return(df)
 }
+
+CleanGlycanNames <- function(glycan){
+  glycan <- gsub("HexNAc", "N", glycan)
+  glycan <- gsub("Hex", "H", glycan)
+  glycan <- gsub("NeuAc", "A", glycan)
+  glycan <- gsub("Fuc", "F", glycan)
+  glycan <- gsub("NeuGc", "G", glycan)
+  return(glycan)
+}

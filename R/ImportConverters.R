@@ -1,4 +1,4 @@
-source(here::here("R/GlycoDiveRUtils.R"))
+#source(here::here("R/GlycoDiveRUtils.R"))
 
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Now starting import.\033[0m")
@@ -35,6 +35,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
 
   if ("Total.Glycan.Composition" %in% existingCols) {
     filtereddf <- cbind(filtereddf, TotalGlycanComposition = as.character(unfiltereddf$Total.Glycan.Composition))
+    filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) CleanGlycanNames(x))
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully imported Total Glycan Composition column.\033[0m")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
@@ -91,6 +92,8 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
 
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf, by = "Run")
+
+  filtereddf$Alias <- factor(filtereddf$Alias, levels = unique(annotationdf$Alias))
 
   if(anyNA(filtereddf[c("Condition", "BioReplicate", "TechReplicate", "Alias")])){
     warning("NA detected. Please verify annotation dataframe!")

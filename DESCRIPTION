@@ -11,13 +11,15 @@ RoxygenNote: 7.3.2
 Imports: 
     circlize,
     ComplexHeatmap,
+    plyr,
     dplyr,
     ggplot2,
     ggrepel,
     here,
     magrittr,
     patchwork,
-    plyr,
     seqinr,
     tidyr,
     utils
+Depends: 
+    R (>= 3.5)

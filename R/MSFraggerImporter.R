@@ -1,5 +1,5 @@
-source(here::here("R/ImportConverters.R"))
-source(here::here("R/GlycoDiveRUtils.R"))
+#source(here::here("R/ImportConverters.R"))
+#source(here::here("R/GlycoDiveRUtils.R"))
 
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff){
   unfiltereddf <- data.frame()
@@ -66,10 +66,20 @@ if(testing){
     ggrepel::geom_label_repel(data = distinct(testcase[c("ProteinPTMLocalization", "ModificationID")]), aes(x =ProteinPTMLocalization, y = 1, label = ModificationID)) +
     theme_void()
 
-  PlotPTMQuantification(testdf, unique(testdf$PTMTable$Genes)[18])
+  PlotPTMQuantification(test, unique(test$PTMTable$UniprotIDs)[18])
 
   testing <- subset(testdf$PTMTable, ModifiedPeptide == "YVTSAPM[147]PEPQAPGR")
   testing <- subset(testing, Run == "240419_ES_R00006_MG_c00001_SA_NPB_2_i1")
 
   GetMeanTechReps(testing)
+
+  colorScheme <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF",
+                   "#3C5488FF", "#F39B7FFF", "#8491B4FF",
+                   "#91D1C2FF", "#DC0000FF", "#7E6148FF",
+                   "#B09C85FF", "#AD8BC9FF", "#FFD700FF",
+                   "#6A51A3FF", "#FF7F50FF", "#5FAD56FF",
+                   "#FFB6C1FF", "#4682B4FF", "#FF6347FF",
+                   "#708090FF", "#8B4513FF")
+  usethis::use_data(colorScheme, internal = TRUE)
+
   }
