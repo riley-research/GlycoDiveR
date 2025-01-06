@@ -16,9 +16,5 @@ PlotPSMCount <- function(inputData){
     scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
     scale_fill_manual(values = c(colorScheme[1:2]))
 
-  p <- p + theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-          panel.grid = element_blank())
-
   print(p)
 }

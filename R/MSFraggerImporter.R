@@ -81,5 +81,4 @@ if(testing){
                    "#FFB6C1FF", "#4682B4FF", "#FF6347FF",
                    "#708090FF", "#8B4513FF")
   usethis::use_data(colorScheme, internal = TRUE)
-
   }
