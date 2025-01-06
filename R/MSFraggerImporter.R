@@ -44,8 +44,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 #MSFraggerImporter(path = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlycoV1/NGlycosylation",
                   #                  annotation = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/NGlycoV1/annotation.csv",
                   #                  fastaPath = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/2024-02-25-decoys-2024-02-25-SeerDB-SI4.fasta.fas",
-                  #                  peptideScoreCutoff = 40,
-                  #                  glycanScoreCutoff = -100)
+                  #                  peptideScoreCutoff = -1,
+                  #                  glycanScoreCutoff = 10)
 
 #MSFraggerImporter(path = "C:/Users/tveth/OneDrive - UW/Documents/Research/GlycoDiveR/Testdata/NGlycosylation",
 #                  annotation = "C:/Users/tveth/OneDrive - UW/Documents/Research/GlycoDiveR/Testdata/NGlycosylation/annotation.csv",

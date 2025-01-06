@@ -73,9 +73,9 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
         hex_count <- suppressWarnings(as.numeric(sub(".*Hex\\(([0-9]+)\\).*", "\\1", glycanComp)))
 
         glycanCat <- dplyr::case_when(
-          grepl("NeuAc", glycanComp) & grepl("Fuc", glycanComp) ~ "Sialyl+Fucose",
-          grepl("NeuAc", glycanComp) ~ "Sialyl",
-          grepl("Fuc", glycanComp) ~ "Fucose",
+          grepl("A", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
+          grepl("A", glycanComp) ~ "Sialyl",
+          grepl("F", glycanComp) ~ "Fucose",
           !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 4 ~ "High Mannose",
           TRUE ~ "Complex/Hybrid"
         )
@@ -103,12 +103,12 @@ GetMeanTechReps <- function(df){
   #Keep highest intensity per technical rep
   df <- df %>%
     dplyr::arrange(desc(Intensity)) %>%
-    dplyr::distinct(Run, ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE) %>%
+    dplyr::distinct(Run, AssignedModifications,ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE) %>%
     ungroup()
 
   #Take median of technical reps
   df <- df %>%
-    dplyr::group_by(ModifiedPeptide, Condition, BioReplicate) %>%
+    dplyr::group_by(ModifiedPeptide, AssignedModifications, Condition, BioReplicate) %>%
     dplyr::mutate(Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
     distinct(ModifiedPeptide, Condition, BioReplicate, .keep_all = TRUE)
 
@@ -122,4 +122,20 @@ CleanGlycanNames <- function(glycan){
   glycan <- gsub("Fuc", "F", glycan)
   glycan <- gsub("NeuGc", "G", glycan)
   return(glycan)
+}
+
+FilterForCutoffs <- function(input){
+  if(input$searchEngine %in% c("MSFragger")){
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", test$peptideScoreCutoff, " and glycan score <= ", test$glycanScoreCutoff, ".\033[0m")
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    input$PSMTable <- subset(input$PSMTable, (PSMScore >= test$peptideScoreCutoff & GlycanQValue <= test$glycanScoreCutoff) |
+                               (PSMScore >= test$peptideScoreCutoff & is.na(GlycanQValue)))
+    input$PTMTable <- subset(input$PTMTable, (PSMScore >= test$peptideScoreCutoff & GlycanQValue <= test$glycanScoreCutoff) |
+                               (PSMScore >= test$peptideScoreCutoff & is.na(GlycanQValue)))
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    return(input)
+  }else{
+    warning("No search engine recognized, returning unfiltered dataframe.")
+    return(input)
+  }
 }

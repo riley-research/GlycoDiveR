@@ -14,7 +14,7 @@ PlotPSMCount <- function(inputData){
     geom_bar(stat = "identity", position = "stack", color = "black") +
     labs(x = "", y = "PSM (count)") +
     scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
-    scale_fill_manual(values = c(colorScheme[1:2]))
+    scale_fill_manual(values = c(colorScheme))
 
   print(p)
 }
