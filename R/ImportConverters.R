@@ -13,7 +13,6 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
 
   if("Modified.Peptide" %in% existingCols){
     filtereddf$ModifiedPeptide <- apply(unfiltereddf[,c("Peptide", "Modified.Peptide")], 1, function(x) GetPeptide(pep = x[1], modpep = x[2]))
-    #filtereddf <- cbind(filtereddf, ModifiedPeptide = as.character(unfiltereddf$Modified.Peptide))
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully imported Modified Peptide column.\033[0m")}
   else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
@@ -36,7 +35,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   if ("Total.Glycan.Composition" %in% existingCols) {
     filtereddf <- cbind(filtereddf, TotalGlycanComposition = as.character(unfiltereddf$Total.Glycan.Composition))
     filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) CleanGlycanNames(x))
-    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully imported Total Glycan Composition column.\033[0m")}
+    fmessage("Successfully imported Total Glycan Composition column.")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
   if ("Glycan.q.value" %in% existingCols) {
@@ -103,7 +102,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
 
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
   filtereddf <- filtereddf %>%
-    mutate(GlycanType = sapply(GlycanType, toString))
+    dplyr::mutate(GlycanType = sapply(GlycanType, toString))
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Successfully added GlycanType column.\033[0m")
 
   filtereddf <- filtereddf %>%

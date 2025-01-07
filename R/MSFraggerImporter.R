@@ -26,6 +26,9 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
+  filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
+  PTMdf$TotalGlycanComposition <- sapply(PTMdf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
+
   data <- list(PSMTable = filtereddf,
                rawPSMTable = unfiltereddf,
                PTMTable = PTMdf,
@@ -73,12 +76,10 @@ if(testing){
 
   GetMeanTechReps(testing)
 
-  colorScheme <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF",
-                   "#3C5488FF", "#F39B7FFF", "#8491B4FF",
-                   "#91D1C2FF", "#DC0000FF", "#7E6148FF",
-                   "#B09C85FF", "#AD8BC9FF", "#FFD700FF",
-                   "#6A51A3FF", "#FF7F50FF", "#5FAD56FF",
-                   "#FFB6C1FF", "#4682B4FF", "#FF6347FF",
-                   "#708090FF", "#8B4513FF")
-  usethis::use_data(colorScheme, internal = TRUE)
+  colorScheme <- c("#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821",
+                   "#94D8C3", "#F7B8D2", "#A7C7E7", "#FFE87C", "#C0E4D0",
+                   "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6",
+                   "#D1D2E3", "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1")
+
+  usethis::use_data(colorScheme, internal = TRUE, overwrite = TRUE)
   }

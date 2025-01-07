@@ -20,6 +20,7 @@ Imports:
     patchwork,
     seqinr,
     tidyr,
-    utils
+    utils,
+    igraph
 Depends: 
     R (>= 3.5)
