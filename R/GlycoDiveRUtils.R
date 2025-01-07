@@ -139,3 +139,29 @@ FilterForCutoffs <- function(input){
     return(input)
   }
 }
+
+GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
+  inputVector <- strsplit(IDVec[1], ",")[[1]]
+  uniprotID <- inputVector[1]
+  IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
+  seq <- paste(IDhit[[1]], collapse = "")
+  seq <- toupper(seq)
+
+  pattern_NXS <- "N[^P]S"
+  pattern_NXT <- "N[^P]T"
+  pattern_S <- "S"
+  pattern_T <- "T"
+
+  count_NXS <- length(regmatches(seq, gregexpr(pattern_NXS, seq))[[1]])
+  count_NXT <- length(regmatches(seq, gregexpr(pattern_NXT, seq))[[1]])
+  count_S <- length(regmatches(seq, gregexpr(pattern_S, seq))[[1]])
+  count_T <- length(regmatches(seq, gregexpr(pattern_T, seq))[[1]])
+
+  rslt <- paste0(sum(count_NXS, count_NXT), ";", sum(count_S, count_T))
+
+  return(rslt)
+}
+
+fmessage <- function(m){
+  message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
+}

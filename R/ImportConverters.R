@@ -80,6 +80,22 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     }else{warning("Fasta path does not exist.")}
   }
 
+  if("UniprotIDs" %in% names(filtereddf)){
+    if(file.exists(fastaPath)){
+      fastaFile <- seqinr::read.fasta(file = fastaPath)
+      filtereddf <- filtereddf %>%
+        dplyr::ungroup() %>%
+        dplyr::group_by(UniprotIDs) %>%
+        dplyr::mutate(NumberOfSites = GetGlycoSitesPerProtein(IDVec = UniprotIDs, fastaFile = fastaFile)) %>%
+        dplyr::ungroup()
+
+      filtereddf <- filtereddf %>%
+        tidyr::separate_wider_delim(NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
+        mutate(NumberOfNSites = as.numeric(NumberOfNSites), NumberOfOSites = as.numeric(NumberOfOSites))
+      fmessage("Successfully mapped number of N and O glycosites per protein.")
+    }else{warning("Fasta path does not exist.")}
+  }
+
   if ("Protein.Start" %in% existingCols) {
     filtereddf <- cbind(filtereddf, ProteinStart = as.numeric(unfiltereddf$Protein.Start))}
   else {filtereddf$ProteinStart = NA
