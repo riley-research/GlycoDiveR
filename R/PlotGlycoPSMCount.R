@@ -1,15 +1,17 @@
-PlotGlycoPSMCount <- function(inputData, grouping){
-  inputData$PSMTable$Glycan <- sapply(inputData$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
+PlotGlycoPSMCount <- function(input, grouping){
+  input <- FilterForCutoffs(input)
+
+  input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 
   if(grouping == "technicalReps"){
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::filter(Glycan == "Glycosylated") %>%
       dplyr::select(Run, Alias, Condition, Glycan, Genes) %>%
       group_by(Run, Alias, Glycan) %>%
       reframe(Run = Run, Alias = Alias, Condition = Condition, PSMCount = n()) %>%
       distinct()
 
-    tempdf$Alias <- factor(tempdf$Alias, levels = levels(inputData$PSMTable$Alias))
+    tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
 
     p <- ggplot(tempdf, aes(x=Alias, y = PSMCount, fill = Condition)) +
       geom_bar(stat = "identity", position = "stack", color = "black") +
@@ -19,7 +21,7 @@ PlotGlycoPSMCount <- function(inputData, grouping){
 
     print(p)
   }else if(grouping == "biologicalReps"){
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::filter(Glycan == "Glycosylated") %>%
       dplyr::select(Run, Alias, Condition, BioReplicate, TechReplicate, Glycan, Genes) %>%
       dplyr::group_by(Alias, Glycan, Condition, BioReplicate, TechReplicate) %>%
@@ -29,7 +31,7 @@ PlotGlycoPSMCount <- function(inputData, grouping){
       dplyr::rowwise() %>%
       dplyr::mutate(x = paste0(Condition, BioReplicate))
 
-    tempdf$Alias <- factor(tempdf$Alias, levels = levels(inputData$PSMTable$Alias))
+    tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
 
     tempdfsum <- tempdf %>%
       dplyr::group_by(Condition, BioReplicate) %>%
@@ -47,7 +49,7 @@ PlotGlycoPSMCount <- function(inputData, grouping){
 
     print(p)
   }else if(grouping == "condition"){
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::filter(Glycan == "Glycosylated") %>%
       dplyr::select(Run, Alias, Condition, BioReplicate, Glycan, Genes) %>%
       dplyr::group_by(Alias, Glycan, Condition, BioReplicate) %>%
@@ -56,7 +58,7 @@ PlotGlycoPSMCount <- function(inputData, grouping){
       dplyr::ungroup() %>%
       dplyr::rowwise()
 
-    tempdf$Alias <- factor(tempdf$Alias, levels = levels(inputData$PSMTable$Alias))
+    tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
 
     tempdfsum <- tempdf %>%
       dplyr::group_by(Condition) %>%
