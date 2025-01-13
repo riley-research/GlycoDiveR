@@ -21,6 +21,9 @@ A graph.
 \description{
 Plot quantification per site
 }
+\details{
+The mean of technical replicates is calculated and the input data filtered for the user specific glycan and peptide cutoffs.
+}
 \examples{
 \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = 1e9)}
 
