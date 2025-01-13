@@ -2,7 +2,7 @@
 % Please edit documentation in R/PlotSiteQuantification.R
 \name{PlotSiteQuantification}
 \alias{PlotSiteQuantification}
-\title{Plot quantification per site}
+\title{Barplot quantification per site}
 \usage{
 PlotSiteQuantification(input, protein, site, cutoff = NA)
 }
@@ -19,7 +19,7 @@ PlotSiteQuantification(input, protein, site, cutoff = NA)
 A graph.
 }
 \description{
-Plot quantification per site
+Barplot quantification per site
 }
 \details{
 The mean of technical replicates is calculated and the input data filtered for the user specific glycan and peptide cutoffs.

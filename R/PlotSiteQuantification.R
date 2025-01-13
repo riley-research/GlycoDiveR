@@ -1,4 +1,4 @@
-#' Plot quantification per site
+#' Barplot quantification per site
 #'
 #' @param input The input data as imported through one of the GlycoDiveR importers.
 #' @param protein The protein defined in the UniprotIDs column.
