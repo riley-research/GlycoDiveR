@@ -56,6 +56,12 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 #                  peptideScoreCutoff = 40,
 #                  glycanScoreCutoff = -100)
 
+#test <- MSFraggerImporter(path = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/CD59_N",
+#                          annotation = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/CD59_N/annotation.csv",
+#                          fastaPath = "C:/Users/tim_v/Documents/PostDoc/R_Glycopeptide/CD59_N/2025-01-12-decoys-contam-CD59_Leu26-Asn102_linkHis10.fasta.fas",
+#                          peptideScoreCutoff = 0,
+#                          glycanScoreCutoff = 0.01)
+
 testing = FALSE
 if(testing){
   testcase <- testdf$PTMTable %>%

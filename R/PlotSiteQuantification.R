@@ -18,6 +18,10 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA){
   df <- GetMeanTechReps(input$PTMTable)
 
   df <- subset(df, UniprotIDs == protein & ModificationID == site) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(UniprotIDs, ModificationID, Condition, BioReplicate, TechReplicate, TotalGlycanComposition) %>%
+    dplyr::mutate(Intensity = sum(Intensity, na.rm = TRUE)) %>%
+    dplyr::distinct(UniprotIDs, ModificationID, Condition, BioReplicate, TechReplicate, TotalGlycanComposition, .keep_all = TRUE) %>%
     dplyr::ungroup()
 
   if(!is.na(cutoff)){
@@ -36,9 +40,10 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA){
     dplyr::reframe(Condition = Condition, TotalGlycanComposition = TotalGlycanComposition,
                    mean = mean(Intensity, na.rm = TRUE), sd = sd(Intensity, na.rm = TRUE)) %>%
     dplyr::ungroup() %>%
-    dplyr::distinct()
+    dplyr::distinct() %>%
+    dplyr::arrange(desc(mean))
 
-  df$TotalGlycanComposition <- factor(df$TotalGlycanComposition, levels = unique(df$TotalGlycanComposition))
+  dfsum$TotalGlycanComposition <- factor(dfsum$TotalGlycanComposition, levels = unique(dfsum$TotalGlycanComposition))
 
   p <- ggplot2::ggplot(data = dfsum) +
     ggplot2::geom_bar(data = dfsum, aes(x = TotalGlycanComposition, y = mean, fill = Condition), stat = "identity", color = "black") +
