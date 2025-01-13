@@ -1,3 +1,17 @@
+#' Plot quantification per site
+#'
+#' @param input The input data as imported through one of the GlycoDiveR importers.
+#' @param protein The protein defined in the UniprotIDs column.
+#' @param site The site as in the ModificationID column.
+#' @param cutoff An Intensity column, either in percentage or as an absolute number.
+#'
+#' @returns A graph.
+#' @export
+#'
+#' @examples
+#' \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = 1e9)}
+#'
+#' \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = "10%")}
 PlotSiteQuantification <- function(input, protein, site, cutoff = NA){
   input <- FilterForCutoffs(input)
 
