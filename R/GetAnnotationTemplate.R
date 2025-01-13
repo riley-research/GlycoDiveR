@@ -13,17 +13,17 @@ GetAnnotationTemplate <- function(path, tool){
     unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 
     tempdf <- data.frame(Run = unique(unfiltereddf$Run),
-                         Group = NA,
+                         Condition = NA,
                          Alias = NA,
-                         bioRep = NA,
-                         techRep = NA)
+                         BioReplicate = NA,
+                         TechReplicate = NA)
 
     if(grepl("/$", path)){
       utils::write.csv(tempdf, paste0(path,"annotation.csv"), row.names=FALSE)
       message("INFO: ", "Annotation dataframe exported to: ", paste0(path,"annotation.csv"))
     }else{
       utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
-      message("INFO: ", "Annotation dataframe export to: ", paste0(path,"/annotation.csv"))}
+      message("INFO: ", "Annotation dataframe exported to: ", paste0(path,"/annotation.csv"))}
 
   }
   else{

@@ -47,9 +47,8 @@ PlotPTMQuantification <- function(input, protein){
       mtrx[is.infinite(mtrx)] <- 0
       mtrx[is.na(mtrx)] <- 0
 
-      mtrx <- mtrx[rowSums(mtrx != 0) > 0, ]
-
-      print(mtrx)
+      row_indices <- rowSums(mtrx != 0) > 0
+      mtrx <- mtrx[row_indices, , drop = FALSE]
 
       #Get the color scheme
       valuesInMtrx <- sort(unique(as.vector(mtrx)))
