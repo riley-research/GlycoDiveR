@@ -165,3 +165,17 @@ GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
 fmessage <- function(m){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
 }
+
+GetUniprotGlycoInfo <- function(accVec, PTMLocalization){
+  acc <- strsplit(accVec, ",")[[1]][1]
+  geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
+  scrape <- read.csv(URLencode(geturl), sep = "\t")
+  scrape <- scrape %>%
+    tidyr::separate_longer_delim(cols = "Glycosylation", delim = " CARBOHYD ") %>%
+    dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
+    tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
+
+  print(scrape)
+  scrape <- subset(scrape, Site == as.character(PTMLocalization))
+  print(scrape)
+}
