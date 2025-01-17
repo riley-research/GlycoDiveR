@@ -1,6 +1,14 @@
 CombineTwoCols <- function(row){
-  if (is.na(row[2]) | row[2] == ""){return(as.character(row[1]))}
-  else{return(as.character(paste(row[1], row[2], sep = ",")))}}
+  if (is.na(row[2]) | row[2] == ""){
+    returnVal <- as.character(row[1])
+    return(returnVal)
+  }else{
+    returnVal <- as.character(paste(row[1], row[2], sep = ","))
+    if(substring(returnVal, 1, 1) == ","){
+      returnVal <- substring(returnVal, 2, nchar(returnVal))
+    }
+    return(returnVal)
+    }}
 
 CombineProtCols <- function(row){
   if (is.na(row[2]) | row[2] == ""){
@@ -34,7 +42,7 @@ PSMToPTMTable <- function(PSMTable){
                     ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
                     ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
 
-  tempdf$NGlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
 
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
 
@@ -42,25 +50,140 @@ PSMToPTMTable <- function(PSMTable){
 }
 
 GlycanComptToGlycanType <- function(mod, glycanComp){
-  if(is.na(mod) | mod == ""){return("NotGlyco")}
-  else{
-    #glycanComp = "HexNAc(4)Hex(5)NeuAc(1) % 1913.6771"
-    glycanMass = strsplit(glycanComp, "%")[[1]][2]
-    glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
+  modType <- c()
+  allModsVec <- strsplit(mod, ",")[[1]]
 
-    if(TRUE %in% grepl(glycanMass, mod)){
-      hexNAc_count <- suppressWarnings(as.numeric(sub(".*HexNAc\\(([0-9]+)\\).*", "\\1", glycanComp)))
-      hex_count <- suppressWarnings(as.numeric(sub(".*Hex\\(([0-9]+)\\).*", "\\1", glycanComp)))
+  if(is.na(mod) | mod == ""){
+    return("Unmodified")}
 
-      glycanCat <- case_when(
-        grepl("NeuAc", glycanComp) & grepl("Fuc", glycanComp) ~ "Sialyl+Fucose",
-        grepl("NeuAc", glycanComp) ~ "Sialyl",
-        grepl("Fuc", glycanComp) ~ "Fucose",
-        !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 4 ~ "High Mannose",
-        TRUE ~ "Complex/Hybrid"
-      )
-      return(glycanCat)
-    }else{
-        return("NotGlyco")}
+  for(i in allModsVec){
+    modifiedResidue <- strsplit(i, "\\(")[[1]][1]
+    modifiedResidue <- substr(modifiedResidue, nchar(modifiedResidue) , nchar(modifiedResidue))
+
+    if(is.na(mod) | mod == ""){
+      modType <- append(modType, "NonGlyco")
+      }else if(!(modifiedResidue %in% c("S", "T", "N"))){
+        modType <- append(modType, "NonGlyco")
+        }else if((glycanComp != "" & modifiedResidue == "N") | (!is.na(glycanComp) & modifiedResidue == "N")){
+      glycanMass = strsplit(glycanComp, "%")[[1]][2]
+      glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
+
+      if(TRUE %in% grepl(glycanMass, mod)){
+        hexNAc_count <- suppressWarnings(as.numeric(sub(".*HexNAc\\(([0-9]+)\\).*", "\\1", glycanComp)))
+        hex_count <- suppressWarnings(as.numeric(sub(".*Hex\\(([0-9]+)\\).*", "\\1", glycanComp)))
+
+        glycanCat <- dplyr::case_when(
+          grepl("A", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
+          grepl("A", glycanComp) ~ "Sialyl",
+          grepl("F", glycanComp) ~ "Fucose",
+          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 4 ~ "High Mannose",
+          TRUE ~ "Complex/Hybrid"
+        )
+        modType <- append(modType, glycanCat)
+      }else if((glycanComp != "" & modifiedResidue %in% c("S", "T")) | (!is.na(glycanComp) & modifiedResidue %in% c("S", "T"))){
+        modType <- append(modType, "OGlycan")
+      }else{
+        modType <- append(modType, "NonGlyco")
+      }
+        }
   }
+
+  return(as.vector(modType))
+  }
+
+GetPeptide <- function(pep, modpep){
+  if(!is.na(modpep) & modpep != ""){
+    return(modpep)}
+  else {
+    return(pep)
+  }
+}
+
+GetMeanTechReps <- function(df){
+  #Keep highest intensity per technical rep
+  df <- df %>%
+    dplyr::arrange(desc(Intensity)) %>%
+    dplyr::distinct(Run, AssignedModifications,ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE) %>%
+    ungroup()
+
+  #Take median of technical reps
+  df <- df %>%
+    dplyr::group_by(ModifiedPeptide, AssignedModifications, Condition, BioReplicate) %>%
+    dplyr::mutate(Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
+    distinct(ModifiedPeptide, Condition, BioReplicate, .keep_all = TRUE)
+
+  return(df)
+}
+
+CleanGlycanNames <- function(glycan){
+  glycan <- gsub("HexNAc", "N", glycan)
+  glycan <- gsub("Hex", "H", glycan)
+  glycan <- gsub("NeuAc", "A", glycan)
+  glycan <- gsub("Fuc", "F", glycan)
+  glycan <- gsub("NeuGc", "G", glycan)
+  return(glycan)
+}
+
+FilterForCutoffs <- function(input){
+  if(input$searchEngine %in% c("MSFragger")){
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff, ".\033[0m")
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    input$PSMTable <- subset(input$PSMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
+                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
+    input$PTMTable <- subset(input$PTMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
+                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    return(input)
+  }else{
+    warning("No search engine recognized, returning unfiltered dataframe.")
+    return(input)
+  }
+}
+
+GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
+  inputVector <- strsplit(IDVec[1], ",")[[1]]
+  uniprotID <- inputVector[1]
+  IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
+  seq <- paste(IDhit[[1]], collapse = "")
+  seq <- toupper(seq)
+
+  pattern_NXS <- "N[^P]S"
+  pattern_NXT <- "N[^P]T"
+  pattern_S <- "S"
+  pattern_T <- "T"
+
+  count_NXS <- length(regmatches(seq, gregexpr(pattern_NXS, seq))[[1]])
+  count_NXT <- length(regmatches(seq, gregexpr(pattern_NXT, seq))[[1]])
+  count_S <- length(regmatches(seq, gregexpr(pattern_S, seq))[[1]])
+  count_T <- length(regmatches(seq, gregexpr(pattern_T, seq))[[1]])
+
+  rslt <- paste0(sum(count_NXS, count_NXT), ";", sum(count_S, count_T))
+
+  return(rslt)
+}
+
+fmessage <- function(m){
+  message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
+}
+
+GetUniprotGlycoInfo <- function(accVec, PTMLocalization, type){
+  if(type[1] == "" | is.na(type[1]) | type[1] %in% c("NonGlyco", "Unmodified")){
+    return(NA)
+  }
+
+  acc <- strsplit(accVec[1], ",")[[1]][1]
+  geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
+  scrape <- read.csv(URLencode(geturl), sep = "\t")
+  scrape <- scrape %>%
+    tidyr::separate_longer_delim(cols = "Glycosylation", delim = " CARBOHYD ") %>%
+    dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
+    tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
+
+  scrape <- subset(scrape, Site == as.character(PTMLocalization[1]))
+
+  if(is.null(scrape) | nrow(scrape) == 0 | is.null(nrow(scrape))){
+    return("No evidence")
+  }
+
+  return(scrape$Info)
 }
