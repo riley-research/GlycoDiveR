@@ -14,9 +14,6 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
     tidyr::pivot_wider(names_from = Alias, values_from = Run)
 
-  View(df)
-  #AAIPSALDTN[1330]SSK
-
   df <- df %>%
     dplyr::ungroup() %>%
     dplyr::mutate(dplyr::across(-c(ModifiedPeptide, GlycanType), ~ ifelse(!is.na(.), 1, 0)))
@@ -26,8 +23,6 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
   rownames(mtrx) <- df$ModifiedPeptide
 
   mtrx <- mtrx[,levels(input$PTMTable$Alias), drop = FALSE]
-
-  View(mtrx)
 
   #Get heatmap annotation, color, and legend
   colH <- setNames(colorScheme[1:length(unique(df$GlycanType))], unique(df$GlycanType))
