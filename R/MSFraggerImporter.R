@@ -1,7 +1,8 @@
 #source(here::here("R/ImportConverters.R"))
 #source(here::here("R/GlycoDiveRUtils.R"))
 
-MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff){
+MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
+                              scrape = TRUE){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
 
@@ -28,6 +29,26 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
 
   filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
   PTMdf$TotalGlycanComposition <- sapply(PTMdf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
+
+  if(scrape){
+    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.\n
+             This might take a while for large datasets.")
+
+    #pb <- utils::txtProgressBar(min = 0, max = nrow(PTMdf), style = 3)
+
+    #sapply(seq(1, nrow(PTMdf)), function(x) {
+    #  GetUniprotGlycoInfo(as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][1]),
+    #                      as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][2]),
+    #                      as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][3]))
+    #  setTxtProgressBar(pb, x)})
+    #close(pb)
+
+    PTMdf <- PTMdf %>%
+      dplyr::group_by(UniprotIDs, ProteinPTMLocalization, GlycanType) %>%
+      dplyr::mutate(UniprotGlycoEvidence = GetUniprotGlycoInfo(accVec = UniprotIDs, PTMLocalization = ProteinPTMLocalization, type = GlycanType))
+
+    fmessage("Finished scrape.")
+  }
 
   data <- list(PSMTable = filtereddf,
                rawPSMTable = unfiltereddf,

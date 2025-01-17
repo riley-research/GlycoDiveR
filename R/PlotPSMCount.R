@@ -1,4 +1,6 @@
 PlotPSMCount <- function(inputData){
+  inputData <- FilterForCutoffs(inputData)
+
   inputData$PSMTable$Glycan <- sapply(inputData$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 
   tempdf <- inputData$PSMTable %>%

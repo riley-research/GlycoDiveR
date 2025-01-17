@@ -126,12 +126,12 @@ CleanGlycanNames <- function(glycan){
 
 FilterForCutoffs <- function(input){
   if(input$searchEngine %in% c("MSFragger")){
-    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", test$peptideScoreCutoff, " and glycan score <= ", test$glycanScoreCutoff, ".\033[0m")
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff, ".\033[0m")
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
-    input$PSMTable <- subset(input$PSMTable, (PSMScore >= test$peptideScoreCutoff & GlycanQValue <= test$glycanScoreCutoff) |
-                               (PSMScore >= test$peptideScoreCutoff & is.na(GlycanQValue)))
-    input$PTMTable <- subset(input$PTMTable, (PSMScore >= test$peptideScoreCutoff & GlycanQValue <= test$glycanScoreCutoff) |
-                               (PSMScore >= test$peptideScoreCutoff & is.na(GlycanQValue)))
+    input$PSMTable <- subset(input$PSMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
+                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
+    input$PTMTable <- subset(input$PTMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
+                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
     return(input)
   }else{
@@ -166,8 +166,12 @@ fmessage <- function(m){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
 }
 
-GetUniprotGlycoInfo <- function(accVec, PTMLocalization){
-  acc <- strsplit(accVec, ",")[[1]][1]
+GetUniprotGlycoInfo <- function(accVec, PTMLocalization, type){
+  if(type[1] == "" | is.na(type[1]) | type[1] %in% c("NonGlyco", "Unmodified")){
+    return(NA)
+  }
+
+  acc <- strsplit(accVec[1], ",")[[1]][1]
   geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
   scrape <- read.csv(URLencode(geturl), sep = "\t")
   scrape <- scrape %>%
@@ -175,7 +179,11 @@ GetUniprotGlycoInfo <- function(accVec, PTMLocalization){
     dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
     tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
 
-  print(scrape)
-  scrape <- subset(scrape, Site == as.character(PTMLocalization))
-  print(scrape)
+  scrape <- subset(scrape, Site == as.character(PTMLocalization[1]))
+
+  if(is.null(scrape) | nrow(scrape) == 0 | is.null(nrow(scrape))){
+    return("No evidence")
+  }
+
+  return(scrape$Info)
 }
