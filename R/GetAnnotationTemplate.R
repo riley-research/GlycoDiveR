@@ -4,9 +4,9 @@ GetAnnotationTemplate <- function(path, tool){
     fileList <- fileList[grepl("psm.tsv", fileList)]
     unfiltereddf <- data.frame()
 
-    print(fileList)
+    if(length(fileList) == 0){stop("No files found.")}
     for(file in fileList){
-      temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T)
+      temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T, quote = "")
       unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
     }
 
@@ -21,10 +21,10 @@ GetAnnotationTemplate <- function(path, tool){
 
     if(grepl("/$", path)){
       utils::write.csv(tempdf, paste0(path,"annotation.csv"), row.names=FALSE)
-      message("INFO: ", "Annotation dataframe exported to: ", paste0(path,"annotation.csv"))
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"annotation.csv")))
     }else{
       utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
-      message("INFO: ", "Annotation dataframe exported to: ", paste0(path,"/annotation.csv"))}
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
 
   }
   else{
