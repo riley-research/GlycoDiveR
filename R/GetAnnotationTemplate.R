@@ -4,6 +4,7 @@ GetAnnotationTemplate <- function(path, tool){
     fileList <- fileList[grepl("psm.tsv", fileList)]
     unfiltereddf <- data.frame()
 
+    print(fileList)
     for(file in fileList){
       temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T)
       unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)

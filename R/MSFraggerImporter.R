@@ -9,8 +9,12 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   fileList <- list.files(path, recursive = TRUE)
   fileList <- fileList[grepl("psm.tsv", fileList)]
 
+  if(length(fileList) == 0){
+    stop("No files found")
+  }
   for(file in fileList){
-    temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T)
+    fmessage(paste0("Now importing: ", file))
+    temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T, quote = "")
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 

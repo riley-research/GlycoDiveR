@@ -41,6 +41,15 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   if ("Glycan.q.value" %in% existingCols) {
     filtereddf <- cbind(filtereddf, GlycanQValue = as.double(unfiltereddf$Glycan.q.value))
     fmessage("Successfully imported Glycan q Value column.")}
+  else if("Confidence.Level" %in% existingCols){
+    filtereddf <- cbind(filtereddf, GlycanQValue = unfiltereddf$Confidence.Level)
+
+    filtereddf$GlycanQValue <- dplyr::case_when(filtereddf$GlycanQValue %in% c("Level1", "Level1b") ~ "0",
+                                                    filtereddf$GlycanQValue %in% c("Level2") ~ "0.05",
+                                                    filtereddf$GlycanQValue %in% c("Level3") ~ "0.1",
+                                                    TRUE ~ filtereddf$GlycanQValue)
+    filtereddf$GlycanQValue <- as.numeric(filtereddf$GlycanQValue)
+    fmessage("Successfully imported Glycan q Value column.")}
   else {stop("The column Glycan.q.value was not found in the input dataframe.")}
 
   if ("Is.Unique" %in% existingCols) {
