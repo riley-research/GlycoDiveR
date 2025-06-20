@@ -1,3 +1,13 @@
+#' GetAnnotationTemplate
+#'
+#' @param path
+#' @param tool
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+#'
 GetAnnotationTemplate <- function(path, tool){
   if(tool == "MSFragger"){
     fileList <- list.files(path, recursive = TRUE)
