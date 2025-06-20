@@ -1,12 +1,12 @@
 #' GetAnnotationTemplate
 #'
-#' @param path
-#' @param tool
+#' @param path The path the the folder that holds the subforlder with the PSM files
+#' @param tool The search engine used. Options: MSFragger
 #'
-#' @returns
+#' @returns Exported annotation file
 #' @export
 #'
-#' @examples
+#' @examples GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")
 #'
 GetAnnotationTemplate <- function(path, tool){
   if(tool == "MSFragger"){
