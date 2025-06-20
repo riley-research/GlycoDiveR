@@ -35,9 +35,10 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
+  View(tempdf)
   tempdf <- tempdf %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("^[0-9]+", AssignedModifications))[[1]]),
+      dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("[0-9]+", AssignedModifications))[[1]][1]),
                     ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
                     ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
                     ModificationID = paste0(ModificationSite,ProteinPTMLocalization))

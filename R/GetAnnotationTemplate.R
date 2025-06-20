@@ -6,10 +6,12 @@ GetAnnotationTemplate <- function(path, tool){
 
     if(length(fileList) == 0){stop("No files found.")}
     for(file in fileList){
-      temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T, quote = "")
+      print(paste0(path, "/", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE)
+      #temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", col.names = T, quote = "")
       unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
     }
-
+    View(unfiltereddf)
     lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
     unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 

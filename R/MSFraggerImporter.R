@@ -14,7 +14,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   }
   for(file in fileList){
     fmessage(paste0("Now importing: ", file))
-    temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T, quote = "")
+    temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE)
+    #temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", header = T, quote = "")
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 
