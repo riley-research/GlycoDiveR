@@ -1,3 +1,13 @@
+#' PlotGlycoproteinGlycanNetwork
+#'
+#' @param input Formatted data
+#' @param condition What condition to plot as listed in the annotation dataframe
+#' @param type Glycan type "N"
+#'
+#' @returns A glycoprotein to glycan network
+#' @export
+#'
+#' @examples PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated")
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
   if(!is.na(condition)){
     input$PTMTable <- subset(input$PTMTable, Condition %in% condition)

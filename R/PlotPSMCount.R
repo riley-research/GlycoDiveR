@@ -1,3 +1,11 @@
+#' PlotPSMCount
+#'
+#' @param inputData Formatted data
+#'
+#' @returns the PSM count
+#' @export
+#'
+#' @examples PlotPSMCount(myData)
 PlotPSMCount <- function(inputData){
   inputData <- FilterForCutoffs(inputData)
 

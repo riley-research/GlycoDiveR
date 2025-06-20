@@ -1,3 +1,13 @@
+#' Plot Completeness Heatmap
+#'
+#' @param input Formatted data
+#' @param grouping peptide or glyco
+#' @param peptideType glyco or other
+#'
+#' @returns Grouped heatmap
+#' @export
+#'
+#' @examples PlotCompletenessHeatmap(mydata)
 PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = "glyco"){
   input <- FilterForCutoffs(input)
 

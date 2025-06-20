@@ -1,3 +1,11 @@
+#' PlotGlycanPerSite
+#'
+#' @param input Formatted data
+#'
+#' @returns The number of glycans per site
+#' @export
+#'
+#' @examples PlotGlycanPerSite(myData)
 PlotGlycansPerSite <- function(input){
   input <- FilterForCutoffs(input)
 

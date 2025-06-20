@@ -1,3 +1,12 @@
+#' PlotPTMQuantification
+#'
+#' @param input Formatted data
+#' @param protein What protein to quantify the PTM for
+#'
+#' @returns The PTM quantification for a specific protein
+#' @export
+#'
+#' @examples PlotPTMQuantification(mydata, "P07361")
 PlotPTMQuantification <- function(input, protein){
   input <- FilterForCutoffs(input)
 

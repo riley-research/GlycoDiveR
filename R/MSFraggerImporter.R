@@ -1,6 +1,21 @@
-#source(here::here("R/ImportConverters.R"))
-#source(here::here("R/GlycoDiveRUtils.R"))
-
+#' Title
+#'
+#' @param path Path to search engine output folder
+#' @param annotation Path to annotation file
+#' @param fastaPath Path to FASTA file
+#' @param peptideScoreCutoff Peptide score cutoff
+#' @param glycanScoreCutoff Glycan score cutoff
+#' @param scrape set TRUE/FALSE to use scraping of Uniprot data
+#'
+#' @returns Formatted dataframes
+#' @export
+#'
+#' @examples MSFraggerImporter(path = "Z:/Folder",
+#' annotation = "Z:/Folder/annotation.csv",
+#' fasta = "Z:/fasta.fasta",
+#' peptideScoreCutoff = 0,
+#' glycanScoreCutoff = 0.05,
+#' scrape = FALSE)
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
                               scrape = TRUE){
   unfiltereddf <- data.frame()

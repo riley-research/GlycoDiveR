@@ -1,3 +1,12 @@
+#' PlotGlycoPSMCount
+#'
+#' @param input Formatted data
+#' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
+#'
+#' @returns A GlycoPSM graph
+#' @export
+#'
+#' @examples PlotGlycoPSMCount(mydata, grouping = "condition")
 PlotGlycoPSMCount <- function(input, grouping){
   input <- FilterForCutoffs(input)
 
