@@ -1,3 +1,12 @@
+#' PlotGlycoPeptideCount
+#'
+#' @param input Formatted data
+#' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
+#'
+#' @returns A graph showing the number of unique glycopeptides
+#' @export
+#'
+#' @examples PlotGlycoPSMCount(mydata, grouping = "condition")
 PlotGlycopeptideCount <- function(input, grouping){
   input <- FilterForCutoffs(input)
 
