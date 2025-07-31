@@ -21,7 +21,6 @@ GetAnnotationTemplate <- function(path, tool){
       #temptable <- utils::read.table(paste0(path, "/", file), sep = "\t", col.names = T, quote = "")
       unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
     }
-    View(unfiltereddf)
     lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
     unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 

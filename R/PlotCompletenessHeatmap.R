@@ -21,8 +21,6 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
     df <- subset(df, GlycanType != "")
   }
 
-  print(unique(df$Run))
-  View(df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")])
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
     ungroup() %>%
     tidyr::pivot_wider(names_from = Alias, values_from = Run, values_fn = dplyr::first)
