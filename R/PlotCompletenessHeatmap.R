@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @examples PlotCompletenessHeatmap(mydata)
-PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = "glyco"){
+PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = "glyco", exportDataTo = FALSE){
   input <- FilterForCutoffs(input)
 
   if(grouping == "peptide"){
@@ -34,6 +34,10 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
   rownames(mtrx) <- df$ModifiedPeptide
 
   mtrx <- mtrx[,levels(input$PTMTable$Alias), drop = FALSE]
+
+  if(!identical(exportDataTo, FALSE)){
+    write.csv(mtrx, paste0(exportDataTo, "/CompletenessHeatmapData.csv"))
+  }
 
   #Get heatmap annotation, color, and legend
   colH <- setNames(colorScheme[1:length(unique(df$GlycanType))], unique(df$GlycanType))
