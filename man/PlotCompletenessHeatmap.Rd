@@ -4,7 +4,12 @@
 \alias{PlotCompletenessHeatmap}
 \title{Plot Completeness Heatmap}
 \usage{
-PlotCompletenessHeatmap(input, grouping = "peptide", peptideType = "glyco")
+PlotCompletenessHeatmap(
+  input,
+  grouping = "peptide",
+  peptideType = "glyco",
+  exportDataTo = FALSE
+)
 }
 \arguments{
 \item{input}{Formatted data}
