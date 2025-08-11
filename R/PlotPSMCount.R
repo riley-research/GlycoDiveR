@@ -1,6 +1,7 @@
 #' PlotPSMCount
 #'
 #' @param inputData Formatted data
+#' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
 #'
 #' @returns the PSM count
 #' @export
