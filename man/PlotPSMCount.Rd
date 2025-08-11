@@ -4,10 +4,12 @@
 \alias{PlotPSMCount}
 \title{PlotPSMCount}
 \usage{
-PlotPSMCount(inputData)
+PlotPSMCount(inputData, grouping = "technicalReps")
 }
 \arguments{
 \item{inputData}{Formatted data}
+
+\item{grouping}{grouping is "technicalReps", "biologicalReps", or "condition"}
 }
 \value{
 the PSM count
