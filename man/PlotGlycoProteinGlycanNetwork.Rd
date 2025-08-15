@@ -4,7 +4,13 @@
 \alias{PlotGlycoProteinGlycanNetwork}
 \title{PlotGlycoproteinGlycanNetwork}
 \usage{
-PlotGlycoProteinGlycanNetwork(input, condition = NA, type = "N")
+PlotGlycoProteinGlycanNetwork(
+  input,
+  condition = NA,
+  type = "N",
+  edgeWidth = 1.5,
+  verticeSize = c(5, 3)
+)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -12,6 +18,10 @@ PlotGlycoProteinGlycanNetwork(input, condition = NA, type = "N")
 \item{condition}{What condition to plot as listed in the annotation dataframe}
 
 \item{type}{Glycan type "N"}
+
+\item{edgeWidth}{defines the linewidth of the edges}
+
+\item{verticeSize}{defines the size of the glycan and protein nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
 }
 \value{
 A glycoprotein to glycan network
@@ -20,5 +30,6 @@ A glycoprotein to glycan network
 PlotGlycoproteinGlycanNetwork
 }
 \examples{
-PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated")
+PlotGlycoProteinGlycanNetwork(mydata)
+PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated", edgeWidth = 3, verticeSize = c(3,4))
 }

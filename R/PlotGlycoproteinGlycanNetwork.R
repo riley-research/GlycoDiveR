@@ -3,14 +3,21 @@
 #' @param input Formatted data
 #' @param condition What condition to plot as listed in the annotation dataframe
 #' @param type Glycan type "N"
+#' @param edgeWidth defines the linewidth of the edges
+#' @param verticeSize defines the size of the glycan and protein nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
 #'
-#' @examples PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated")
-PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
+#' @examples PlotGlycoProteinGlycanNetwork(mydata)
+#' @examples PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated", edgeWidth = 3, verticeSize = c(3,4))
+PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
+                                          edgeWidth = 1.5, verticeSize = c(5,3)){
   if(!is.na(condition)){
     input$PTMTable <- subset(input$PTMTable, Condition %in% condition)
+    if(nrow(input$PTMTable) == 0){
+      stop("Just tried selecting the following condition: ", condition, ".\nNo rows are left after filtering.")
+    }
   }
 
   input <- FilterForCutoffs(input)
@@ -26,12 +33,12 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
     dplyr::mutate(x = 1)
   dfprot$y <- seq(1,nrow(dfprot))
 
-  dfprot$col <- sapply(dfprot$NumberOfNSites, function(x) dplyr::case_when(x == 1 ~ "#FAFAFA",
-                                                                           x == 2 ~ "#D9D9D9",
-                                                                           x == 3 ~ "#BDBDBD",
-                                                                           x == 4 ~ "#737574",
-                                                                           x == 5 ~ "#535554",
-                                                                           TRUE ~ "#1E1E1E"))
+  dfprot$col <- sapply(dfprot$NumberOfNSites, function(x) dplyr::case_when(x == 1 ~ "grey90",
+                                                                           x == 2 ~ "grey70",
+                                                                           x == 3 ~ "grey50",
+                                                                           x == 4 ~ "grey30",
+                                                                           x == 5 ~ "grey15",
+                                                                           TRUE ~ "black"))
 
   dfleg <- dfprot %>%
     dplyr::arrange(NumberOfNSites) %>%
@@ -61,10 +68,31 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
   angles <- seq(pi / 2, 2 * pi + pi / 2, length.out = numv + 1)[-numv - 1]
 
   x_coords <- radius * cos(angles)
-  x_coords <- sapply(x_coords, function(x) ifelse(x <= 0.01, x - (0.2 * radius), x + (0.2 * radius)))
+  x_coords <- sapply(x_coords, function(x) ifelse(x <= 0.01,
+                                                  x - (0.2 * radius),
+                                                  x + (0.2 * radius)))
 
   y_coords <- radius * sin(angles)
   y_coords <- sapply(y_coords, function(x) x + radius)
+
+  circle_coords <- data.matrix(data.frame(x = x_coords, y = y_coords))
+
+  # --- Protein coordinates (centered) ---
+  center_y <- radius
+  nprot <- nrow(dfprot)
+
+  if (nprot == 1) {
+    # Only one protein → put it exactly in the center
+    prot_y <- center_y
+  } else {
+    # Multiple proteins → spread them evenly with the middle at center_y
+    prot_y <- seq(center_y - (nprot - 1) / 2,
+                  center_y + (nprot - 1) / 2,
+                  length.out = nprot)
+  }
+
+  dfprot$x <- 0  # all proteins in a vertical column
+  dfprot$y <- prot_y
 
   circle_coords <- data.matrix(data.frame(x = x_coords, y = y_coords))
 
@@ -74,7 +102,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
   g <- igraph::add_vertices(g, nv = nrow(dfgly), attr = list(name = dfgly$TotalGlycanComposition))
 
   igraph::V(g)$shape <- c(rep("square", nrow(dfprot)), rep("circle", nrow(dfgly)))
-  igraph::V(g)$size <- c(rep(5, nrow(dfprot)), rep(2, nrow(dfgly)))
+  igraph::V(g)$size <- c(rep(verticeSize[1], nrow(dfprot)), rep(verticeSize[2], nrow(dfgly)))
   igraph::V(g)$color <- c(dfprot$col, dfgly$col)
 
   #Combine the coords
@@ -84,15 +112,29 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N"){
   df <- df %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)
 
-  df$colv <- sapply(df$col, function(x) paste0(x, as.character(50)))
+  df$colv <- sapply(df$col, function(x) paste0(x, as.character(80)))
 
   edge_list <- as.vector(t(df[,c("TotalGlycanComposition", "UniprotIDs")]))
 
   g <- igraph::add_edges(g, edges = edge_list)
 
   plot(g, layout = coords, vertex.label = NA, vertex.size = igraph::V(g)$size,
-       vertex.color = igraph::V(g)$color, edge.color = df$colv)
+       vertex.color = igraph::V(g)$color, edge.color = df$colv,
+       edge.width = edgeWidth)
 
-  legend('topright', legend = dfcolmatch$GlycanType, fill = dfcolmatch$col, title="Glycan Type")
-  legend('bottomright', legend = unique(dfleg$NumberOfNSites), fill = unique(dfleg$col), title = "Sites Per\nProtein")
+  legend("topright", inset = c(-0.18, 0),
+         legend = dfcolmatch$GlycanType,
+         fill = dfcolmatch$col,
+         title = "Glycan Type",
+         cex = 0.8,
+         pt.cex = 0.6,
+         bty = "n")
+
+  legend("bottomright", inset = c(0, 0),
+         legend = unique(dfleg$NumberOfNSites),
+         fill = unique(dfleg$col),
+         title = "Sites Per\nProtein",
+         cex = 0.8,
+         pt.cex = 0.6,
+         bty = "n")
 }
