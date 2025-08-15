@@ -38,8 +38,8 @@ PlotGlycoPSMCount <- function(input, grouping){
                      sd = sd(PSMCount, na.rm = TRUE)) %>%
       dplyr::distinct(Condition, BioReplicate, .keep_all = TRUE)
 
-    minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount))
-    maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount))
+    minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
+    maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
 
     p <- ggplot() +
       ggplot2::geom_bar(data = tempdfsum, aes(x=x, y = mean, fill = Condition), stat = "identity", position = "stack", color = "black") +
@@ -63,8 +63,8 @@ PlotGlycoPSMCount <- function(input, grouping){
                      sd = sd(PSMCount, na.rm = TRUE)) %>%
       dplyr::distinct(Condition, .keep_all = TRUE)
 
-    minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount))
-    maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount))
+    minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
+    maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
 
     p <- ggplot() +
       ggplot2::geom_bar(data = tempdfsum, aes(x=Condition, y = mean, fill = Condition), stat = "identity", position = "stack", color = "black") +

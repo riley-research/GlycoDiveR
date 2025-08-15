@@ -52,8 +52,8 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps"){
       dplyr::mutate(corrected_count = if_else(Glycan == "nonGlycosylated", sum_count, PSMCount))
 
     #Get highest and lowest values to calculate y-axis limits
-    minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count))
-    maxVal <- max(c(tempdfsum$corrected_mean + tempdfsum$sd, tempdf$corrected_count))
+    minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
+    maxVal <- max(c(tempdfsum$corrected_mean + tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
 
     #Plot graph
     p <- ggplot2::ggplot() +
@@ -93,8 +93,8 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps"){
       dplyr::mutate(corrected_count = if_else(Glycan == "nonGlycosylated", sum_count, PSMCount))
 
     #Get highest and lowest values to calculate y-axis limits
-    minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count))
-    maxVal <- max(c(tempdfsum$corrected_mean + tempdfsum$sd, tempdf$corrected_count))
+    minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
+    maxVal <- max(c(tempdfsum$corrected_mean + tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
 
     #Plot graph
     p <- ggplot2::ggplot() +

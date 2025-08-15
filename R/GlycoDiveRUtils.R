@@ -111,12 +111,21 @@ GetMeanTechReps <- function(df){
   df <- df %>%
     dplyr::arrange(desc(Intensity)) %>%
     dplyr::distinct(Run, AssignedModifications, ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE)
-  #Take median of technical reps together
-  df <- df %>%
-    dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
-    dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, ModificationID, .keep_all = TRUE)
 
-  return(df)
+  if("ModificationID" %in% names(df)){
+    #Take median of technical reps together
+    df <- df %>%
+      dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
+      dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, ModificationID, .keep_all = TRUE)
+
+    return(df)
+  }else{
+    df <- df %>%
+      dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
+      dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, .keep_all = TRUE)
+    return(df)
+  }
+
 }
 
 CleanGlycanNames <- function(glycan){
