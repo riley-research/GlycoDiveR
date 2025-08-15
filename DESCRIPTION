@@ -16,12 +16,13 @@ Imports:
     dplyr,
     ggplot2,
     ggrepel,
-    here,
     magrittr,
     patchwork,
     seqinr,
     tidyr,
     utils,
-    igraph
+    igraph,
+    data.table,
+    stringr
 Depends: 
     R (>= 3.5)

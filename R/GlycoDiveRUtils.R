@@ -35,12 +35,19 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
+  # tempdf <- tempdf %>%
+  #     dplyr::rowwise() %>%
+  #     dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("[0-9]+", AssignedModifications))[[1]][1]),
+  #                   ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
+  #                   ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
+  #                   ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
+
   tempdf <- tempdf %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("[0-9]+", AssignedModifications))[[1]][1]),
-                    ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
-                    ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
-                    ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
+    dplyr::mutate(
+      PeptidePTMLocalization = as.numeric(stringr::str_extract(AssignedModifications, "\\d+")),
+      ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
+      ModificationSite = stringr::str_extract(AssignedModifications, "[A-Za-z](?=\\()"),
+      ModificationID = paste0(ModificationSite, ProteinPTMLocalization))
 
   tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
 
@@ -103,14 +110,11 @@ GetMeanTechReps <- function(df){
   #Keep highest intensity per technical rep
   df <- df %>%
     dplyr::arrange(desc(Intensity)) %>%
-    dplyr::distinct(Run, AssignedModifications,ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE) %>%
-    ungroup()
-
-  #Take median of technical reps
+    dplyr::distinct(Run, AssignedModifications, ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE)
+  #Take median of technical reps together
   df <- df %>%
-    dplyr::group_by(ModifiedPeptide, AssignedModifications, Condition, BioReplicate) %>%
-    dplyr::mutate(Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
-    distinct(ModifiedPeptide, Condition, BioReplicate, .keep_all = TRUE)
+    dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
+    dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, ModificationID, .keep_all = TRUE)
 
   return(df)
 }

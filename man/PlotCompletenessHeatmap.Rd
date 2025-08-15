@@ -17,6 +17,8 @@ PlotCompletenessHeatmap(
 \item{grouping}{peptide or glyco}
 
 \item{peptideType}{glyco or other}
+
+\item{exportDataTo}{provide path to a folder to export the heatmap as a csv file}
 }
 \value{
 Grouped heatmap
@@ -25,5 +27,5 @@ Grouped heatmap
 Plot Completeness Heatmap
 }
 \examples{
-PlotCompletenessHeatmap(mydata)
+\dontrun{PlotCompletenessHeatmap(mydata)}
 }

@@ -16,5 +16,5 @@ The number of glycans per site
 PlotGlycanPerSite
 }
 \examples{
-PlotGlycanPerSite(myData)
+\dontrun{PlotGlycanPerSite(myData)}
 }

@@ -18,5 +18,5 @@ The PTM quantification for a specific protein
 PlotPTMQuantification
 }
 \examples{
-PlotPTMQuantification(mydata, "P07361")
+\dontrun{PlotPTMQuantification(mydata, "P07361")}
 }

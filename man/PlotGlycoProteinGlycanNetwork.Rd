@@ -21,7 +21,8 @@ PlotGlycoProteinGlycanNetwork(
 
 \item{edgeWidth}{defines the linewidth of the edges}
 
-\item{verticeSize}{defines the size of the glycan and protein nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
+\item{verticeSize}{defines the size of the glycan and protein
+nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
 }
 \value{
 A glycoprotein to glycan network
@@ -30,6 +31,14 @@ A glycoprotein to glycan network
 PlotGlycoproteinGlycanNetwork
 }
 \examples{
+\dontrun{
 PlotGlycoProteinGlycanNetwork(mydata)
-PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated", edgeWidth = 3, verticeSize = c(3,4))
+
+PlotGlycoProteinGlycanNetwork(
+  mydata,
+  condition = "DB_treated",
+  edgeWidth = 3,
+  verticeSize = c(3, 4)
+)
+}
 }

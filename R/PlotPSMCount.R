@@ -6,7 +6,7 @@
 #' @returns the PSM count
 #' @export
 #'
-#' @examples PlotPSMCount(myData)
+#' @examples \dontrun{PlotPSMCount(myData)}
 PlotPSMCount <- function(inputData, grouping = "technicalReps"){
   inputData <- FilterForCutoffs(inputData)
 

@@ -18,5 +18,5 @@ A GlycoPSM graph
 PlotGlycoPSMCount
 }
 \examples{
-PlotGlycoPSMCount(mydata, grouping = "condition")
+\dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
 }

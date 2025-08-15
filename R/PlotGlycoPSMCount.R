@@ -6,7 +6,7 @@
 #' @returns A GlycoPSM graph
 #' @export
 #'
-#' @examples PlotGlycoPSMCount(mydata, grouping = "condition")
+#' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
 PlotGlycoPSMCount <- function(input, grouping){
   input <- FilterForCutoffs(input)
 
@@ -18,11 +18,11 @@ PlotGlycoPSMCount <- function(input, grouping){
       dplyr::summarise(PSMCount = n(), .by = c(Run, Alias, Condition, Glycan)) %>%
       dplyr::mutate(Alias = factor(Alias, levels = levels(input$PSMTable$Alias)))
 
-    p <- ggplot(tempdf, aes(x=Alias, y = PSMCount, fill = Condition)) +
-      geom_bar(stat = "identity", position = "stack", color = "black") +
-      labs(x = "", y = "PSM (count)") +
-      scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
-      scale_fill_manual(values = c(colorScheme))
+    p <- ggplot2::ggplot(tempdf, aes(x=Alias, y = PSMCount, fill = Condition)) +
+      ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
+      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
+      ggplot2::scale_fill_manual(values = c(colorScheme))
 
     print(p)
   }else if(grouping == "biologicalReps"){

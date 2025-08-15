@@ -4,13 +4,23 @@
 #' @param condition What condition to plot as listed in the annotation dataframe
 #' @param type Glycan type "N"
 #' @param edgeWidth defines the linewidth of the edges
-#' @param verticeSize defines the size of the glycan and protein nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
+#' @param verticeSize defines the size of the glycan and protein
+#' nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
 #'
-#' @examples PlotGlycoProteinGlycanNetwork(mydata)
-#' @examples PlotGlycoProteinGlycanNetwork(mydata, condition = "DB_treated", edgeWidth = 3, verticeSize = c(3,4))
+#' @examples
+#' \dontrun{
+#' PlotGlycoProteinGlycanNetwork(mydata)
+#'
+#' PlotGlycoProteinGlycanNetwork(
+#'   mydata,
+#'   condition = "DB_treated",
+#'   edgeWidth = 3,
+#'   verticeSize = c(3, 4)
+#' )
+#' }
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3)){
   if(!is.na(condition)){

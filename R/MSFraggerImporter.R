@@ -10,12 +10,12 @@
 #' @returns Formatted dataframes
 #' @export
 #'
-#' @examples MSFraggerImporter(path = "Z:/Folder",
+#' @examples \dontrun{MSFraggerImporter(path = "Z:/Folder",
 #' annotation = "Z:/Folder/annotation.csv",
 #' fasta = "Z:/fasta.fasta",
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 0.05,
-#' scrape = FALSE)
+#' scrape = FALSE)}
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
                               scrape = FALSE){
   unfiltereddf <- data.frame()

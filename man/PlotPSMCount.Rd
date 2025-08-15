@@ -18,5 +18,5 @@ the PSM count
 PlotPSMCount
 }
 \examples{
-PlotPSMCount(myData)
+\dontrun{PlotPSMCount(myData)}
 }

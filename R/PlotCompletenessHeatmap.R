@@ -3,11 +3,12 @@
 #' @param input Formatted data
 #' @param grouping peptide or glyco
 #' @param peptideType glyco or other
+#' @param exportDataTo provide path to a folder to export the heatmap as a csv file
 #'
 #' @returns Grouped heatmap
 #' @export
 #'
-#' @examples PlotCompletenessHeatmap(mydata)
+#' @examples \dontrun{PlotCompletenessHeatmap(mydata)}
 PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = "glyco", exportDataTo = FALSE){
   input <- FilterForCutoffs(input)
 
@@ -22,11 +23,7 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
   }
 
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
-    ungroup() %>%
-    tidyr::pivot_wider(names_from = Alias, values_from = Run, values_fn = dplyr::first)
-
-  df <- df %>%
-    dplyr::ungroup() %>%
+    tidyr::pivot_wider(names_from = Alias, values_from = Run, values_fn = dplyr::first) %>%
     dplyr::mutate(dplyr::across(-c(ModifiedPeptide, GlycanType), ~ ifelse(!is.na(.), 1, 0)))
 
   #Get the matrix and in the right column order

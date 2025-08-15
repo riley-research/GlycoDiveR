@@ -1,5 +1,3 @@
-#source(here::here("R/GlycoDiveRUtils.R"))
-
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
@@ -81,10 +79,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
       filtereddf <- filtereddf %>%
-        dplyr::ungroup() %>%
-        dplyr::group_by(UniprotIDs) %>%
-        dplyr::mutate(ProteinLength = GetProteinLength(IDVec = UniprotIDs, fastaFile = fastaFile)) %>%
-        dplyr::ungroup()
+        dplyr::mutate(.by = UniprotIDs, ProteinLength = GetProteinLength(IDVec = UniprotIDs, fastaFile = fastaFile))
     }else{warning("Fasta path does not exist.")}
   }
 
@@ -92,14 +87,11 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
       filtereddf <- filtereddf %>%
-        dplyr::ungroup() %>%
-        dplyr::group_by(UniprotIDs) %>%
-        dplyr::mutate(NumberOfSites = GetGlycoSitesPerProtein(IDVec = UniprotIDs, fastaFile = fastaFile)) %>%
-        dplyr::ungroup()
+        dplyr::mutate(.by = (UniprotIDs), NumberOfSites = GetGlycoSitesPerProtein(IDVec = UniprotIDs, fastaFile = fastaFile))
 
       filtereddf <- filtereddf %>%
         tidyr::separate_wider_delim(NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
-        mutate(NumberOfNSites = as.numeric(NumberOfNSites), NumberOfOSites = as.numeric(NumberOfOSites))
+        dplyr::mutate(NumberOfNSites = as.numeric(NumberOfNSites), NumberOfOSites = as.numeric(NumberOfOSites))
       fmessage("Successfully mapped number of N and O glycosites per protein.")
     }else{warning("Fasta path does not exist.")}
   }

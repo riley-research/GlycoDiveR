@@ -5,29 +5,22 @@
 #' @returns The number of glycans per site
 #' @export
 #'
-#' @examples PlotGlycanPerSite(myData)
+#' @examples \dontrun{PlotGlycanPerSite(myData)}
 PlotGlycansPerSite <- function(input){
   input <- FilterForCutoffs(input)
 
   df <- GetMeanTechReps(input$PTMTable)
 
-  df <- subset(df, GlycanType != "NonGlyco")
-
   df <- df %>%
-    dplyr::group_by(UniprotIDs, ModificationID) %>%
-    dplyr::reframe(UniprotIDs = UniprotIDs, ModificationID = ModificationID,
-            GlycansPerSite = dplyr::n_distinct(TotalGlycanComposition)) %>%
-    dplyr::distinct() %>%
-    dplyr::ungroup()
+    dplyr::filter(GlycanType != "NonGlyco") %>%
+    dplyr::summarise(.by = c(UniprotIDs, ModificationID), GlycansPerSite = dplyr::n_distinct(TotalGlycanComposition))
 
   df$GlycansPerSite <- sapply(df$GlycansPerSite, function(x) ifelse(x > 9, ">10", toString(x)))
   df$GlycansPerSite <- factor(df$GlycansPerSite, levels = rev(c("1", "2", "3", "4", "5", "6", "7", "8", "9", ">10")))
 
   df <- df %>%
-    dplyr::group_by(GlycansPerSite) %>%
-    dplyr::reframe(GlycansPerSite = GlycansPerSite, Count = n()) %>%
-    dplyr::distinct() %>%
-    dplyr::ungroup()
+    dplyr::group_by() %>%
+    dplyr::summarise(.by = GlycansPerSite, Count = n())
 
   df <- df %>%
     dplyr::arrange(desc(GlycansPerSite)) %>%

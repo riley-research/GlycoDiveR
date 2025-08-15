@@ -6,7 +6,7 @@
 #' @returns Exported annotation file
 #' @export
 #'
-#' @examples GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")
+#' @examples \dontrun{GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")}
 #'
 GetAnnotationTemplate <- function(path, tool){
   if(tool == "MSFragger"){

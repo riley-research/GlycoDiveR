@@ -10,7 +10,7 @@ MSFraggerImporter(
   fastaPath,
   peptideScoreCutoff,
   glycanScoreCutoff,
-  scrape = TRUE
+  scrape = FALSE
 )
 }
 \arguments{
@@ -33,10 +33,10 @@ Formatted dataframes
 Title
 }
 \examples{
-MSFraggerImporter(path = "Z:/Folder",
+\dontrun{MSFraggerImporter(path = "Z:/Folder",
 annotation = "Z:/Folder/annotation.csv",
 fasta = "Z:/fasta.fasta",
 peptideScoreCutoff = 0,
 glycanScoreCutoff = 0.05,
-scrape = FALSE)
+scrape = FALSE)}
 }

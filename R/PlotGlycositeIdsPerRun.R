@@ -6,7 +6,7 @@
 #' @returns A plot displaying the glycosites identified across different runs
 #' @export
 #'
-#' @examples PlotGlycositeIdsPerRun(mydata, protein = "P17047")
+#' @examples \dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
 PlotGlycositeIdsPerRun <- function(input, protein){
   input <- FilterForCutoffs(input)
 

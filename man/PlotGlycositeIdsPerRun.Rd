@@ -18,5 +18,5 @@ A plot displaying the glycosites identified across different runs
 PlotGlycositeIdsPerRun
 }
 \examples{
-PlotGlycositeIdsPerRun(mydata, protein = "P17047")
+\dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
 }

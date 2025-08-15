@@ -18,5 +18,5 @@ A graph showing the number of unique glycopeptides
 PlotGlycoPeptideCount
 }
 \examples{
-PlotGlycoPSMCount(mydata, grouping = "condition")
+\dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
 }

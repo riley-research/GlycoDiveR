@@ -18,6 +18,6 @@ Exported annotation file
 GetAnnotationTemplate
 }
 \examples{
-GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")
+\dontrun{GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")}
 
 }
