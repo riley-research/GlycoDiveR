@@ -23,6 +23,7 @@ Imports:
     utils,
     igraph,
     data.table,
-    stringr
+    stringr,
+    UpSetR
 Depends: 
     R (>= 3.5)
