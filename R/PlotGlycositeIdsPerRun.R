@@ -2,18 +2,25 @@
 #'
 #' @param input Formatted data
 #' @param protein Protein listed as in the UniprotIDs column
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns A plot displaying the glycosites identified across different runs
 #' @export
 #'
 #' @examples \dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
-PlotGlycositeIdsPerRun <- function(input, protein){
+PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", AssignedModifications)) %>%
     dplyr::filter(GlycanType != "NonGlyco") %>%
     dplyr::filter(UniprotIDs == protein)
+
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   if(nrow(df) == 0){
     return(fmessage("No glycosylation found on the protein"))
@@ -26,9 +33,19 @@ PlotGlycositeIdsPerRun <- function(input, protein){
   labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
                          "ModificationID" = c(1, df$ProteinLength[1]))
 
-  foundMods <- distinct(df[c("ProteinPTMLocalization", "Alias")]) %>%
-    tidyr::complete(Alias = factor(c(levels(df$Alias)), levels = c(levels(df$Alias)))) %>%
-    dplyr::mutate(y = (length(levels(Alias)) + 1 - as.integer(Alias)) / 2)
+  #If filter, use only the filtered levels, otherwise use all runs
+  if(!is.null(whichAlias)){
+    factors_to_use <- levels(input$PTMTable$Alias)
+    factors_to_use <- factors_to_use[factors_to_use %in% df$Alias]
+
+    foundMods <- distinct(df[c("ProteinPTMLocalization", "Alias")]) %>%
+      tidyr::complete(Alias = factor(factors_to_use, levels = factors_to_use)) %>%
+      dplyr::mutate(y = (length(levels(Alias)) + 1 - as.integer(Alias)) / 2)
+  }else{
+    foundMods <- distinct(df[c("ProteinPTMLocalization", "Alias")]) %>%
+      tidyr::complete(Alias = factor(c(levels(df$Alias)), levels = c(levels(df$Alias)))) %>%
+      dplyr::mutate(y = (length(levels(Alias)) + 1 - as.integer(Alias)) / 2)
+  }
 
   yVal <- max(foundMods$y)+0.5
 

@@ -8,7 +8,8 @@ PlotCompletenessHeatmap(
   input,
   grouping = "peptide",
   peptideType = "glyco",
-  exportDataTo = FALSE
+  exportDataTo = FALSE,
+  whichAlias = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ PlotCompletenessHeatmap(
 \item{peptideType}{glyco or other}
 
 \item{exportDataTo}{provide path to a folder to export the heatmap as a csv file}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 Grouped heatmap

@@ -4,10 +4,13 @@
 \alias{PlotGlycansPerSite}
 \title{PlotGlycanPerSite}
 \usage{
-PlotGlycansPerSite(input)
+PlotGlycansPerSite(input, whichAlias = NULL)
 }
 \arguments{
 \item{input}{Formatted data}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 The number of glycans per site

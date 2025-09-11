@@ -4,12 +4,15 @@
 \alias{PlotGlycoPSMCount}
 \title{PlotGlycoPSMCount}
 \usage{
-PlotGlycoPSMCount(input, grouping)
+PlotGlycoPSMCount(input, grouping, whichAlias = NULL)
 }
 \arguments{
 \item{input}{Formatted data}
 
 \item{grouping}{grouping is "technicalReps", "biologicalReps", or "condition"}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 A GlycoPSM graph

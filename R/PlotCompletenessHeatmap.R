@@ -4,12 +4,16 @@
 #' @param grouping peptide or glyco
 #' @param peptideType glyco or other
 #' @param exportDataTo provide path to a folder to export the heatmap as a csv file
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns Grouped heatmap
 #' @export
 #'
 #' @examples \dontrun{PlotCompletenessHeatmap(mydata)}
-PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = "glyco", exportDataTo = FALSE){
+PlotCompletenessHeatmap <- function(input, grouping = "peptide",
+                                    peptideType  = "glyco", exportDataTo = FALSE,
+                                    whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   if(grouping == "peptide"){
@@ -22,6 +26,11 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
     df <- subset(df, GlycanType != "")
   }
 
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
+
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
     tidyr::pivot_wider(names_from = Alias, values_from = Run, values_fn = dplyr::first) %>%
     dplyr::mutate(dplyr::across(-c(ModifiedPeptide, GlycanType), ~ ifelse(!is.na(.), 1, 0)))
@@ -30,7 +39,9 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide", peptideType  = 
   mtrx <- data.matrix(df[,3:ncol(df)])
   rownames(mtrx) <- df$ModifiedPeptide
 
-  mtrx <- mtrx[,levels(input$PTMTable$Alias), drop = FALSE]
+  cols_to_use <- levels(input$PTMTable$Alias)
+  cols_to_use <- cols_to_use[cols_to_use %in% colnames(mtrx)]
+  mtrx <- mtrx[, cols_to_use, drop = FALSE]
 
   if(!identical(exportDataTo, FALSE)){
     write.csv(mtrx, paste0(exportDataTo, "/CompletenessHeatmapData.csv"))

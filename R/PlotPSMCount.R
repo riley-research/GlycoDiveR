@@ -2,15 +2,22 @@
 #'
 #' @param inputData Formatted data
 #' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns the PSM count
 #' @export
 #'
 #' @examples \dontrun{PlotPSMCount(myData)}
-PlotPSMCount <- function(inputData, grouping = "technicalReps"){
+PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NULL){
   inputData <- FilterForCutoffs(inputData)
 
   inputData$PSMTable$Glycan <- sapply(inputData$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
+
+  if(!is.null(whichAlias)){
+    inputData$PSMTable <- inputData$PSMTable %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   if(grouping == "technicalReps"){
     tempdf <- inputData$PSMTable %>%

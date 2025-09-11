@@ -9,7 +9,8 @@ PlotGlycoProteinGlycanNetwork(
   condition = NA,
   type = "N",
   edgeWidth = 1.5,
-  verticeSize = c(5, 3)
+  verticeSize = c(5, 3),
+  whichAlias = NULL
 )
 }
 \arguments{
@@ -23,6 +24,9 @@ PlotGlycoProteinGlycanNetwork(
 
 \item{verticeSize}{defines the size of the glycan and protein
 nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 A glycoprotein to glycan network

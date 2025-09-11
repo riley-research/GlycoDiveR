@@ -4,6 +4,8 @@
 #' @param protein The protein defined in the UniprotIDs column.
 #' @param site The site as in the ModificationID column.
 #' @param cutoff An Intensity column, either in percentage or as an absolute number.
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns A graph.
 #' @export
@@ -14,10 +16,16 @@
 #' \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = 1e9)}
 #'
 #' \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = "10%")}
-PlotSiteQuantification <- function(input, protein, site, cutoff = NA){
+PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
+                                   whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   df <- GetMeanTechReps(input$PTMTable)
+
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   df <- subset(df, UniprotIDs == protein & ModificationID == site) %>%
     dplyr::ungroup() %>%

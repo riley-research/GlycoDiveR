@@ -2,15 +2,22 @@
 #'
 #' @param input Formatted data
 #' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns A graph showing the number of unique glycopeptides
 #' @export
 #'
 #' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
-PlotGlycopeptideCount <- function(input, grouping){
+PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
+
+  if(!is.null(whichAlias)){
+    input$PSMTable <- input$PSMTable %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   if(grouping == "technicalReps"){
     tempdf <- input$PSMTable %>%

@@ -4,12 +4,15 @@
 \alias{PlotPSMCount}
 \title{PlotPSMCount}
 \usage{
-PlotPSMCount(inputData, grouping = "technicalReps")
+PlotPSMCount(inputData, grouping = "technicalReps", whichAlias = NULL)
 }
 \arguments{
 \item{inputData}{Formatted data}
 
 \item{grouping}{grouping is "technicalReps", "biologicalReps", or "condition"}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 the PSM count

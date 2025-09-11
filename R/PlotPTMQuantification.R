@@ -2,18 +2,25 @@
 #'
 #' @param input Formatted data
 #' @param protein What protein to quantify the PTM for
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns The PTM quantification for a specific protein
 #' @export
 #'
 #' @examples \dontrun{PlotPTMQuantification(mydata, "P07361")}
-PlotPTMQuantification <- function(input, protein){
+PlotPTMQuantification <- function(input, protein, whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", AssignedModifications)) %>%
     dplyr::filter(GlycanType != "NonGlyco") %>%
     dplyr::filter(UniprotIDs == protein)
+
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   df$GlycanIdentifier <- apply(df[,c("ModificationID", "TotalGlycanComposition")], 1, function(x) paste(x[1], x[2], sep = "-"))
 
@@ -36,8 +43,17 @@ PlotPTMQuantification <- function(input, protein){
     if(input$quantAvailable){
       dfQuant <- GetMeanTechReps(df)
 
+      #Get levels right
+      if(!is.null(whichAlias)){
+        levels_mtrx <- levels(input$PTMTable$Alias)
+        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+      }else{
+        levels_mtrx <- levels(input$PTMTable$Alias)
+      }
+
       hmdf <- dfQuant[c("Alias", "GlycanIdentifier", "Intensity", "ProteinPTMLocalization")]
-      hmdf <- rbind(data.frame(Alias = levels(input$PTMTable$Alias),
+
+      hmdf <- rbind(data.frame(Alias = levels_mtrx,
                                GlycanIdentifier = "filler",
                                Intensity = NA,
                                ProteinPTMLocalization = NA),
@@ -57,7 +73,7 @@ PlotPTMQuantification <- function(input, protein){
 
       mtrx <- data.matrix(hmdf[,2:ncol(hmdf)])
       rownames(mtrx) <- hmdf$GlycanIdentifier
-      mtrx <- mtrx[,levels(input$PTMTable$Alias), drop = FALSE]
+      mtrx <- mtrx[,levels_mtrx, drop = FALSE]
 
       mtrx[is.infinite(mtrx)] <- 0
       mtrx[is.na(mtrx)] <- 0

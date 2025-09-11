@@ -4,12 +4,15 @@
 \alias{PlotPTMQuantification}
 \title{PlotPTMQuantification}
 \usage{
-PlotPTMQuantification(input, protein)
+PlotPTMQuantification(input, protein, whichAlias = NULL)
 }
 \arguments{
 \item{input}{Formatted data}
 
 \item{protein}{What protein to quantify the PTM for}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 The PTM quantification for a specific protein

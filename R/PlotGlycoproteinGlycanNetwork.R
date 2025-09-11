@@ -6,6 +6,8 @@
 #' @param edgeWidth defines the linewidth of the edges
 #' @param verticeSize defines the size of the glycan and protein
 #' nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
@@ -22,7 +24,8 @@
 #' )
 #' }
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
-                                          edgeWidth = 1.5, verticeSize = c(5,3)){
+                                          edgeWidth = 1.5, verticeSize = c(5,3),
+                                          whichAlias = NULL){
   if(!is.na(condition)){
     input$PTMTable <- subset(input$PTMTable, Condition %in% condition)
     if(nrow(input$PTMTable) == 0){
@@ -33,6 +36,12 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   input <- FilterForCutoffs(input)
 
   df <- subset(input$PTMTable, GlycanType != "NonGlyco" & GlycanType != "OGlycan")
+
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
+
   df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
     dplyr::distinct()
 

@@ -4,7 +4,7 @@
 \alias{PlotSiteQuantification}
 \title{Barplot quantification per site}
 \usage{
-PlotSiteQuantification(input, protein, site, cutoff = NA)
+PlotSiteQuantification(input, protein, site, cutoff = NA, whichAlias = NULL)
 }
 \arguments{
 \item{input}{The input data as imported through one of the GlycoDiveR importers.}
@@ -14,6 +14,9 @@ PlotSiteQuantification(input, protein, site, cutoff = NA)
 \item{site}{The site as in the ModificationID column.}
 
 \item{cutoff}{An Intensity column, either in percentage or as an absolute number.}
+
+\item{whichAlias}{provide a vector of Aliases to only select these aliases
+for plotting}
 }
 \value{
 A graph.

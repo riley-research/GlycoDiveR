@@ -1,15 +1,22 @@
 #' PlotGlycanPerSite
 #'
 #' @param input Formatted data
+#' @param whichAlias provide a vector of Aliases to only select these aliases
+#' for plotting
 #'
 #' @returns The number of glycans per site
 #' @export
 #'
 #' @examples \dontrun{PlotGlycanPerSite(myData)}
-PlotGlycansPerSite <- function(input){
+PlotGlycansPerSite <- function(input, whichAlias = NULL){
   input <- FilterForCutoffs(input)
 
   df <- GetMeanTechReps(input$PTMTable)
+
+  if(!is.null(whichAlias)){
+    df <- df %>%
+      dplyr::filter(Alias %in% whichAlias)
+  }
 
   df <- df %>%
     dplyr::filter(GlycanType != "NonGlyco") %>%
