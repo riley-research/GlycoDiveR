@@ -37,42 +37,19 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 
-  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath)
+  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, scrape)
 
-  if(sum(!is.na(filtereddf$Intensity)) > 0){
+  if(sum(!is.na(filtereddf$Intensity)) > 0 & sum(filtereddf$Intensity, na.rm = TRUE) != 0){
     quantAvailable <- TRUE
   }else{
     quantAvailable <- FALSE
-    }
+    warnings("No quantitative values in the imported data!")
+  }
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
   filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
   PTMdf$TotalGlycanComposition <- sapply(PTMdf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
-
-  if(scrape){
-    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.\n
-             This might take a while for large datasets.")
-
-    #pb <- utils::txtProgressBar(min = 0, max = nrow(PTMdf), style = 3)
-
-    #sapply(seq(1, nrow(PTMdf)), function(x) {
-    #  GetUniprotGlycoInfo(as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][1]),
-    #                      as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][2]),
-    #                      as.character(PTMdf[,c("UniprotIDs", "ProteinPTMLocalization", "GlycanType")][x,][3]))
-    #  setTxtProgressBar(pb, x)})
-    #close(pb)
-
-    PTMdf <- PTMdf %>%
-      dplyr::mutate(.by = c(.data$UniprotIDs,
-                            .data$ProteinPTMLocalization,
-                            .data$GlycanType),
-                    UniprotGlycoEvidence = GetUniprotGlycoInfo(accVec = .data$UniprotIDs,
-                                                               PTMLocalization = .data$ProteinPTMLocalization,
-                                                               type = .data$GlycanType))
-
-    fmessage("Finished scrape.")
-  }
 
   data <- list(PSMTable = filtereddf,
                rawPSMTable = unfiltereddf,

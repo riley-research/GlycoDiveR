@@ -4,7 +4,14 @@
 \alias{PlotPTMQuantification}
 \title{PlotPTMQuantification}
 \usage{
-PlotPTMQuantification(input, protein, whichAlias = NULL)
+PlotPTMQuantification(
+  input,
+  protein,
+  whichAlias = NULL,
+  lineWidth = 2,
+  rowFontSize = 12,
+  showRowNames = TRUE
+)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -13,6 +20,13 @@ PlotPTMQuantification(input, protein, whichAlias = NULL)
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{lineWidth}{defines the black line around the heatmap cells. Use NA
+to remove the line}
+
+\item{rowFontSize}{font size for the row labels}
+
+\item{showRowNames}{set to TRUE or FALSE}
 }
 \value{
 The PTM quantification for a specific protein

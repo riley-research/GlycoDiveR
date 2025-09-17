@@ -4,12 +4,17 @@
 #' @param protein What protein to quantify the PTM for
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param lineWidth defines the black line around the heatmap cells. Use NA
+#' to remove the line
+#' @param rowFontSize font size for the row labels
+#' @param showRowNames set to TRUE or FALSE
 #'
 #' @returns The PTM quantification for a specific protein
 #' @export
 #'
 #' @examples \dontrun{PlotPTMQuantification(mydata, "P07361")}
-PlotPTMQuantification <- function(input, protein, whichAlias = NULL){
+PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth = 2,
+                                  rowFontSize = 12, showRowNames = TRUE){
   input <- FilterForCutoffs(input)
 
   df <- input$PTMTable %>%
@@ -86,19 +91,20 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL){
 
       #Get the color scheme
       valuesInMtrx <- sort(unique(as.vector(mtrx)))
+      valuesInMtrx <- valuesInMtrx[valuesInMtrx != 0]
 
       if(sum(valuesInMtrx != 0) > 1){
-        lowestVal <- valuesInMtrx[1]
+        lowestVal <- floor(valuesInMtrx[1])
         secondLowestVal <- valuesInMtrx[2]
-        highestVal <- valuesInMtrx[length(valuesInMtrx)]
+        highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
+        print(mean(c(lowestVal, highestVal), na.rm =TRUE))
 
-        col_fun = circlize::colorRamp2(c(secondLowestVal-0.0001, secondLowestVal - 0.001 ,secondLowestVal, highestVal), c("darkgrey","darkgrey", "blue", "red"))
-        col_fun(seq(-3, 3))
+        col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
+                                       c("grey99","grey99", "#4575B4", "#FEE08B", "#D73027"))
+        #c("#D3D3D3","#D3D3D3", "#4575B4", "#74C476", "#D73027"))
 
-        mtrx[is.na(mtrx)] <- secondLowestVal - 0.001
-        mtrx[is.infinite(mtrx)] <- secondLowestVal - 0.001
-        mtrx[mtrx == 0] <- secondLowestVal - 0.001
-      }else if(sum(valuesInMtrx == 0) == length(valuesInMtrx)){
+
+      }else if(length(valuesInMtrx) == 0){
         col_fun = circlize::colorRamp2(c(-1, 1), c("darkgrey", "darkgrey"))
       }else{
         lowestVal <- valuesInMtrx[1]
@@ -112,15 +118,18 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL){
       splitVec <- sapply(rownames(mtrx), function(x) strsplit(x, "-")[[1]][1])
 
       #Get the legend right
-      lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = "log2 Intensity", direction = "horizontal")
+      lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = "log2 Intensity", direction = "horizontal",
+                                   at = seq(lowestVal, highestVal, length.out= 4))
 
       p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(ComplexHeatmap::Heatmap(mtrx, cluster_columns = FALSE, cluster_rows = TRUE,
-                                                                             rect_gp = grid::gpar(col = "black", lwd = 2),
+                                                                             rect_gp = grid::gpar(col = "black", lwd = lineWidth),
                                                                              column_title = protein,
                                                                              col = col_fun,
                                                                              show_heatmap_legend = FALSE,
                                                                              row_split = splitVec,
-                                                                             cluster_row_slices = TRUE),
+                                                                             cluster_row_slices = TRUE,
+                                                                             row_names_gp = gpar(fontsize = rowFontSize),
+                                                                             show_row_names = showRowNames),
                                                      heatmap_legend_list = lgd, heatmap_legend_side = "top"))
 
       print(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))

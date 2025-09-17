@@ -1,41 +1,48 @@
-MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
+MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
 
+  #Run####
   if("Run" %in% existingCols){
     filtereddf <- cbind(filtereddf, Run = as.character(unfiltereddf$Run))
     fmessage("Successfully imported Run column.")
   }
   else{stop("The column Run was not found in the input dataframe.")}
 
+  #ModifiedPeptide####
   if("Modified.Peptide" %in% existingCols){
     filtereddf$ModifiedPeptide <- apply(unfiltereddf[,c("Peptide", "Modified.Peptide")], 1, function(x) GetPeptide(pep = x[1], modpep = x[2]))
     fmessage("Successfully imported Modified Peptide column.")}
   else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
+  #Intensity####
   if("Intensity" %in% existingCols) {
     filtereddf <- cbind(filtereddf, Intensity = as.numeric(unfiltereddf$Intensity))
     fmessage("Successfully imported Intensity column.")}
   else{filtereddf <- cbind(filtereddf, Intensity = as.numeric(NA))
        warning("Intensity column not found. Filled with NA.")}
 
+  #PSMScore####
   if ("Hyperscore" %in% existingCols) {
     filtereddf <- cbind(filtereddf, PSMScore = as.double(unfiltereddf$Hyperscore))
     fmessage("Successfully imported Hyperscore column and renamed to PSMScore.")}
   else{stop("The column Hyperscore was not found in the input dataframe.")}
 
+  #AssignedModifications####
   if ("Assigned.Modifications" %in% existingCols) {
     filtereddf <- cbind(filtereddf, AssignedModifications = as.character(unfiltereddf$Assigned.Modifications))
     fmessage("Successfully imported Assigned Modifications column.")}
   else {stop("The column Assigned.Modifications was not found in the input dataframe.")}
 
+  #TotalGlycanComposition####
   if ("Total.Glycan.Composition" %in% existingCols) {
     filtereddf <- cbind(filtereddf, TotalGlycanComposition = as.character(unfiltereddf$Total.Glycan.Composition))
     filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) CleanGlycanNames(x))
     fmessage("Successfully imported Total Glycan Composition column.")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
+  #GlycanQValue####
   if ("Glycan.q.value" %in% existingCols) {
     filtereddf <- cbind(filtereddf, GlycanQValue = as.double(unfiltereddf$Glycan.q.value))
     fmessage("Successfully imported Glycan q Value column.")}
@@ -50,11 +57,13 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     fmessage("Successfully imported Glycan q Value column.")}
   else {stop("The column Glycan.q.value was not found in the input dataframe.")}
 
+  #IsUnique####
   if ("Is.Unique" %in% existingCols) {
     filtereddf <- cbind(filtereddf, IsUnique = as.logical(unfiltereddf$Is.Unique))
     fmessage("Successfully imported Is Unique column.")}
   else {stop("The column Is.Unique was not found in the input dataframe.")}
 
+  #UniprotIDs####
   if ("Protein.ID" %in% existingCols) {
     if ("Mapped.Proteins" %in% existingCols) {
       filtereddf$UniprotIDs <- apply(unfiltereddf[, c("Protein.ID", "Mapped.Proteins")], 1, function(x) CombineProtCols(x))
@@ -66,6 +75,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
   } else {
     stop("The column Protein.ID was not found in the input dataframe.")}
 
+  #Genes####
   if ("Gene" %in% existingCols) {
     if("Mapped.Genes" %in% existingCols){
       filtereddf$Genes <- apply(unfiltereddf[, c("Gene", "Mapped.Genes")], 1, function(x) CombineTwoCols(x))
@@ -75,6 +85,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
       warning("No Mapped.Genes columns found, only taking from Gene column")}
   } else {stop("The column Gene was not found in the input dataframe.")}
 
+  #ProteinLength####
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
@@ -85,6 +96,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     }else{warning("Fasta path does not exist.")}
   }
 
+  #NumberOfNSites/NumberOfOSites####
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
@@ -101,15 +113,27 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     }else{warning("Fasta path does not exist.")}
   }
 
+  #ProteinStart####
   if ("Protein.Start" %in% existingCols) {
     filtereddf <- cbind(filtereddf, ProteinStart = as.numeric(unfiltereddf$Protein.Start))}
   else {filtereddf$ProteinStart = NA
     warning("The column Is.Unique was not found in the input dataframe.")}
 
+  #GlycanType####
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
   filtereddf <- filtereddf %>%
     dplyr::mutate(GlycanType = sapply(.data$GlycanType, toString))
   fmessage("Successfully added GlycanType column.")
+
+  if(scrape){
+    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.
+             Grab a coffee. This might take a while.")
+
+    #Get subcellular localization and domain information####
+    filtereddf <- filtereddf %>%
+      dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
+    fmessage("Successfully added subcellular localization and domain information.")
+  }
 
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf, by = "Run")

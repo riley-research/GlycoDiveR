@@ -25,6 +25,8 @@ Imports:
     data.table,
     stringr,
     UpSetR,
-    rlang
+    rlang,
+    UniprotR,
+    purrr
 Depends: 
     R (>= 3.5)

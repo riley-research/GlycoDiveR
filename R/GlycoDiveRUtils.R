@@ -213,3 +213,142 @@ GetUniprotGlycoInfo <- function(accVec, PTMLocalization, type){
 
   return()
 }
+
+GetUniprotSubcellularInfo <- function(UniprotIDs){
+  UniprotIDs_df <- data.frame(UniprotIDs = UniprotIDs, stringsAsFactors = FALSE) %>%
+    dplyr::mutate(UID = purrr::map_chr(.data$UniprotIDs, ~ stringr::str_split(.x, ",")[[1]][1]))
+
+  UniprotIDsClean <-  UniprotIDs_df %>%
+    dplyr::distinct(.data$UID)
+
+  tempdf <- UniprotR::GetSubcellular_location(UniprotIDsClean$UID)
+
+  tempdf$SubcellularLocalization <- sapply(tempdf$Subcellular.location..CC., function(x) cleanSubcellularLocation(x))
+  tempdf$TopoDomain <- sapply(tempdf$Topological.domain, function(x) getTopoDomain(x))
+  tempdf$TransmembraneDomain <- sapply(tempdf$Transmembrane, function(x) getTransmembraneDomain(x))
+
+  tempdf$UID <- rownames(tempdf)
+
+  tempdf <- tempdf %>%
+    dplyr::mutate(Domains = dplyr::case_when(is.na(.data$TopoDomain) & is.na(.data$TransmembraneDomain) ~ NA_character_,
+                                             is.na(.data$TopoDomain) ~ .data$TransmembraneDomain,
+                                             is.na(.data$TransmembraneDomain) ~ .data$TopoDomain,
+                                             TRUE ~ paste(TopoDomain, TransmembraneDomain, sep = ";"))) %>%
+    dplyr::select(.data$UID, .data$SubcellularLocalization, .data$Domains)
+
+  UniprotIDs_df <- UniprotIDs_df %>%
+    dplyr::left_join(tempdf, by = c("UID"))
+
+  return(UniprotIDs_df[c("SubcellularLocalization", "Domains")])
+}
+
+cleanSubcellularLocation <- function(rawString){
+  if(!grepl("SUBCELLULAR LOCATION" , rawString)){
+    return(NA)
+  }else if(grepl("\\{ECO:", rawString)){
+    formattedString <- stringr::str_extract_all(rawString, "(?<=: |\\. )([^\\{]+?)(?= \\{ECO:)") %>%
+      unlist() %>%
+      stringr::str_trim() %>%
+      unique()
+
+    formattedString <- as.data.frame(formattedString) %>%
+      dplyr::filter(!grepl("Note", .data$formattedString)) %>%
+      tidyr::separate_longer_delim(cols = .data$formattedString, delim = ", ") %>%
+      dplyr::mutate(formattedString = dplyr::if_else(grepl("\\:", .data$formattedString),
+                                              stringr::str_extract(.data$formattedString, "(?<=\\]: ).*"),
+                                              formattedString),
+        formattedString = stringr::str_to_title(.data$formattedString)) %>%
+      dplyr::distinct() %>%
+      dplyr::pull(.data$formattedString) %>%
+      paste(collapse = ";")
+
+    return(formattedString)
+  }else if(stringr::str_count(rawString, "LOCATION") > 1){
+    formattedString <- stringr::str_extract_all(rawString, "(?<=\\]: ).*?(?=\\.|;|$)") %>%
+      unlist()
+
+    formattedString <- as.data.frame(formattedString) %>%
+      tidyr::separate_longer_delim(cols = .data$formattedString, delim = ", ") %>%
+      dplyr::mutate(formattedString = dplyr::if_else(grepl("\\:", .data$formattedString),
+                                                     stringr::str_extract(.data$formattedString, "(?<=\\]: ).*"),
+                                                     formattedString),
+                    formattedString = stringr::str_to_title(.data$formattedString)) %>%
+      dplyr::distinct() %>%
+      dplyr::pull(.data$formattedString) %>%
+      paste(collapse = ";")
+
+    return(formattedString)
+  }else{
+    formattedString <- strsplit(rawString, "LOCATION: ")[[1]][2]
+
+    if(any(grepl(",", formattedString))){
+      formattedString <- as.data.frame(formattedString) %>%
+        tidyr::separate_longer_delim(cols = .data$formattedString, delim = ", ") %>%
+        dplyr::mutate(formattedString = dplyr::if_else(grepl("\\:", .data$formattedString),
+                                                       stringr::str_extract(.data$formattedString, "(?<=\\]: ).*"),
+                                                       formattedString),
+                      formattedString = stringr::str_to_title(.data$formattedString)) %>%
+        dplyr::distinct() %>%
+        dplyr::pull(.data$formattedString) %>%
+        paste(collapse = ";")
+    }
+    formattedString <- gsub("\\.", "", formattedString)
+
+    return(stringr::str_to_title(formattedString))
+    }
+}
+
+getTopoDomain <- function(rawString){
+  formattedString <- ""
+
+  if(is.na(rawString) | rawString == ""){
+    return(NA)
+  }
+
+  rawStringVec <- strsplit(rawString, "TOPO_DOM")[[1]]
+
+  for(i in 2:length(rawStringVec)){
+    firstAA <- 0
+    lastAA <- 0
+    domainType <- ""
+    tempString <- trimws(rawStringVec[i])
+
+    firstAA <- sub("\\..*", "", tempString)
+    lastAA <- sub(".*\\.\\.(\\d+).*", "\\1", tempString)
+    domainType <- sub(".*note=([^;]+);.*", "\\1", tempString)
+
+    if(formattedString == ""){
+      formattedString <- paste0(domainType, "(", firstAA, "-", lastAA, ")")
+    }else{
+      formattedString <- paste(formattedString, paste0(domainType, "(", firstAA, "-", lastAA, ")"), sep = ";")
+    }
+  }
+return(formattedString)
+}
+
+getTransmembraneDomain <- function(rawString){
+  formattedString <- ""
+
+  if(is.na(rawString) | rawString == ""){
+    return(NA)
+  }
+
+  rawStringVec <- strsplit(rawString, "TRANSMEM")[[1]]
+
+  for(i in 2:length(rawStringVec)){
+    firstAA <- 0
+    lastAA <- 0
+    tempString <- trimws(rawStringVec[i])
+
+    firstAA <- sub("\\..*", "", tempString)
+    lastAA <- sub(".*\\.\\.(\\d+).*", "\\1", tempString)
+    domainType <- sub(".*note=([^;]+);.*", "\\1", tempString)
+
+    if(formattedString == ""){
+      formattedString <- paste0("Transmembrane domain", "(", firstAA, "-", lastAA, ")")
+    }else{
+      formattedString <- paste(formattedString, paste0("Transmembrane domain", "(", firstAA, "-", lastAA, ")"), sep = ";")
+    }
+  }
+  return(formattedString)
+}
