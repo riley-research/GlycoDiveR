@@ -16,20 +16,21 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
 
   if(!is.null(whichAlias)){
     inputData$PSMTable <- inputData$PSMTable %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   if(grouping == "technicalReps"){
     tempdf <- inputData$PSMTable %>%
-      dplyr::summarise(PSMCount = n(), .by = c(Run, Alias, Glycan)) %>%
-      dplyr::mutate(Glycan = factor(Glycan, levels = c("nonGlycosylated", "Glycosylated")),
-                    Alias = factor(Alias, levels = levels(inputData$PSMTable$Alias)))
+      dplyr::summarise(PSMCount = dplyr::n(),
+                       .by = c(.data$Run, .data$Alias, .data$Glycan)) %>%
+      dplyr::mutate(Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")),
+                    Alias = factor(.data$Alias, levels = levels(inputData$PSMTable$Alias)))
 
-    p <- ggplot(tempdf, aes(x=Alias, y = PSMCount, fill = Glycan)) +
-      geom_bar(stat = "identity", position = "stack", color = "black") +
-      labs(x = "", y = "PSM (count)") +
-      scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
-      scale_fill_manual(values = c(colorScheme))
+    p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Glycan)) +
+      ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
+      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
+      ggplot2::scale_fill_manual(values = c(colorScheme))
 
     print(p)
   }
@@ -37,26 +38,30 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
   if(grouping == "biologicalReps"){
     #Get separate points
     tempdf <- inputData$PSMTable %>%
-      dplyr::summarise(PSMCount = n(), .by = c(Condition, BioReplicate, TechReplicate, Glycan)) %>%
-      dplyr::mutate(x = paste0(Condition, BioReplicate),
-                    Glycan = factor(Glycan, levels = c("nonGlycosylated", "Glycosylated")))
+      dplyr::summarise(PSMCount = dplyr::n(),
+                       .by = c(.data$Condition, .data$BioReplicate,
+                               .data$TechReplicate, .data$Glycan)) %>%
+      dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate),
+                    Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")))
 
     #Calculate mean and CV
     tempdfsum <- tempdf %>%
       dplyr::summarise(
-        mean = mean(PSMCount, na.rm = TRUE),
-        sd   = sd(PSMCount, na.rm = TRUE),
-        .by = c(x, Glycan)
+        mean = mean(.data$PSMCount, na.rm = TRUE),
+        sd   = stats::sd(.data$PSMCount, na.rm = TRUE),
+        .by = c(.data$x, .data$Glycan)
       ) %>%
-      dplyr::mutate(.by = x, sum_mean = sum(mean, na.rm = TRUE)) %>%
-      dplyr::mutate(corrected_mean = if_else(Glycan == "nonGlycosylated", sum_mean, mean))
+      dplyr::mutate(.by = .data$x,
+                    sum_mean = sum(mean, na.rm = TRUE)) %>%
+      dplyr::mutate(corrected_mean = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_mean, .data$mean))
 
     #Add mean of glycosylated peaks to nonGlycosylated PSMcount values
     tempdf <- tempdf %>%
-      dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")], by = join_by(Glycan, x)) %>%
-      dplyr::mutate(.by = x, mean = mean[which(Glycan == "Glycosylated")[1]]) %>%
-      dplyr::mutate(sum_count = mean + PSMCount) %>%
-      dplyr::mutate(corrected_count = if_else(Glycan == "nonGlycosylated", sum_count, PSMCount))
+      dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")],
+                       by = c("Glycan", "x")) %>%
+      dplyr::mutate(.by = .data$x, mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
+      dplyr::mutate(sum_count = .data$mean + .data$PSMCount) %>%
+      dplyr::mutate(corrected_count = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_count, .data$PSMCount))
 
     #Get highest and lowest values to calculate y-axis limits
     minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
@@ -64,12 +69,14 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
 
     #Plot graph
     p <- ggplot2::ggplot() +
-      ggplot2::geom_bar(data = tempdfsum, aes(x=x, y = mean, fill = Glycan), stat = "identity", position = "stack", color = "black") +
-      ggplot2::geom_errorbar(data = tempdfsum, aes(x = x, ymin = corrected_mean-sd, ymax = corrected_mean+sd), width = 0.2) +
+      ggplot2::geom_bar(data = tempdfsum, ggplot2::aes(x=.data$x, y = .data$mean, fill = .data$Glycan),
+                        stat = "identity", position = "stack", color = "black") +
+      ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$x, ymin = .data$corrected_mean-.data$sd,
+                                                            ymax = .data$corrected_mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "PSM (count)") +
-      ggplot2::scale_y_continuous(expand = if (minVal < 0) expansion(0.01, 0) else c(0, 0),
+      ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
-      ggplot2::geom_point(data = tempdf, aes(x=x, y = corrected_count, shape = Glycan)) +
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$corrected_count, shape = .data$Glycan)) +
       ggplot2::scale_fill_manual(values = c(colorScheme)) +
       ggplot2::scale_shape_manual(values = c(15, 17))
 
@@ -78,26 +85,29 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
   if(grouping == "condition"){
     #Get separate points
     tempdf <- inputData$PSMTable %>%
-      dplyr::summarise(PSMCount = n(), .by = c(Condition, BioReplicate, Glycan)) %>%
-      dplyr::mutate(x = paste0(Condition),
-                    Glycan = factor(Glycan, levels = c("nonGlycosylated", "Glycosylated")))
+      dplyr::summarise(PSMCount = dplyr::n(),
+                       .by = c(.data$Condition, .data$BioReplicate, .data$Glycan)) %>%
+      dplyr::mutate(x = paste0(.data$Condition),
+                    Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")))
 
     #Calculate mean and CV
     tempdfsum <- tempdf %>%
       dplyr::summarise(
-        mean = mean(PSMCount, na.rm = TRUE),
-        sd   = sd(PSMCount, na.rm = TRUE),
-        .by = c(x, Glycan)
+        mean = mean(.data$PSMCount, na.rm = TRUE),
+        sd = stats::sd(.data$PSMCount, na.rm = TRUE),
+        .by = c(.data$x, .data$Glycan)
       ) %>%
-      dplyr::mutate(.by = x, sum_mean = sum(mean, na.rm = TRUE)) %>%
-      dplyr::mutate(corrected_mean = if_else(Glycan == "nonGlycosylated", sum_mean, mean))
+      dplyr::mutate(.by = .data$x,
+                    sum_mean = sum(mean, na.rm = TRUE)) %>%
+      dplyr::mutate(corrected_mean = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_mean, .data$mean))
 
     #Add mean of glycosylated peaks to nonGlycosylated PSMcount values
     tempdf <- tempdf %>%
-      dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")], by = join_by(Glycan, x)) %>%
-      dplyr::mutate(.by = x, mean = mean[which(Glycan == "Glycosylated")[1]]) %>%
-      dplyr::mutate(sum_count = mean + PSMCount) %>%
-      dplyr::mutate(corrected_count = if_else(Glycan == "nonGlycosylated", sum_count, PSMCount))
+      dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")],
+                       by = c("Glycan", "x")) %>%
+      dplyr::mutate(.by = .data$x, mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
+      dplyr::mutate(sum_count = .data$mean + .data$PSMCount) %>%
+      dplyr::mutate(corrected_count = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_count, .data$PSMCount))
 
     #Get highest and lowest values to calculate y-axis limits
     minVal <- min(c(tempdfsum$corrected_mean - tempdfsum$sd, tempdf$corrected_count), na.rm = TRUE)
@@ -105,12 +115,14 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
 
     #Plot graph
     p <- ggplot2::ggplot() +
-      ggplot2::geom_bar(data = tempdfsum, aes(x=x, y = mean, fill = Glycan), stat = "identity", position = "stack", color = "black") +
-      ggplot2::geom_errorbar(data = tempdfsum, aes(x = x, ymin = corrected_mean-sd, ymax = corrected_mean+sd), width = 0.2) +
+      ggplot2::geom_bar(data = tempdfsum, ggplot2::aes(x=.data$x, y = .data$mean, fill = .data$Glycan),
+                        stat = "identity", position = "stack", color = "black") +
+      ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$x, ymin = .data$corrected_mean-.data$sd,
+                                                            ymax = .data$corrected_mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "PSM (count)") +
-      ggplot2::scale_y_continuous(expand = if (minVal < 0) expansion(0.01, 0) else c(0, 0),
+      ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
-      ggplot2::geom_point(data = tempdf, aes(x=x, y = corrected_count, shape = Glycan)) +
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$corrected_count, shape = .data$Glycan)) +
       ggplot2::scale_fill_manual(values = c(colorScheme)) +
       ggplot2::scale_shape_manual(values = c(15, 17))
 

@@ -24,12 +24,12 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   if(type == "glyco"){
     input$PSMTable <- input$PSMTable %>%
-      dplyr::filter(!is.na(TotalGlycanComposition) & TotalGlycanComposition != "")
+      dplyr::filter(!is.na(.data$TotalGlycanComposition) & .data$TotalGlycanComposition != "")
   }else if(type == "all"){
   }else{
     warning("Your type argument is not recognized. Including all peptides.")
@@ -50,31 +50,31 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #Extract labels and get color coding right
     colorCode <- as.data.frame(trimws(p$labels)) %>%
       dplyr::left_join(
-        input$PSMTable[, c("Alias", "Condition")] %>% dplyr::distinct(Alias, Condition),
+        input$PSMTable[, c("Alias", "Condition")] %>% dplyr::distinct(.data$Alias, .data$Condition),
         by = c("trimws(p$labels)" = "Alias")
       ) %>%
       dplyr::mutate(
-       Condition = factor(Condition, levels = unique(Condition)),
-        colorScheme = colorScheme[as.integer(Condition)]
+       Condition = factor(.data$Condition, levels = unique(.data$Condition)),
+        colorScheme = colorScheme[as.integer(.data$Condition)]
       )
 
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), cutoff = cutoff,
+                       nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme)
 
     print(p)
   }else if(grouping == "biologicalReps"){
     if(level == "peptide"){
       df <- input$PSMTable %>%
-        dplyr::mutate(ID = paste0(Condition, BioReplicate)) %>%
-        dplyr::summarise(.by = c(ID, ModifiedPeptide, Condition))
+        dplyr::mutate(ID = paste0(.data$Condition, .data$BioReplicate)) %>%
+        dplyr::summarise(.by = c(.data$ID, .data$ModifiedPeptide, .data$Condition))
 
       df_list <- split(df$ModifiedPeptide, df$ID)
     }else if(level == "protein"){
       df <- input$PSMTable %>%
-        dplyr::mutate(ID = paste0(Condition, BioReplicate)) %>%
-        dplyr::summarise(.by = c(ID, UniprotIDs, Condition))
+        dplyr::mutate(ID = paste0(.data$Condition, .data$BioReplicate)) %>%
+        dplyr::summarise(.by = c(.data$ID, .data$UniprotIDs, .data$Condition))
 
       df_list <- split(df$UniprotIDs, df$ID)
     }else{
@@ -87,29 +87,29 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #Extract labels and get color coding right
     colorCode <- as.data.frame(trimws(p$labels)) %>%
       dplyr::left_join(
-        df[, c("ID", "Condition")] %>% dplyr::distinct(ID, Condition),
+        df[, c("ID", "Condition")] %>% dplyr::distinct(.data$ID, .data$Condition),
         by = c("trimws(p$labels)" = "ID")
       ) %>%
       dplyr::mutate(
-        Condition = factor(Condition, levels = unique(Condition)),
-        colorScheme = colorScheme[as.integer(Condition)]
+        Condition = factor(.data$Condition, levels = unique(.data$Condition)),
+        colorScheme = colorScheme[as.integer(.data$Condition)]
       )
 
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), cutoff = cutoff,
+                       nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme)
 
     print(p)
   }else if(grouping == "condition"){
     if(level == "peptide"){
       df <- input$PSMTable %>%
-        dplyr::summarise(.by = c(ModifiedPeptide, Condition))
+        dplyr::summarise(.by = c(.data$ModifiedPeptide, .data$Condition))
 
       df_list <- split(df$ModifiedPeptide, df$Condition)
     }else if(level == "protein"){
       df <- input$PSMTable %>%
-        dplyr::summarise(.by = c(UniprotIDs, Condition))
+        dplyr::summarise(.by = c(.data$UniprotIDs, .data$Condition))
 
       df_list <- split(df$UniprotIDs, df$Condition)
     }else{
@@ -122,13 +122,13 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #Extract labels and get color coding right
     colorCode <- data.frame(Condition = trimws(p$labels)) %>%
       dplyr::mutate(
-        Condition = factor(Condition, levels = unique(Condition)),
-        colorScheme = colorScheme[as.integer(Condition)]
+        Condition = factor(.data$Condition, levels = unique(.data$Condition)),
+        colorScheme = colorScheme[as.integer(.data$Condition)]
       )
 
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), cutoff = cutoff,
+                       nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme)
 
     print(p)

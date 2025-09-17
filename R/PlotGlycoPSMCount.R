@@ -16,16 +16,19 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   if(grouping == "technicalReps"){
     tempdf <- input$PSMTable %>%
-      dplyr::filter(Glycan == "Glycosylated") %>%
-      dplyr::summarise(PSMCount = n(), .by = c(Run, Alias, Condition, Glycan)) %>%
-      dplyr::mutate(Alias = factor(Alias, levels = levels(input$PSMTable$Alias)))
+      dplyr::filter(.data$Glycan == "Glycosylated") %>%
+      dplyr::summarise(PSMCount = dplyr::n(), .by = c(.data$Run,
+                                                      .data$Alias,
+                                                      .data$Condition,
+                                                      .data$Glycan)) %>%
+      dplyr::mutate(Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
-    p <- ggplot2::ggplot(tempdf, aes(x=Alias, y = PSMCount, fill = Condition)) +
+    p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Condition)) +
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
       ggplot2::labs(x = "", y = "PSM (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
@@ -34,52 +37,60 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
     print(p)
   }else if(grouping == "biologicalReps"){
     tempdf <- input$PSMTable %>%
-      dplyr::filter(Glycan == "Glycosylated") %>%
-      dplyr::summarise(PSMCount = n(), .by = c(Alias, Glycan, Condition, BioReplicate, TechReplicate)) %>%
-      dplyr::mutate(x = paste0(Condition, BioReplicate),
-                    Alias = factor(Alias, levels = levels(input$PSMTable$Alias)))
+      dplyr::filter(.data$Glycan == "Glycosylated") %>%
+      dplyr::summarise(PSMCount = dplyr::n(),
+                       .by = c(.data$Alias, .data$Glycan, .data$Condition,
+                               .data$BioReplicate, .data$TechReplicate)) %>%
+      dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate),
+                    Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
     tempdfsum <- tempdf %>%
-      dplyr::group_by(Condition, BioReplicate) %>%
-      dplyr::reframe(x = x, mean = mean(PSMCount, na.rm = TRUE),
-                     sd = sd(PSMCount, na.rm = TRUE)) %>%
-      dplyr::distinct(Condition, BioReplicate, .keep_all = TRUE)
+      dplyr::group_by(.data$Condition, .data$BioReplicate) %>%
+      dplyr::reframe(x = .data$x, mean = mean(.data$PSMCount, na.rm = TRUE),
+                     sd = stats::sd(.data$PSMCount, na.rm = TRUE)) %>%
+      dplyr::distinct(.data$Condition, .data$BioReplicate, .keep_all = TRUE)
 
     minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
     maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
 
-    p <- ggplot() +
-      ggplot2::geom_bar(data = tempdfsum, aes(x=x, y = mean, fill = Condition), stat = "identity", position = "stack", color = "black") +
-      ggplot2::geom_errorbar(data = tempdfsum, aes(x = x, ymin = mean-sd, ymax = mean+sd), width = 0.2) +
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_bar(data = tempdfsum, ggplot2::aes(x=.data$x, y = .data$mean, fill = .data$Condition),
+                        stat = "identity", position = "stack", color = "black") +
+      ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$x, ymin = .data$mean-.data$sd,
+                                                            ymax = .data$mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "PSM (count)") +
-      ggplot2::scale_y_continuous(expand = if (minVal < 0) expansion(0.01, 0) else c(0, 0),
+      ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
-      ggplot2::geom_point(data = tempdf, aes(x=x, y = PSMCount)) +
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
     print(p)
   }else if(grouping == "condition"){
     tempdf <- input$PSMTable %>%
-      dplyr::filter(Glycan == "Glycosylated") %>%
-      dplyr::summarise(PSMCount = n(), .by=c(Alias, Glycan, Condition, BioReplicate)) %>%
-      dplyr::mutate(Alias = factor(Alias, levels = levels(input$PSMTable$Alias)))
+      dplyr::filter(.data$Glycan == "Glycosylated") %>%
+      dplyr::summarise(PSMCount = dplyr::n(),
+                       .by=c(.data$Alias, .data$Glycan, .data$Condition, .data$BioReplicate)) %>%
+      dplyr::mutate(Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
     tempdfsum <- tempdf %>%
-      dplyr::group_by(Condition) %>%
-      dplyr::reframe(Condition = Condition, mean = mean(PSMCount, na.rm = TRUE),
-                     sd = sd(PSMCount, na.rm = TRUE)) %>%
-      dplyr::distinct(Condition, .keep_all = TRUE)
+      dplyr::group_by(.data$Condition) %>%
+      dplyr::reframe(Condition = .data$Condition, mean = mean(.data$PSMCount, na.rm = TRUE),
+                     sd = stats::sd(.data$PSMCount, na.rm = TRUE)) %>%
+      dplyr::distinct(.data$Condition, .keep_all = TRUE)
 
     minVal <- min(c(tempdfsum$mean - tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
     maxVal <- max(c(tempdfsum$mean + tempdfsum$sd, tempdf$PSMCount), na.rm = TRUE)
 
-    p <- ggplot() +
-      ggplot2::geom_bar(data = tempdfsum, aes(x=Condition, y = mean, fill = Condition), stat = "identity", position = "stack", color = "black") +
-      ggplot2::geom_errorbar(data = tempdfsum, aes(x = Condition, ymin = mean-sd, ymax = mean+sd), width = 0.2) +
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_bar(data = tempdfsum, ggplot2::aes(x=.data$Condition, y = mean, fill = .data$Condition),
+                        stat = "identity", position = "stack", color = "black") +
+      ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$Condition,
+                                                            ymin = .data$mean-.data$sd,
+                                                            ymax = .data$mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "PSM (count)") +
-      ggplot2::scale_y_continuous(expand = if (minVal < 0) expansion(0.01, 0) else c(0, 0),
+      ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
-      ggplot2::geom_point(data = tempdf, aes(x=Condition, y = PSMCount)) +
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
     print(p)

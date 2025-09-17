@@ -24,6 +24,7 @@ Imports:
     igraph,
     data.table,
     stringr,
-    UpSetR
+    UpSetR,
+    rlang
 Depends: 
     R (>= 3.5)

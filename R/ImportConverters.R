@@ -79,7 +79,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = UniprotIDs, ProteinLength = GetProteinLength(IDVec = UniprotIDs, fastaFile = fastaFile))
+        dplyr::mutate(.by = .data$UniprotIDs,
+                      ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
+                                                       fastaFile = fastaFile))
     }else{warning("Fasta path does not exist.")}
   }
 
@@ -87,11 +89,14 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = (UniprotIDs), NumberOfSites = GetGlycoSitesPerProtein(IDVec = UniprotIDs, fastaFile = fastaFile))
+        dplyr::mutate(.by = (.data$UniprotIDs),
+                      NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
+                                                              fastaFile = fastaFile))
 
       filtereddf <- filtereddf %>%
-        tidyr::separate_wider_delim(NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
-        dplyr::mutate(NumberOfNSites = as.numeric(NumberOfNSites), NumberOfOSites = as.numeric(NumberOfOSites))
+        tidyr::separate_wider_delim(.data$NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
+        dplyr::mutate(NumberOfNSites = as.numeric(.data$NumberOfNSites),
+                      NumberOfOSites = as.numeric(.data$NumberOfOSites))
       fmessage("Successfully mapped number of N and O glycosites per protein.")
     }else{warning("Fasta path does not exist.")}
   }
@@ -103,7 +108,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath){
 
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
   filtereddf <- filtereddf %>%
-    dplyr::mutate(GlycanType = sapply(GlycanType, toString))
+    dplyr::mutate(GlycanType = sapply(.data$GlycanType, toString))
   fmessage("Successfully added GlycanType column.")
 
   filtereddf <- filtereddf %>%

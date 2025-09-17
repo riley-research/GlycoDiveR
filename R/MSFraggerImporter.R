@@ -64,8 +64,12 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
     #close(pb)
 
     PTMdf <- PTMdf %>%
-      dplyr::group_by(UniprotIDs, ProteinPTMLocalization, GlycanType) %>%
-      dplyr::mutate(UniprotGlycoEvidence = GetUniprotGlycoInfo(accVec = UniprotIDs, PTMLocalization = ProteinPTMLocalization, type = GlycanType))
+      dplyr::mutate(.by = c(.data$UniprotIDs,
+                            .data$ProteinPTMLocalization,
+                            .data$GlycanType),
+                    UniprotGlycoEvidence = GetUniprotGlycoInfo(accVec = .data$UniprotIDs,
+                                                               PTMLocalization = .data$ProteinPTMLocalization,
+                                                               type = .data$GlycanType))
 
     fmessage("Finished scrape.")
   }

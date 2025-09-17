@@ -23,17 +23,18 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
   df$GlycanType <- sapply(df$GlycanType, function(x) gsub(", |NonGlyco|Unmodified", "", x))
 
   if(peptideType == "glyco"){
-    df <- subset(df, GlycanType != "")
+    df <- df %>%
+      dplyr::filter(.data$GlycanType != "")
   }
 
   if(!is.null(whichAlias)){
     df <- df %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
-    tidyr::pivot_wider(names_from = Alias, values_from = Run, values_fn = dplyr::first) %>%
-    dplyr::mutate(dplyr::across(-c(ModifiedPeptide, GlycanType), ~ ifelse(!is.na(.), 1, 0)))
+    tidyr::pivot_wider(names_from = .data$Alias, values_from = .data$Run, values_fn = dplyr::first) %>%
+    dplyr::mutate(dplyr::across(-c(.data$ModifiedPeptide, .data$GlycanType), ~ ifelse(!is.na(.), 1, 0)))
 
   #Get the matrix and in the right column order
   mtrx <- data.matrix(df[,3:ncol(df)])
@@ -44,11 +45,11 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
   mtrx <- mtrx[, cols_to_use, drop = FALSE]
 
   if(!identical(exportDataTo, FALSE)){
-    write.csv(mtrx, paste0(exportDataTo, "/CompletenessHeatmapData.csv"))
+    utils::write.csv(mtrx, paste0(exportDataTo, "/CompletenessHeatmapData.csv"))
   }
 
   #Get heatmap annotation, color, and legend
-  colH <- setNames(colorScheme[1:length(unique(df$GlycanType))], unique(df$GlycanType))
+  colH <- stats::setNames(colorScheme[1:length(unique(df$GlycanType))], unique(df$GlycanType))
 
   row_ha = ComplexHeatmap::rowAnnotation(Glycan = df$GlycanType, show_legend = FALSE,
                                          col = list(Glycan = colH))
@@ -60,7 +61,7 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
                labels = c("Missing", "Identified"))
 
   #Now for clustering the columns
-  colCluster <- sapply(colnames(mtrx), function(x) subset(input$annotation, Alias == x)$Condition[1])
+  colCluster <- sapply(colnames(mtrx), function(x) input$annotation$Condition[input$annotation$Alias == x][1])
 
   ht <- ComplexHeatmap::Heatmap(mtrx, show_row_names = FALSE, cluster_rows = FALSE,
                                cluster_columns = FALSE, left_annotation = row_ha,

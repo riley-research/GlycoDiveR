@@ -30,8 +30,8 @@ GetProteinLength <- function(IDVec, fastaFile){
 
 PSMToPTMTable <- function(PSMTable){
   tempdf <- PSMTable %>%
-      dplyr::filter(!is.na(AssignedModifications) & AssignedModifications != "") %>%
-      tidyr::separate_rows(AssignedModifications, sep = ",")
+      dplyr::filter(!is.na(.data$AssignedModifications) & .data$AssignedModifications != "") %>%
+      tidyr::separate_rows(.data$AssignedModifications, sep = ",")
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
@@ -44,12 +44,13 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf <- tempdf %>%
     dplyr::mutate(
-      PeptidePTMLocalization = as.numeric(stringr::str_extract(AssignedModifications, "\\d+")),
-      ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
-      ModificationSite = stringr::str_extract(AssignedModifications, "[A-Za-z](?=\\()"),
-      ModificationID = paste0(ModificationSite, ProteinPTMLocalization))
+      PeptidePTMLocalization = as.numeric(stringr::str_extract(.data$AssignedModifications, "\\d+")),
+      ProteinPTMLocalization = .data$PeptidePTMLocalization + .data$ProteinStart,
+      ModificationSite = stringr::str_extract(.data$AssignedModifications, "[A-Za-z](?=\\()"),
+      ModificationID = paste0(.data$ModificationSite, .data$ProteinPTMLocalization))
 
-  tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")],
+                             1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
 
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
 
@@ -109,20 +110,28 @@ GetPeptide <- function(pep, modpep){
 GetMeanTechReps <- function(df){
   #Keep highest intensity per technical rep
   df <- df %>%
-    dplyr::arrange(desc(Intensity)) %>%
-    dplyr::distinct(Run, AssignedModifications, ModifiedPeptide, Condition, BioReplicate, TechReplicate, .keep_all = TRUE)
+    dplyr::arrange(dplyr::desc(.data$Intensity)) %>%
+    dplyr::distinct(.data$Run, .data$AssignedModifications, .data$ModifiedPeptide,
+                    .data$Condition, .data$BioReplicate, .data$TechReplicate,
+                    .keep_all = TRUE)
 
   if("ModificationID" %in% names(df)){
     #Take median of technical reps together
     df <- df %>%
-      dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
-      dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, ModificationID, .keep_all = TRUE)
+      dplyr::mutate(.by = c(.data$ModifiedPeptide, .data$AssignedModifications,
+                            .data$Condition, .data$BioReplicate),
+                    Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
+      dplyr::distinct(.data$ModifiedPeptide, .data$Condition, .data$BioReplicate,
+                      .data$ModificationID, .keep_all = TRUE)
 
     return(df)
   }else{
     df <- df %>%
-      dplyr::mutate(.by = c(ModifiedPeptide, AssignedModifications, Condition, BioReplicate), Intensity = stats::median(Intensity, na.rm = TRUE)) %>%
-      dplyr::distinct(ModifiedPeptide, Condition, BioReplicate, .keep_all = TRUE)
+      dplyr::mutate(.by = c(.data$ModifiedPeptide, .data$AssignedModifications,
+                            .data$Condition, .data$BioReplicate),
+                    Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
+      dplyr::distinct(.data$ModifiedPeptide, .data$Condition, .data$BioReplicate,
+                      .keep_all = TRUE)
     return(df)
   }
 
@@ -141,10 +150,14 @@ FilterForCutoffs <- function(input){
   if(input$searchEngine %in% c("MSFragger")){
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff, ".\033[0m")
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
-    input$PSMTable <- subset(input$PSMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
-                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
-    input$PTMTable <- subset(input$PTMTable, (PSMScore >= input$peptideScoreCutoff & GlycanQValue <= input$glycanScoreCutoff) |
-                               (PSMScore >= input$peptideScoreCutoff & is.na(GlycanQValue)))
+    input$PSMTable <- input$PSMTable %>%
+      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
+          (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+
+    input$PTMTable <- input$PTMTable %>%
+      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
+          (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+
     message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
     return(input)
   }else{
@@ -180,23 +193,23 @@ fmessage <- function(m){
 }
 
 GetUniprotGlycoInfo <- function(accVec, PTMLocalization, type){
-  if(type[1] == "" | is.na(type[1]) | type[1] %in% c("NonGlyco", "Unmodified")){
-    return(NA)
-  }
+  # if(type[1] == "" | is.na(type[1]) | type[1] %in% c("NonGlyco", "Unmodified")){
+  #   return(NA)
+  # }
+  #
+  # acc <- strsplit(accVec[1], ",")[[1]][1]
+  # geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
+  # scrape <- read.csv(URLencode(geturl), sep = "\t")
+  # scrape <- scrape %>%
+  #   tidyr::separate_longer_delim(cols = "Glycosylation", delim = " CARBOHYD ") %>%
+  #   dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
+  #   tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
+  #
+  # scrape <- subset(scrape, Site == as.character(PTMLocalization[1]))
+  #
+  # if(is.null(scrape) | nrow(scrape) == 0 | is.null(nrow(scrape))){
+  #   return("No evidence")
+  # }
 
-  acc <- strsplit(accVec[1], ",")[[1]][1]
-  geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
-  scrape <- read.csv(URLencode(geturl), sep = "\t")
-  scrape <- scrape %>%
-    tidyr::separate_longer_delim(cols = "Glycosylation", delim = " CARBOHYD ") %>%
-    dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
-    tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
-
-  scrape <- subset(scrape, Site == as.character(PTMLocalization[1]))
-
-  if(is.null(scrape) | nrow(scrape) == 0 | is.null(nrow(scrape))){
-    return("No evidence")
-  }
-
-  return(scrape$Info)
+  return()
 }

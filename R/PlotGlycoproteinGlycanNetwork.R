@@ -27,7 +27,8 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3),
                                           whichAlias = NULL){
   if(!is.na(condition)){
-    input$PTMTable <- subset(input$PTMTable, Condition %in% condition)
+    input$PTMTable <- input$PTMTable[input$PTMTable[["Condition"]] %in% condition, ]
+
     if(nrow(input$PTMTable) == 0){
       stop("Just tried selecting the following condition: ", condition, ".\nNo rows are left after filtering.")
     }
@@ -35,11 +36,12 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
 
   input <- FilterForCutoffs(input)
 
-  df <- subset(input$PTMTable, GlycanType != "NonGlyco" & GlycanType != "OGlycan")
+  df <- input$PTMTable %>%
+    dplyr::filter(.data$GlycanType != "NonGlyco" & .data$GlycanType != "OGlycan")
 
   if(!is.null(whichAlias)){
     df <- df %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
@@ -48,7 +50,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   #Get the proteins, colors, and coordinates
   dfprot <- df[,c("UniprotIDs", "NumberOfNSites")] %>%
     dplyr::distinct() %>%
-    dplyr::arrange(desc(NumberOfNSites)) %>%
+    dplyr::arrange(dplyr::desc(.data$NumberOfNSites)) %>%
     dplyr::mutate(x = 1)
   dfprot$y <- seq(1,nrow(dfprot))
 
@@ -60,15 +62,16 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                                                            TRUE ~ "black"))
 
   dfleg <- dfprot %>%
-    dplyr::arrange(NumberOfNSites) %>%
+    dplyr::arrange(.data$NumberOfNSites) %>%
     dplyr::rowwise() %>%
-    mutate(NumberOfNSites = ifelse(NumberOfNSites > 5, ">5", as.character(NumberOfNSites)))
+    dplyr::mutate(NumberOfNSites = ifelse(.data$NumberOfNSites > 5, ">5", as.character(.data$NumberOfNSites))) %>%
+    dplyr::ungroup()
 
 
   #Get the glycans and colors
   dfgly <- df[,c("TotalGlycanComposition", "GlycanType")] %>%
     dplyr::distinct() %>%
-    dplyr::arrange(GlycanType)
+    dplyr::arrange(.data$GlycanType)
 
   dfcolmatch <- data.frame(GlycanType = unique(df$GlycanType),
                            col = NA)
@@ -141,7 +144,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
        vertex.color = igraph::V(g)$color, edge.color = df$colv,
        edge.width = edgeWidth)
 
-  legend("topright", inset = c(-0.18, 0),
+  graphics::legend("topright", inset = c(-0.18, 0),
          legend = dfcolmatch$GlycanType,
          fill = dfcolmatch$col,
          title = "Glycan Type",
@@ -149,7 +152,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
          pt.cex = 0.6,
          bty = "n")
 
-  legend("bottomright", inset = c(0, 0),
+  graphics::legend("bottomright", inset = c(0, 0),
          legend = unique(dfleg$NumberOfNSites),
          fill = unique(dfleg$col),
          title = "Sites Per\nProtein",

@@ -24,44 +24,48 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
 
   if(!is.null(whichAlias)){
     df <- df %>%
-      dplyr::filter(Alias %in% whichAlias)
+      dplyr::filter(.data$Alias %in% whichAlias)
   }
 
-  df <- subset(df, UniprotIDs == protein & ModificationID == site) %>%
-    dplyr::ungroup() %>%
-    dplyr::group_by(UniprotIDs, ModificationID, Condition, BioReplicate, TechReplicate, TotalGlycanComposition) %>%
-    dplyr::mutate(Intensity = sum(Intensity, na.rm = TRUE)) %>%
-    dplyr::distinct(UniprotIDs, ModificationID, Condition, BioReplicate, TechReplicate, TotalGlycanComposition, .keep_all = TRUE) %>%
-    dplyr::ungroup()
+  df <- df %>%
+    dplyr::filter(.data$UniprotIDs == protein & .data$ModificationID == site) %>%
+    dplyr::summarise(.by = c(.data$UniprotIDs, .data$ModificationID, .data$Condition,
+                             .data$BioReplicate, .data$TechReplicate, .data$TotalGlycanComposition),
+                     Intensity = sum(.data$Intensity, na.rm = TRUE))
 
   if(!is.na(cutoff)){
     if(substr(cutoff, nchar(cutoff), nchar(cutoff)) == "%"){
       ctfp <- as.numeric(substr(cutoff, 1, nchar(cutoff) -1))
-      dftemp <- subset(df, Intensity > (ctfp/100) * max(Intensity, na.rm = TRUE))
-      df <- subset(df, TotalGlycanComposition %in% dftemp$TotalGlycanComposition)
+      dftemp <- df %>%
+        dplyr::filter(.data$Intensity > (ctfp/100) * max(.data$Intensity, na.rm = TRUE))
+      df <- df %>%
+        dplyr::filter(.data$TotalGlycanComposition %in% dftemp$TotalGlycanComposition)
     }else{
-      dftemp <- subset(df, Intensity > cutoff)
-      df <- subset(df, TotalGlycanComposition %in% dftemp$TotalGlycanComposition)
+      dftemp <- df %>%
+        dplyr::filter(.data$Intensity > cutoff)
+      df <- df %>%
+        dplyr::filter(.data$TotalGlycanComposition %in% dftemp$TotalGlycanComposition)
     }
   }
 
   dfsum <- df %>%
-    dplyr::group_by(Condition, TotalGlycanComposition) %>%
-    dplyr::reframe(Condition = Condition, TotalGlycanComposition = TotalGlycanComposition,
-                   mean = mean(Intensity, na.rm = TRUE), sd = sd(Intensity, na.rm = TRUE)) %>%
-    dplyr::ungroup() %>%
-    dplyr::distinct() %>%
-    dplyr::arrange(desc(mean))
+    dplyr::summarise(.by = c(.data$Condition, .data$TotalGlycanComposition),
+                     mean = mean(.data$Intensity, na.rm = TRUE),
+                     sd = stats::sd(.data$Intensity, na.rm = TRUE)) %>%
+    dplyr::arrange(dplyr::desc(mean))
 
   dfsum$TotalGlycanComposition <- factor(dfsum$TotalGlycanComposition, levels = unique(dfsum$TotalGlycanComposition))
 
   p <- ggplot2::ggplot(data = dfsum) +
-    ggplot2::geom_bar(data = dfsum, aes(x = TotalGlycanComposition, y = mean, fill = Condition), stat = "identity", color = "black") +
-    ggplot2::geom_errorbar(data = dfsum, aes(x = TotalGlycanComposition, ymin = mean, ymax = mean+sd)) +
-    ggplot2::geom_point(data = df, aes(x = TotalGlycanComposition, y = Intensity)) +
+    ggplot2::geom_bar(data = dfsum, ggplot2::aes(x = .data$TotalGlycanComposition,
+                                                 y = .data$mean, fill = .data$Condition),
+                      stat = "identity", color = "black") +
+    ggplot2::geom_errorbar(data = dfsum, ggplot2::aes(x = .data$TotalGlycanComposition,
+                                                      ymin = .data$mean, ymax = .data$mean+.data$sd)) +
+    ggplot2::geom_point(data = df, ggplot2::aes(x = .data$TotalGlycanComposition, y = .data$Intensity)) +
     ggplot2::labs(x = "", y = "Intensity (a.u.)") +
     ggplot2::guides(fill="none") +
-    ggplot2::facet_wrap(~Condition) +
+    ggplot2::facet_wrap(~.data$Condition) +
     ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0, max(df$Intensity)*1.05)) +
     ggplot2::scale_fill_manual(values = colorScheme)
 
