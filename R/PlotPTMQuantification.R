@@ -97,7 +97,6 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
         lowestVal <- floor(valuesInMtrx[1])
         secondLowestVal <- valuesInMtrx[2]
         highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
-        print(mean(c(lowestVal, highestVal), na.rm =TRUE))
 
         col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
                                        c("grey99","grey99", "#4575B4", "#FEE08B", "#D73027"))
@@ -128,7 +127,7 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
                                                                              show_heatmap_legend = FALSE,
                                                                              row_split = splitVec,
                                                                              cluster_row_slices = TRUE,
-                                                                             row_names_gp = gpar(fontsize = rowFontSize),
+                                                                             row_names_gp = grid::gpar(fontsize = rowFontSize),
                                                                              show_row_names = showRowNames),
                                                      heatmap_legend_list = lgd, heatmap_legend_side = "top"))
 
