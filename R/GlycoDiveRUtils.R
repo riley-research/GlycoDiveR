@@ -352,3 +352,25 @@ getTransmembraneDomain <- function(rawString){
   }
   return(formattedString)
 }
+
+calculateElbowCoords <- function(xVec, yVec, return = "x"){
+  coord1_x <- as.numeric(strsplit(xVec, ";")[[1]][1])
+  coord1_y <- as.numeric(strsplit(yVec, ";")[[1]][1])
+
+  coord4_x <- as.numeric(strsplit(xVec, ";")[[1]][2])
+  coord4_y <- as.numeric(strsplit(yVec, ";")[[1]][2])
+
+  yMean <- mean(c(coord1_y, coord4_y), na.rm = TRUE)
+
+  coord2_x <- coord1_x
+  coord2_y <- yMean
+
+  coord3_x <- coord4_x
+  coord3_y <- yMean
+
+  if(return == "x"){
+    return(paste(coord1_x, coord2_x, coord3_x, coord4_x, sep = ";"))
+  }else{
+    return(paste(coord1_y, coord2_y, coord3_y, coord4_y, sep = ";"))
+  }
+}
