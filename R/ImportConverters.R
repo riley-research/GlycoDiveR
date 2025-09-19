@@ -133,6 +133,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape){
     filtereddf <- filtereddf %>%
       dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
     fmessage("Successfully added subcellular localization and domain information.")
+  }else{
+    filtereddf$SubcellularLocalization <- NA
+    filtereddf$Domains <- NA
   }
 
   filtereddf <- filtereddf %>%

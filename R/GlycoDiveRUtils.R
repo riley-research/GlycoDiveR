@@ -146,10 +146,12 @@ CleanGlycanNames <- function(glycan){
   return(glycan)
 }
 
-FilterForCutoffs <- function(input){
+FilterForCutoffs <- function(input, silent = FALSE){
   if(input$searchEngine %in% c("MSFragger")){
-    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff, ".\033[0m")
-    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    if(!silent){
+      fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
+      fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
+    }
     input$PSMTable <- input$PSMTable %>%
       dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
           (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
@@ -158,7 +160,9 @@ FilterForCutoffs <- function(input){
       dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
           (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
 
-    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable), ".\033[0m")
+    if(!silent){
+      fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))
+    }
     return(input)
   }else{
     warning("No search engine recognized, returning unfiltered dataframe.")

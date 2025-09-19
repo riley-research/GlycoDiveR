@@ -3,13 +3,14 @@
 #' @param input Formatted data
 #' @param protein Protein listed as in the UniprotIDs column
 #' @param whichAlias provide a vector of Aliases to only select these aliases
+#' @param silent TRUE if you want info to be printed, FALSE if not
 #' for plotting
 #'
 #' @returns A plot displaying the glycosites identified across different runs
 #' @export
 #'
 #' @examples \dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
-PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL){
+PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = FALSE){
   input <- FilterForCutoffs(input)
 
   df <- input$PTMTable %>%
@@ -23,7 +24,11 @@ PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL){
   }
 
   if(nrow(df) == 0){
-    return(fmessage("No glycosylation found on the protein"))
+    if(silent){
+      return()
+    }else{
+      return(fmessage("No glycosylation found on the protein"))
+    }
   }
 
   df$GlycanIdentifier <- apply(df[,c("ModificationID", "TotalGlycanComposition")], 1, function(x) paste(x[1], x[2], sep = "-"))

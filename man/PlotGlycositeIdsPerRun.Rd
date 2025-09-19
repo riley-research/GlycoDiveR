@@ -4,14 +4,16 @@
 \alias{PlotGlycositeIdsPerRun}
 \title{PlotGlycositeIdsPerRun}
 \usage{
-PlotGlycositeIdsPerRun(input, protein, whichAlias = NULL)
+PlotGlycositeIdsPerRun(input, protein, whichAlias = NULL, silent = FALSE)
 }
 \arguments{
 \item{input}{Formatted data}
 
 \item{protein}{Protein listed as in the UniprotIDs column}
 
-\item{whichAlias}{provide a vector of Aliases to only select these aliases
+\item{whichAlias}{provide a vector of Aliases to only select these aliases}
+
+\item{silent}{TRUE if you want info to be printed, FALSE if not
 for plotting}
 }
 \value{

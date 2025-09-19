@@ -43,7 +43,7 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
     quantAvailable <- TRUE
   }else{
     quantAvailable <- FALSE
-    warnings("No quantitative values in the imported data!")
+    warning("No quantitative values in the imported data!")
   }
 
   PTMdf <- PSMToPTMTable(filtereddf)
