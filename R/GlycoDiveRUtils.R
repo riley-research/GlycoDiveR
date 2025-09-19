@@ -77,14 +77,17 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
       glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
 
       if(TRUE %in% grepl(glycanMass, mod)){
-        hexNAc_count <- suppressWarnings(as.numeric(sub(".*HexNAc\\(([0-9]+)\\).*", "\\1", glycanComp)))
-        hex_count <- suppressWarnings(as.numeric(sub(".*Hex\\(([0-9]+)\\).*", "\\1", glycanComp)))
+        hexNAc_count <- suppressWarnings(as.numeric(sub(".*N\\(([0-9]+)\\).*", "\\1", glycanComp)))
+        hex_count <- suppressWarnings(as.numeric(sub(".*H\\(([0-9]+)\\).*", "\\1", glycanComp)))
 
         glycanCat <- dplyr::case_when(
-          grepl("A", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
-          grepl("A", glycanComp) ~ "Sialyl",
+          grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
+          grepl("A|G", glycanComp) ~ "Sialyl",
           grepl("F", glycanComp) ~ "Fucose",
-          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 4 ~ "High Mannose",
+          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count == 2 & hex_count == 3 ~ "Paucimannose",
+          (!is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 2) |
+            ( !is.na(hexNAc_count) & !is.na(hex_count) & hex_count < 3) ~ "Truncated",
+          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 3 ~ "High Mannose",
           TRUE ~ "Complex/Hybrid"
         )
         modType <- append(modType, glycanCat)

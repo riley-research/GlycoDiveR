@@ -161,7 +161,9 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
                                                  .data$GlycanType == "Sialyl+Fucose" ~ "#ff7f2a",
                                                  .data$GlycanType == "Sialyl" ~ "#2475b5",
                                                  .data$GlycanType == "Fucose" ~ "#aaaaaa",
-                                                 .data$GlycanType == "High Mannose" ~ "#28b36d"))
+                                                 .data$GlycanType == "High Mannose" ~ "#28b36d",
+                                                 .data$GlycanType == "Truncated" ~ "#D0A5C0",
+                                                 .data$GlycanType == "Paucimannose" ~ "#8B1E3F"))
 
   #Where do we want the boxes####
   rect_df <- point_df %>%
