@@ -11,7 +11,7 @@ PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
   #Prepare data
   df <- input$PTMTable %>%
     dplyr::filter(!is.na(.data$TotalGlycanComposition) & .data$TotalGlycanComposition != "" &
-                    GlycanType != "NonGlyco") %>%
+                    .data$GlycanType != "NonGlyco") %>%
     dplyr::mutate(.by = .data$UniprotIDs,
                   count = dplyr::n_distinct(.data$TotalGlycanComposition)) %>%
     dplyr::summarise(.by = c(.data$UniprotIDs, .data$count, .data$Genes),
