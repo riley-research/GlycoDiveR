@@ -25,7 +25,7 @@
 #' }
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3),
-                                          whichAlias = NULL){
+                                          whichAlias = NULL, highlight = "all"){
   if(!is.na(condition)){
     input$PTMTable <- input$PTMTable[input$PTMTable[["Condition"]] %in% condition, ]
 
@@ -120,8 +120,8 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
 
   #Add both the a graph
   g <- igraph::make_empty_graph(n = 0, directed = FALSE)
-  g <- igraph::add_vertices(g, nv = nrow(dfprot), attr = list(name = dfprot$UniprotIDs))
-  g <- igraph::add_vertices(g, nv = nrow(dfgly), attr = list(name = dfgly$TotalGlycanComposition))
+  g <- igraph::add_vertices(g, nv = nrow(dfprot), attr = list(name = dfprot$UniprotIDs, frame.color = NA  ))
+  g <- igraph::add_vertices(g, nv = nrow(dfgly), attr = list(name = dfgly$TotalGlycanComposition, frame.color = "black"))
 
   igraph::V(g)$shape <- c(rep("square", nrow(dfprot)), rep("circle", nrow(dfgly)))
   igraph::V(g)$size <- c(rep(verticeSize[1], nrow(dfprot)), rep(verticeSize[2], nrow(dfgly)))
@@ -134,7 +134,14 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   df <- df %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)
 
-  df$colv <- sapply(df$col, function(x) paste0(x, as.character(80)))
+  if(highlight == "all"){
+    df$colv <- sapply(df$col, function(x) paste0(x, as.character(80)))
+  }else{
+    df <- df %>%
+      dplyr::mutate(colv = dplyr::if_else(.data$GlycanType %in% highlight,
+                                          paste0(.data$col),
+                                          paste0(.data$col, as.character(15))))
+  }
 
   edge_list <- as.vector(t(df[,c("TotalGlycanComposition", "UniprotIDs")]))
 
@@ -144,19 +151,25 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
        vertex.color = igraph::V(g)$color, edge.color = df$colv,
        edge.width = edgeWidth)
 
-  graphics::legend("topright", inset = c(-0.18, 0),
+  graphics::legend(#"topright", inset = c(-0.18, 0),
+    x=1.05,
+    y=1,
          legend = dfcolmatch$GlycanType,
          fill = dfcolmatch$col,
          title = "Glycan Type",
          cex = 0.8,
          pt.cex = 0.6,
-         bty = "n")
+         bty = "n",
+         xpd = NA)
 
-  graphics::legend("bottomright", inset = c(0, 0),
+  graphics::legend(#"bottomright", inset = c(0, 0),
+    x = 1.05,
+    y= 0,
          legend = unique(dfleg$NumberOfNSites),
          fill = unique(dfleg$col),
          title = "Sites Per\nProtein",
          cex = 0.8,
          pt.cex = 0.6,
-         bty = "n")
+         bty = "n",
+         xpd = NA)
 }

@@ -45,7 +45,7 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     }
 
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                  nsets = length(names(df_list)), nintersects = 40)
+                  nsets = length(names(df_list)), nintersects = nintersects)
 
     #Extract labels and get color coding right
     colorCode <- as.data.frame(trimws(p$labels)) %>%
@@ -61,7 +61,8 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
-                       sets.bar.color = colorCode$colorScheme)
+                       sets.bar.color = colorCode$colorScheme,
+                       nintersects = nintersects)
 
     print(p)
   }else if(grouping == "biologicalReps"){
@@ -82,7 +83,8 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     }
 
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), nintersects = 40)
+                       nsets = length(names(df_list)),
+                       nintersects = nintersects)
 
     #Extract labels and get color coding right
     colorCode <- as.data.frame(trimws(p$labels)) %>%
@@ -98,7 +100,8 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
-                       sets.bar.color = colorCode$colorScheme)
+                       sets.bar.color = colorCode$colorScheme,
+                       nintersects = nintersects)
 
     print(p)
   }else if(grouping == "condition"){
@@ -117,7 +120,7 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     }
 
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), nintersects = 40)
+                       nsets = length(names(df_list)), nintersects = nintersects)
 
     #Extract labels and get color coding right
     colorCode <- data.frame(Condition = trimws(p$labels)) %>%
@@ -129,7 +132,8 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
     #replot with correct colors
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
-                       sets.bar.color = colorCode$colorScheme)
+                       sets.bar.color = colorCode$colorScheme,
+                       nintersects = nintersects)
 
     print(p)
   }else{
