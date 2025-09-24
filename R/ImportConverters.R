@@ -119,6 +119,12 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape){
   else {filtereddf$ProteinStart = NA
     warning("The column Is.Unique was not found in the input dataframe.")}
 
+  #RetentionTime####
+  if ("Retention" %in% existingCols) {
+    filtereddf <- cbind(filtereddf, RetentionTime = as.numeric(unfiltereddf$Retention)/60)}
+  else {filtereddf$RetentionTime = NA
+  warning("The column Retention was not found in the input dataframe.")}
+
   #GlycanType####
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
   filtereddf <- filtereddf %>%
