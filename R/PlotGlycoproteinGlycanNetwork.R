@@ -8,6 +8,7 @@
 #' nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param highlight specify what glycan category to highlight, or use "all" to highlight all
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
@@ -140,7 +141,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
     df <- df %>%
       dplyr::mutate(colv = dplyr::if_else(.data$GlycanType %in% highlight,
                                           paste0(.data$col),
-                                          paste0(.data$col, as.character(15))))
+                                          NA))
   }
 
   edge_list <- as.vector(t(df[,c("TotalGlycanComposition", "UniprotIDs")]))
