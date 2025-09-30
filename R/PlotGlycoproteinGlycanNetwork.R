@@ -68,7 +68,6 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
     dplyr::mutate(NumberOfNSites = ifelse(.data$NumberOfNSites > 5, ">5", as.character(.data$NumberOfNSites))) %>%
     dplyr::ungroup()
 
-
   #Get the glycans and colors
   dfgly <- df[,c("TotalGlycanComposition", "GlycanType")] %>%
     dplyr::distinct() %>%
