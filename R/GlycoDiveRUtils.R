@@ -381,3 +381,10 @@ calculateElbowCoords <- function(xVec, yVec, return = "x"){
     return(paste(coord1_y, coord2_y, coord3_y, coord4_y, sep = ";"))
   }
 }
+
+medianNormalization <- function(intensityVec, globalMedian){
+  localMedian <- median(intensityVec[intensityVec != 0], na.rm = TRUE)
+  deltaMedian <- globalMedian - localMedian
+  intensityVec[intensityVec != 0] <- intensityVec[intensityVec != 0] + deltaMedian
+  return(intensityVec)
+}

@@ -1,4 +1,5 @@
-MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape){
+MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
+                               normalization){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
@@ -16,12 +17,30 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape){
     fmessage("Successfully imported Modified Peptide column.")}
   else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
-  #Intensity####
+  #RawIntensity####
   if("Intensity" %in% existingCols) {
-    filtereddf <- cbind(filtereddf, Intensity = as.numeric(unfiltereddf$Intensity))
-    fmessage("Successfully imported Intensity column.")}
-  else{filtereddf <- cbind(filtereddf, Intensity = as.numeric(NA))
+    filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(unfiltereddf$Intensity))
+    fmessage("Successfully imported RawIntensity column.")}
+  else{filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(NA))
        warning("Intensity column not found. Filled with NA.")}
+
+  #Intensity####
+  filtereddf$Intensity <- filtereddf$RawIntensity
+  if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0)){
+    if(normalization == "none"){
+      fmessage("Successfully imported Intensity column without normalization.")
+    }else if(normalization == "median"){
+      globalMedian = median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = Run,
+                      Intensity = medianNormalization(intensityVec = .data$Intensity,
+                                                      globalMedian = globalMedian))
+      fmessage("Successfully median normalized the intensities.")
+
+    }
+  }else{
+    fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
+  }
 
   #PSMScore####
   if ("Hyperscore" %in% existingCols) {

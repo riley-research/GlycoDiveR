@@ -6,6 +6,8 @@
 #' @param peptideScoreCutoff Peptide score cutoff
 #' @param glycanScoreCutoff Glycan score cutoff
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data
+#' @param normalization The (glyco)peptide modification.
+#' Choose between "none" or "median"
 #'
 #' @returns Formatted dataframes
 #' @export
@@ -17,7 +19,7 @@
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                              scrape = FALSE){
+                              scrape = FALSE, normalization = "median"){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
 
@@ -37,7 +39,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 
-  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, scrape)
+  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
+                                   scrape, normalization)
 
   if(sum(!is.na(filtereddf$Intensity)) > 0 & sum(filtereddf$Intensity, na.rm = TRUE) != 0){
     quantAvailable <- TRUE
