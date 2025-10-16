@@ -45,7 +45,7 @@ PSMToPTMTable <- function(PSMTable){
   tempdf <- tempdf %>%
     dplyr::mutate(
       PeptidePTMLocalization = as.numeric(stringr::str_extract(.data$AssignedModifications, "\\d+")),
-      ProteinPTMLocalization = .data$PeptidePTMLocalization + .data$ProteinStart,
+      ProteinPTMLocalization = .data$PeptidePTMLocalization + .data$ProteinStart -1,
       ModificationSite = stringr::str_extract(.data$AssignedModifications, "[A-Za-z](?=\\()"),
       ModificationID = paste0(.data$ModificationSite, .data$ProteinPTMLocalization))
 

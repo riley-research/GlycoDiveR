@@ -69,5 +69,5 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
     ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0, max(df$Intensity)*1.05)) +
     ggplot2::scale_fill_manual(values = colorScheme)
 
-  print(p)
+  return(p)
 }
