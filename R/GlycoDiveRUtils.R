@@ -383,8 +383,65 @@ calculateElbowCoords <- function(xVec, yVec, return = "x"){
 }
 
 medianNormalization <- function(intensityVec, globalMedian){
+  intensityVec <- log(intensityVec,2)
   localMedian <- median(intensityVec[intensityVec != 0], na.rm = TRUE)
-  deltaMedian <- globalMedian - localMedian
+  deltaMedian <- log(globalMedian,2) - localMedian
   intensityVec[intensityVec != 0] <- intensityVec[intensityVec != 0] + deltaMedian
-  return(intensityVec)
+  return(2^intensityVec)
+}
+
+FPModCodeToModMass <- function(modifiedPep, assignedMods){
+  #1. Generate a dataframe with the modification codes and modification masses
+  #2. Look over to rows to replace the codes with the masses
+  # C-term mods should be included too
+  # FPModCodeToModMass(modifiedPep = mydata$PSMTable$ModifiedPeptide, assignedMods = mydata$PSMTable$AssignedModifications)
+  modLookupTable <- data.frame(modCode = as.character(),
+                               modMass = as.character())
+
+  tempdf <- data.frame(modifiedPep = modifiedPep, assignedMods = assignedMods)
+
+  modTable <- tempdf %>%
+    dplyr::filter(!is.na(.data$assignedMods) & .data$assignedMods != "") %>%
+    tidyr::separate_longer_delim(cols = assignedMods, delim = ",") %>%
+    dplyr::filter(!grepl("C\\(57\\.02", .data$assignedMods))
+
+  for(i in 1:nrow(modTable)){
+    AssignedMod <- modTable[i,"assignedMods"]
+    ModifiedPep <- modTable[i,"modifiedPep"]
+
+    modMassi <- stringr::str_extract(AssignedMod, "(?<=\\()[^)]*(?=\\))")
+
+    if(grepl("N-term", AssignedMod)){
+      splitAA <- 3
+    }else{
+      splitAA <- as.numeric(stringr::str_extract(AssignedMod, "^[0-9]+"))
+      splitAA <- gregexpr("[A-Z]", ModifiedPep)[[1]][splitAA] + 2
+    }
+
+    modCodei <- substr(ModifiedPep, splitAA, nchar(ModifiedPep))
+    modCodei <- stringr::str_extract(modCodei, "^[0-9]+")
+
+    if(!any(modLookupTable$modCode == modCodei & modLookupTable$modMass == modMassi)){
+      modLookupTable <- rbind(modLookupTable, data.frame(modCode = modCodei,
+                                             modMass = modMassi))
+    }else{
+      next
+    }
+  }
+
+  modLookupTable$modCode <- paste("[", modLookupTable$modCode, "]", sep = "")
+  modLookupTable$modMass <- paste("[", modLookupTable$modMass, "]", sep = "")
+
+  tempdf$correctedPep <- tempdf$modifiedPep
+  for(i in 1:nrow(modLookupTable)){
+    tempdf$correctedPep <- gsub(modLookupTable$modCode[i],
+                                modLookupTable$modMass[i],
+                                tempdf$correctedPep, fixed = TRUE)
+  }
+
+  return(tempdf$correctedPep)
+}
+
+getModCode <- function(){
+
 }
