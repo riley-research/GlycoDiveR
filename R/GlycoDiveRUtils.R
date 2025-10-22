@@ -393,8 +393,10 @@ medianNormalization <- function(intensityVec, globalMedian){
 FPModCodeToModMass <- function(modifiedPep, assignedMods){
   #1. Generate a dataframe with the modification codes and modification masses
   #2. Look over to rows to replace the codes with the masses
-  # C-term mods should be included too
+  # C-term mods should be included too (but are not yet)
   # FPModCodeToModMass(modifiedPep = mydata$PSMTable$ModifiedPeptide, assignedMods = mydata$PSMTable$AssignedModifications)
+  modifiedPep = mydata$PSMTable$ModifiedPeptide
+  assignedMods = mydata$PSMTable$AssignedModifications
   modLookupTable <- data.frame(modCode = as.character(),
                                modMass = as.character())
 
@@ -433,10 +435,20 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
   modLookupTable$modMass <- paste("[", modLookupTable$modMass, "]", sep = "")
 
   tempdf$correctedPep <- tempdf$modifiedPep
+
   for(i in 1:nrow(modLookupTable)){
-    tempdf$correctedPep <- gsub(modLookupTable$modCode[i],
-                                modLookupTable$modMass[i],
-                                tempdf$correctedPep, fixed = TRUE)
+    modMassE <- gsub("\\[|\\]", "", modLookupTable$modMass[i])
+    tempdf <- tempdf %>%
+      dplyr::mutate(correctedPep = ifelse(grepl(modMassE, .data$assignedMods),
+                                          gsub(modLookupTable$modCode[i],
+                                               modLookupTable$modMass[i],
+                                               .data$correctedPep, fixed = TRUE),
+                                          correctedPep))
+
+    # This doesn't work as modification codes are not always unique
+    # tempdf$correctedPep <- gsub(modLookupTable$modCode[i],
+    #                             modLookupTable$modMass[i],
+    #                             tempdf$correctedPep, fixed = TRUE)
   }
 
   return(tempdf$correctedPep)
