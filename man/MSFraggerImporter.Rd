@@ -10,7 +10,8 @@ MSFraggerImporter(
   fastaPath,
   peptideScoreCutoff,
   glycanScoreCutoff,
-  scrape = FALSE
+  scrape = FALSE,
+  normalization = "median"
 )
 }
 \arguments{
@@ -25,6 +26,9 @@ MSFraggerImporter(
 \item{glycanScoreCutoff}{Glycan score cutoff}
 
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data}
+
+\item{normalization}{The (glyco)peptide modification.
+Choose between "none" or "median"}
 }
 \value{
 Formatted dataframes

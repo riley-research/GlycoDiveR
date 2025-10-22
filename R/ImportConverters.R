@@ -30,9 +30,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
     if(normalization == "none"){
       fmessage("Successfully imported Intensity column without normalization.")
     }else if(normalization == "median"){
-      globalMedian = median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = Run,
+        dplyr::mutate(.by = .data$Run,
                       Intensity = medianNormalization(intensityVec = .data$Intensity,
                                                       globalMedian = globalMedian))
       fmessage("Successfully median normalized the intensities.")

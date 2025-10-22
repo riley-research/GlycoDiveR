@@ -383,11 +383,13 @@ calculateElbowCoords <- function(xVec, yVec, return = "x"){
 }
 
 medianNormalization <- function(intensityVec, globalMedian){
-  intensityVec <- log(intensityVec,2)
-  localMedian <- median(intensityVec[intensityVec != 0], na.rm = TRUE)
-  deltaMedian <- log(globalMedian,2) - localMedian
-  intensityVec[intensityVec != 0] <- intensityVec[intensityVec != 0] + deltaMedian
-  return(2^intensityVec)
+  nonzero <- intensityVec != 0 & !is.na(intensityVec)
+  intensityVec_log2 <- rep(NA_real_, length(intensityVec))
+  intensityVec_log2[nonzero] <- log2(intensityVec[nonzero])
+  localMedian <- stats::median(intensityVec_log2[nonzero], na.rm = TRUE)
+  deltaMedian <- log2(globalMedian) - localMedian
+  intensityVec_log2[nonzero] <- intensityVec_log2[nonzero] + deltaMedian
+  return(2^intensityVec_log2)
 }
 
 FPModCodeToModMass <- function(modifiedPep, assignedMods){
@@ -395,8 +397,6 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
   #2. Look over to rows to replace the codes with the masses
   # C-term mods should be included too (but are not yet)
   # FPModCodeToModMass(modifiedPep = mydata$PSMTable$ModifiedPeptide, assignedMods = mydata$PSMTable$AssignedModifications)
-  modifiedPep = mydata$PSMTable$ModifiedPeptide
-  assignedMods = mydata$PSMTable$AssignedModifications
   modLookupTable <- data.frame(modCode = as.character(),
                                modMass = as.character())
 
@@ -443,7 +443,7 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
                                           gsub(modLookupTable$modCode[i],
                                                modLookupTable$modMass[i],
                                                .data$correctedPep, fixed = TRUE),
-                                          correctedPep))
+                                          .data$correctedPep))
 
     # This doesn't work as modification codes are not always unique
     # tempdf$correctedPep <- gsub(modLookupTable$modCode[i],
