@@ -1,8 +1,7 @@
 ImportMSstatsComparison <- function(path, cleanCCarbamidomethylation = TRUE){
-  comparison_df <- data.frame(UniprotIDs = rep(NA_character_, nrow(MSstats_raw)))
-
-  MSstats_raw <- read.csv(path)
+  MSstats_raw <- utils::read.csv(path)
   existingCols <- names(MSstats_raw)
+  comparison_df <- data.frame(UniprotIDs = rep(NA_character_, nrow(MSstats_raw)))
 
   #UniprotIDs####
   if("Protein" %in% existingCols){
