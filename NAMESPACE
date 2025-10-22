@@ -3,6 +3,7 @@
 export("%>%")
 export(GetAnnotationTemplate)
 export(MSFraggerImporter)
+export(PlotComparisonVolcano)
 export(PlotCompletenessHeatmap)
 export(PlotGlycansPerSite)
 export(PlotGlycoPSMCount)
