@@ -11,7 +11,8 @@ MSFraggerImporter(
   peptideScoreCutoff,
   glycanScoreCutoff,
   scrape = FALSE,
-  normalization = "median"
+  normalization = "median",
+  convertFPModCodeToMass = TRUE
 )
 }
 \arguments{
@@ -29,6 +30,11 @@ MSFraggerImporter(
 
 \item{normalization}{The (glyco)peptide modification.
 Choose between "none" or "median"}
+
+\item{convertFPModCodeToMass}{MSFragger uses modification code in peptide
+modified sequences. This replaces the code with the mass of the modification.
+Keep this enabled when importing MSstats comparison results as MSstats uses
+modification masses instead of modification codes. Default = TRUE}
 }
 \value{
 Formatted dataframes

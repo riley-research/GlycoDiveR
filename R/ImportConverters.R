@@ -1,5 +1,5 @@
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
-                               normalization){
+                               normalization, convertFPModCodeToMass){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
@@ -55,8 +55,10 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
   else {stop("The column Assigned.Modifications was not found in the input dataframe.")}
 
   #ModifiedPeptide clean####
-  filtereddf$ModifiedPeptide <- FPModCodeToModMass(filtereddf$ModifiedPeptide, filtereddf$AssignedModifications)
-  fmessage("Successfully cleaned ModifiedPeptide column.")
+  if(convertFPModCodeToMass){
+    filtereddf$ModifiedPeptide <- FPModCodeToModMass(filtereddf$ModifiedPeptide, filtereddf$AssignedModifications)
+    fmessage("Successfully cleaned ModifiedPeptide column.")
+  }
 
   #TotalGlycanComposition####
   if ("Total.Glycan.Composition" %in% existingCols) {

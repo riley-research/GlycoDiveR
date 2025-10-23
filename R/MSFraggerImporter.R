@@ -8,6 +8,10 @@
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data
 #' @param normalization The (glyco)peptide modification.
 #' Choose between "none" or "median"
+#' @param convertFPModCodeToMass MSFragger uses modification code in peptide
+#' modified sequences. This replaces the code with the mass of the modification.
+#' Keep this enabled when importing MSstats comparison results as MSstats uses
+#' modification masses instead of modification codes. Default = TRUE
 #'
 #' @returns Formatted dataframes
 #' @export
@@ -19,7 +23,7 @@
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                              scrape = FALSE, normalization = "median"){
+                              scrape = FALSE, normalization = "median", convertFPModCodeToMass = TRUE){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
 
@@ -39,7 +43,7 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
-                                   scrape, normalization)
+                                   scrape, normalization, convertFPModCodeToMass)
 
   if(sum(!is.na(filtereddf$Intensity)) > 0 & sum(filtereddf$Intensity, na.rm = TRUE) != 0){
     quantAvailable <- TRUE
