@@ -39,8 +39,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 
-  lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
-  unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][lengthList-1])
+  #lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
+  unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
                                    scrape, normalization, convertFPModCodeToMass)
