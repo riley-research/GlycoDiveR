@@ -28,6 +28,7 @@ ComputeNumberOfGlycoforms <- function(input, UniprotID, whichAlias = NULL){
   if(nrow(df) == 0 | sum(df$count, na.rm = TRUE) == 0){
     return("None found")
   }else{
+    df$count <- df$count + 1
     rslt = prod(df$count, na.rm = TRUE)
     return(rslt)
   }
