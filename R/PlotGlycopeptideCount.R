@@ -31,7 +31,7 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL){
 
     p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Condition)) +
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
@@ -59,7 +59,7 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL){
                         stat = "identity", position = "stack", color = "black") +
       ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$x, ymin = .data$mean-.data$sd,
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.10)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
@@ -87,7 +87,7 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL){
       ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$Condition,
                                                             ymin = .data$mean-.data$sd,
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.10)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
