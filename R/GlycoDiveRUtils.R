@@ -454,6 +454,10 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
   return(tempdf$correctedPep)
 }
 
-getModCode <- function(){
-
+GetGlycanMasses <- function(){
+  tempdf <- data.frame(monosaccharide = c("N", "H", "A", "F", "G"),
+             averageMass = c(203.07937, 162.05282, 291.09542, 146.05791, 307.0903))
+  return(tempdf)
 }
+
+

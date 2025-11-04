@@ -35,7 +35,7 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
     #labeldf <- rbind(labeldf, data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
     #                                     "ModificationID" = c(1, df$ProteinLength[1])))
     labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
-                                                                "ModificationID" = c(1, df$ProteinLength[1]))
+                           "ModificationID" = c(1, df$ProteinLength[1]))
 
     p1 <- ggplot2::ggplot(df) +
       ggplot2::geom_line(data = data.frame(x = seq(1,df$ProteinLength[1]), y = 1),
