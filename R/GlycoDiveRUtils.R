@@ -35,13 +35,6 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
-  # tempdf <- tempdf %>%
-  #     dplyr::rowwise() %>%
-  #     dplyr::mutate(PeptidePTMLocalization = as.numeric(regmatches(AssignedModifications, gregexpr("[0-9]+", AssignedModifications))[[1]][1]),
-  #                   ProteinPTMLocalization = PeptidePTMLocalization + ProteinStart,
-  #                   ModificationSite = sub(".*([A-Za-z])\\(.*", "\\1", AssignedModifications),
-  #                   ModificationID = paste0(ModificationSite,ProteinPTMLocalization))
-
   tempdf <- tempdf %>%
     dplyr::mutate(
       PeptidePTMLocalization = as.numeric(stringr::str_extract(.data$AssignedModifications, "\\d+")),
@@ -444,11 +437,6 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
                                                modLookupTable$modMass[i],
                                                .data$correctedPep, fixed = TRUE),
                                           .data$correctedPep))
-
-    # This doesn't work as modification codes are not always unique
-    # tempdf$correctedPep <- gsub(modLookupTable$modCode[i],
-    #                             modLookupTable$modMass[i],
-    #                             tempdf$correctedPep, fixed = TRUE)
   }
 
   return(tempdf$correctedPep)
@@ -491,3 +479,24 @@ TTest_log2FC <- function(val1, val2){
   return(paste(log2Fc, pval, sep = ";"))
 }
 
+FilterForPeptides <- function(rawdf, whichPeptides){
+  returnVec <- c()
+
+  if(identical(whichPeptides, NA)){
+    return(rawdf)
+  }else if(is.data.frame(whichPeptides) && "ModifiedPeptide" %in% names(rawdf) && "ModifiedPeptide" %in% names(whichPeptides)){
+    returnVec <- rawdf %>%
+      dplyr::filter(.data$ModifiedPeptide %in% whichPeptides$ModifiedPeptide)
+  }else if(is.vector(whichPeptides) && length(whichPeptides) > 0){
+    returnVec <- rawdf %>%
+      dplyr::filter(.data$ModifiedPeptide %in% whichPeptides)
+  }else{
+    stop("whichPeptides input is invalid")
+  }
+
+  if(nrow(rawdf) == 0){
+    stop("No data is left after filtering for peptides")
+  }else{
+    return(returnVec)
+  }
+}

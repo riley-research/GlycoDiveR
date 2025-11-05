@@ -60,6 +60,8 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
     dplyr::mutate(.by = "Label",
                   pvalue = ifelse(.data$pvalue == "NA", NA, .data$pvalue),
                   pvalue = as.double(.data$pvalue),
+                  log2FC = ifelse(.data$log2FC == "NA", NA, .data$log2FC),
+                  log2FC = as.double(.data$log2FC),
                   adjpvalue = stats::p.adjust(.data$pvalue, method = "BH"))
   return(df)
 }

@@ -2,6 +2,7 @@
 
 export("%>%")
 export(ComputeNumberOfGlycoforms)
+export(FilterComparison)
 export(GetAnnotationTemplate)
 export(GetComparison)
 export(MSFraggerImporter)
