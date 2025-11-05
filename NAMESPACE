@@ -3,6 +3,7 @@
 export("%>%")
 export(ComputeNumberOfGlycoforms)
 export(GetAnnotationTemplate)
+export(GetComparison)
 export(MSFraggerImporter)
 export(PlotComparisonVolcano)
 export(PlotCompletenessHeatmap)

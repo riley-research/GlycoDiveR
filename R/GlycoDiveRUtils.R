@@ -460,4 +460,34 @@ GetGlycanMasses <- function(){
   return(tempdf)
 }
 
+TTest_log2FC <- function(val1, val2){
+  log2Fc <- NA
+  pval <- NA
+
+  if(all(is.na(val1)) && all(is.na(val2))){
+    return("NA;NA")
+  }
+
+  if(sum(is.finite(val1)) > 1 & sum(is.finite(val2)) > 1){
+    val1 <- val1[is.finite(val1)]
+    val2 <- val2[is.finite(val2)]
+
+    pval <- stats::t.test(val1, val2)$p.value
+  }else{
+    pval <- NA
+  }
+
+  meanval1 <- mean(val1, na.rm=TRUE)
+  meanval2 <- mean(val2, na.rm=TRUE)
+
+  if(is.na(meanval1)){
+    log2Fc <- -Inf
+  }else if(is.na(meanval2)){
+    log2Fc <- Inf
+  }else{
+    log2Fc <- meanval1 -meanval2
+  }
+
+  return(paste(log2Fc, pval, sep = ";"))
+}
 

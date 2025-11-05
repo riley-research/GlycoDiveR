@@ -27,6 +27,7 @@ Imports:
     UpSetR,
     rlang,
     UniprotR,
-    purrr
+    purrr,
+    tidyselect
 Depends: 
     R (>= 3.5)
