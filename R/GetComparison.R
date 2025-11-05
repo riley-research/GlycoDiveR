@@ -59,6 +59,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
     tidyr::separate_wider_delim(cols = "LabelLog2Fc",  names = c("log2FC", "pvalue"), delim = ";") %>%
     dplyr::mutate(.by = "Label",
                   pvalue = ifelse(.data$pvalue == "NA", NA, .data$pvalue),
+                  pvalue = as.double(.data$pvalue),
                   adjpvalue = stats::p.adjust(.data$pvalue, method = "BH"))
   return(df)
 }
