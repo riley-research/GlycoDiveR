@@ -20,13 +20,20 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
 
   if(type == "glyco"){
     df <- df %>%
-      dplyr::filter(.data$GlycanType != "NonGlyco" & .data$GlycanType != "Unmodified")
+      dplyr::filter(nchar(gsub("NonGlyco|Unmodified| |,", "", .data$GlycanType)) != 0)
   }
 
+  modID_df <- input$PTMTable %>%
+    dplyr::filter(.data$GlycanType != "NonGlyco") %>%
+    dplyr::reframe(.by = "ModifiedPeptide",
+                   ModificationID = paste(.data$ModificationID, sep =";")) %>%
+    dplyr::distinct()
+
   df <- df %>%
-    dplyr::select(.data$UniprotIDs, "Proteins" = .data$Genes,
-                  .data$ModifiedPeptide, .data$Condition,
-                  .data$Intensity, .data$BioReplicate) %>%
+    dplyr::select("UniprotIDs", "Proteins" = "Genes",
+                  "ModifiedPeptide", "Condition",
+                  "Intensity", "BioReplicate") %>%
+    dplyr::left_join(modID_df, by = "ModifiedPeptide") %>%
     dplyr::mutate(sampleName = paste(.data$Condition,
                                      .data$BioReplicate, sep = ";"),
                   Intensity = ifelse(.data$Intensity == 0, NA, .data$Intensity),
@@ -34,7 +41,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
     dplyr::select(-c(.data$Condition, .data$BioReplicate)) %>%
     tidyr::pivot_wider(names_from = .data$sampleName, values_from = "Intensity")
 
-  tempColumns <- names(df)[4:length(names(df))]
+  tempColumns <- names(df)[5:length(names(df))]
 
   for(i in 1:length(comparisons)){
     compi <- comparisons[i][[1]]
@@ -54,7 +61,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
 
   df <- df %>%
     dplyr::select(-tidyselect::all_of(tempColumns)) %>%
-    tidyr::pivot_longer(cols = -tidyselect::all_of(c("UniprotIDs", "Proteins", "ModifiedPeptide")),
+    tidyr::pivot_longer(cols = -tidyselect::all_of(c("UniprotIDs", "Proteins", "ModifiedPeptide", "ModificationID")),
                         names_to = "Label", values_to = "LabelLog2Fc") %>%
     tidyr::separate_wider_delim(cols = "LabelLog2Fc",  names = c("log2FC", "pvalue"), delim = ";") %>%
     dplyr::mutate(.by = "Label",

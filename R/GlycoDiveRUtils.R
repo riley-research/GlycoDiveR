@@ -30,8 +30,8 @@ GetProteinLength <- function(IDVec, fastaFile){
 
 PSMToPTMTable <- function(PSMTable){
   tempdf <- PSMTable %>%
-      dplyr::filter(!is.na(.data$AssignedModifications) & .data$AssignedModifications != "") %>%
-      tidyr::separate_rows(.data$AssignedModifications, sep = ",")
+    dplyr::filter(!is.na(.data$AssignedModifications) & .data$AssignedModifications != "") %>%
+    tidyr::separate_rows(.data$AssignedModifications, sep = ",")
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
@@ -63,8 +63,8 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
 
     if(is.na(mod) | mod == ""){
       modType <- append(modType, "NonGlyco")
-      }else if(!(modifiedResidue %in% c("S", "T", "N"))){
-        modType <- append(modType, "NonGlyco")
+    }else if(!(modifiedResidue %in% c("S", "T", "N"))){
+      modType <- append(modType, "NonGlyco")
         }else if((glycanComp != "" & modifiedResidue == "N") | (!is.na(glycanComp) & modifiedResidue == "N")){
       glycanMass = strsplit(glycanComp, "%")[[1]][2]
       glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
