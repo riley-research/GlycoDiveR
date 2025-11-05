@@ -40,14 +40,14 @@ PlotComparisonVolcano <- function(input, whichComparison,
   df <- df %>%
     dplyr::filter(.data$Label == whichComparison & !is.na(.data$statistic)) %>%
     dplyr::mutate(col = dplyr::case_when(.data$statistic < statisticalCutoff & .data$log2FC < -log2FCCutoff ~ colorScheme[1],
-                           .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ colorScheme[2],
-                           TRUE ~ "black"))
+                                         .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ colorScheme[2],
+                                         TRUE ~ "black"))
 
   if(identical(whichLabel, "significant")){
     df <- df %>%
       dplyr::mutate(plotLabel = ifelse(.data$col != "black",
-                                   paste(.data$Proteins, .data$ModificationID, sep = "-"),
-                                   NA_character_))
+                                       paste(.data$Proteins, .data$ModificationID, sep = "-"),
+                                       NA_character_))
   }else if(identical(whichLabel, "none")){
     df <- df %>%
       dplyr::mutate(plotLabel = NA_character_)
