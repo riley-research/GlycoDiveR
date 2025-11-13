@@ -4,7 +4,7 @@
 \alias{PlotGlycopeptideCount}
 \title{PlotGlycoPeptideCount}
 \usage{
-PlotGlycopeptideCount(input, grouping, whichAlias = NULL)
+PlotGlycopeptideCount(input, grouping, whichAlias = NULL, whichPeptide = NA)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -13,6 +13,11 @@ PlotGlycopeptideCount(input, grouping, whichAlias = NULL)
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 A graph showing the number of unique glycopeptides

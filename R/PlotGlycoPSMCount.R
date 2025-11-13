@@ -4,13 +4,18 @@
 #' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns A GlycoPSM graph
 #' @export
 #'
 #' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
-PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
+PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA){
   input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 
@@ -30,7 +35,7 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
 
     p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Condition)) +
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "glycoPSM (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
@@ -58,7 +63,7 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
                         stat = "identity", position = "stack", color = "black") +
       ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$x, ymin = .data$mean-.data$sd,
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "glycoPSM (count)") +
       ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
@@ -87,7 +92,7 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL){
       ggplot2::geom_errorbar(data = tempdfsum, ggplot2::aes(x = .data$Condition,
                                                             ymin = .data$mean-.data$sd,
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
-      ggplot2::labs(x = "", y = "PSM (count)") +
+      ggplot2::labs(x = "", y = "glycoPSM (count)") +
       ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +

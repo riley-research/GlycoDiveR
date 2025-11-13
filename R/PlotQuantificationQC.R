@@ -5,13 +5,18 @@
 #' for plotting
 #' @param whichQuantification choose "both", "corrected", or "raw". Determines
 #' what quantification values to plot.
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns Log2 intensity boxplots
 #' @export
 #'
 #' @examples \dontrun{PlotQuantificationQC(mydata, whichQuantification = "both")}
-PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification = "both"){
-  df <- input$PSMTable
+PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification = "both",
+                                 whichPeptide = NA){
+  df <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
     df <- df %>%

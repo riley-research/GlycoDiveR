@@ -1,6 +1,7 @@
-PlotGlycoProteinGlycanNetwork <- function(input, left, right, type = "N",
+PlotGlycoProteinGlycanNetworkComparison <- function(input, left, right, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3),
-                                          whichAlias = NULL, highlight = "all"){
+                                          whichAlias = NULL, highlight = "all",
+                                          whichPeptide = NA){
   if(!is.na(condition)){
     input$PTMTable <- input$PTMTable[input$PTMTable[["Alias"]] %in% c(condition1,condition2) ]
 
@@ -11,6 +12,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, left, right, type = "N",
   }
 
   input <- FilterForCutoffs(input)
+  input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco" & .data$GlycanType != "OGlycan")

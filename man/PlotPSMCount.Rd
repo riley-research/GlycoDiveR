@@ -4,15 +4,25 @@
 \alias{PlotPSMCount}
 \title{PlotPSMCount}
 \usage{
-PlotPSMCount(inputData, grouping = "technicalReps", whichAlias = NULL)
+PlotPSMCount(
+  input,
+  grouping = "technicalReps",
+  whichAlias = NULL,
+  whichPeptide = NA
+)
 }
 \arguments{
-\item{inputData}{Formatted data}
+\item{input}{Formatted data}
 
 \item{grouping}{grouping is "technicalReps", "biologicalReps", or "condition"}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 the PSM count

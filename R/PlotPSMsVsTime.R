@@ -9,6 +9,10 @@
 #' for plotting
 #' @param gradientLength Define the LC gradient length. If no length is supplied
 #' the maximum PSM retention time is used
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns a lineplot
 #' @export
@@ -17,11 +21,12 @@
 #' bindwidth = 1, gradientLength = NA)
 #' }
 PlotPSMsVsTime <- function(input, type = "all", bindwidth = 5, whichAlias = NULL,
-                           gradientLength = NA){
+                           gradientLength = NA, whichPeptide = NA){
   glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
                 "Fucose", "Truncated", "High Mannose", "Paucimannose")
 
   input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%

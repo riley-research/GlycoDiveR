@@ -4,13 +4,18 @@
 \alias{PlotGlycansPerSite}
 \title{PlotGlycanPerSite}
 \usage{
-PlotGlycansPerSite(input, whichAlias = NULL)
+PlotGlycansPerSite(input, whichAlias = NULL, whichPeptide = NA)
 }
 \arguments{
 \item{input}{Formatted data}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 The number of glycans per site

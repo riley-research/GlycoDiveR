@@ -480,8 +480,6 @@ TTest_log2FC <- function(val1, val2){
 }
 
 FilterForPeptides <- function(rawdf, whichPeptides){
-  returnVec <- c()
-
   if(identical(whichPeptides, NA)){
     return(rawdf)
   }else if(is.data.frame(whichPeptides) && "ModifiedPeptide" %in% names(rawdf) && "ModifiedPeptide" %in% names(whichPeptides)){
@@ -494,7 +492,7 @@ FilterForPeptides <- function(rawdf, whichPeptides){
     stop("whichPeptides input is invalid")
   }
 
-  if(nrow(rawdf) == 0){
+  if(nrow(returnVec) == 0){
     stop("No data is left after filtering for peptides")
   }else{
     return(returnVec)

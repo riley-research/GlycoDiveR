@@ -4,7 +4,12 @@
 \alias{PlotQuantificationQC}
 \title{PlotQuantificationQC}
 \usage{
-PlotQuantificationQC(input, whichAlias = NULL, whichQuantification = "both")
+PlotQuantificationQC(
+  input,
+  whichAlias = NULL,
+  whichQuantification = "both",
+  whichPeptide = NA
+)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -14,6 +19,11 @@ for plotting}
 
 \item{whichQuantification}{choose "both", "corrected", or "raw". Determines
 what quantification values to plot.}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 Log2 intensity boxplots

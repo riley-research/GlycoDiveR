@@ -9,6 +9,10 @@
 #' or all peptides/proteins
 #' @param level choose "peptide" or "protein"
 #' @param nintersects The maximum number of intersects shown
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns An UpSet plot
 #' @export
@@ -19,8 +23,10 @@
 #'  type = "glyco", level = "protein", nintersects = 40)
 #' }
 PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
-                      type = "glyco", level = "peptide", nintersects = 40){
+                      type = "glyco", level = "peptide", nintersects = 40,
+                      whichPeptide = NA){
   input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%

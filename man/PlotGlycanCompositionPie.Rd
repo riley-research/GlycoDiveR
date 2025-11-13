@@ -9,7 +9,8 @@ PlotGlycanCompositionPie(
   grouping,
   scales = "free",
   protein = "all",
-  whichAlias = NULL
+  whichAlias = NULL,
+  whichPeptide = NA
 )
 }
 \arguments{
@@ -24,6 +25,11 @@ proteins from your data  as in the UniprotIDs column}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 The glycan composition

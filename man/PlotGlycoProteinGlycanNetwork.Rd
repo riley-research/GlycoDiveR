@@ -11,7 +11,8 @@ PlotGlycoProteinGlycanNetwork(
   edgeWidth = 1.5,
   verticeSize = c(5, 3),
   whichAlias = NULL,
-  highlight = "all"
+  highlight = "all",
+  whichPeptide = NA
 )
 }
 \arguments{
@@ -30,6 +31,11 @@ nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
 for plotting}
 
 \item{highlight}{specify what glycan category to highlight, or use "all" to highlight all}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
 }
 \value{
 A glycoprotein to glycan network

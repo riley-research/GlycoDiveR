@@ -4,13 +4,18 @@
 #' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns A graph showing the number of unique glycopeptides
 #' @export
 #'
 #' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
-PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL){
+PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA){
   input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 

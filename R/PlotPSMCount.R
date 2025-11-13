@@ -1,30 +1,36 @@
 #' PlotPSMCount
 #'
-#' @param inputData Formatted data
+#' @param input Formatted data
 #' @param grouping grouping is "technicalReps", "biologicalReps", or "condition"
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns the PSM count
 #' @export
 #'
 #' @examples \dontrun{PlotPSMCount(myData)}
-PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NULL){
-  inputData <- FilterForCutoffs(inputData)
+PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
+                         whichPeptide = NA){
+  input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
-  inputData$PSMTable$Glycan <- sapply(inputData$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
+  input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 
   if(!is.null(whichAlias)){
-    inputData$PSMTable <- inputData$PSMTable %>%
+    input$PSMTable <- input$PSMTable %>%
       dplyr::filter(.data$Alias %in% whichAlias)
   }
 
   if(grouping == "technicalReps"){
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
                        .by = c(.data$Run, .data$Alias, .data$Glycan)) %>%
       dplyr::mutate(Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")),
-                    Alias = factor(.data$Alias, levels = levels(inputData$PSMTable$Alias)))
+                    Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
     p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Glycan)) +
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
@@ -37,7 +43,7 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
 
   if(grouping == "biologicalReps"){
     #Get separate points
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
                        .by = c(.data$Condition, .data$BioReplicate,
                                .data$TechReplicate, .data$Glycan)) %>%
@@ -84,7 +90,7 @@ PlotPSMCount <- function(inputData, grouping = "technicalReps", whichAlias = NUL
   }
   if(grouping == "condition"){
     #Get separate points
-    tempdf <- inputData$PSMTable %>%
+    tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
                        .by = c(.data$Condition, .data$BioReplicate, .data$Glycan)) %>%
       dplyr::mutate(x = paste0(.data$Condition),

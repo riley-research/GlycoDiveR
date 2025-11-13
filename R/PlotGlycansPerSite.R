@@ -3,13 +3,18 @@
 #' @param input Formatted data
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns The number of glycans per site
 #' @export
 #'
 #' @examples \dontrun{PlotGlycanPerSite(myData)}
-PlotGlycansPerSite <- function(input, whichAlias = NULL){
+PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA){
   input <- FilterForCutoffs(input)
+  input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- GetMeanTechReps(input$PTMTable)
 

@@ -6,6 +6,10 @@
 #' @param exportDataTo provide path to a folder to export the heatmap as a csv file
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns Grouped heatmap
 #' @export
@@ -13,8 +17,9 @@
 #' @examples \dontrun{PlotCompletenessHeatmap(mydata)}
 PlotCompletenessHeatmap <- function(input, grouping = "peptide",
                                     peptideType  = "glyco", exportDataTo = FALSE,
-                                    whichAlias = NULL){
+                                    whichAlias = NULL, whichPeptide = NA){
   input <- FilterForCutoffs(input)
+  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(grouping == "peptide"){
     df <- GetMeanTechReps(input$PSMTable)

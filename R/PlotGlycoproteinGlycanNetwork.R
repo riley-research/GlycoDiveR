@@ -9,6 +9,10 @@
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
 #' @param highlight specify what glycan category to highlight, or use "all" to highlight all
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
@@ -26,7 +30,8 @@
 #' }
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3),
-                                          whichAlias = NULL, highlight = "all"){
+                                          whichAlias = NULL, highlight = "all",
+                                          whichPeptide = NA){
   if(!is.na(condition)){
     input$PTMTable <- input$PTMTable[input$PTMTable[["Condition"]] %in% condition, ]
 
@@ -36,6 +41,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   }
 
   input <- FilterForCutoffs(input)
+  input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco" & .data$GlycanType != "OGlycan")
