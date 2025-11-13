@@ -8,14 +8,15 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent
 #'
 #' @returns the PSM count
 #' @export
 #'
 #' @examples \dontrun{PlotPSMCount(myData)}
 PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
-                         whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+                         whichPeptide = NA, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
@@ -28,7 +29,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
   if(grouping == "technicalReps"){
     tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
-                       .by = c(.data$Run, .data$Alias, .data$Glycan)) %>%
+                       .by = c("Run", "Alias", "Glycan")) %>%
       dplyr::mutate(Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")),
                     Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
@@ -38,15 +39,15 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }
 
   if(grouping == "biologicalReps"){
     #Get separate points
     tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
-                       .by = c(.data$Condition, .data$BioReplicate,
-                               .data$TechReplicate, .data$Glycan)) %>%
+                       .by = c("Condition", "BioReplicate",
+                               "TechReplicate", "Glycan")) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate),
                     Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")))
 
@@ -55,9 +56,9 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
       dplyr::summarise(
         mean = mean(.data$PSMCount, na.rm = TRUE),
         sd   = stats::sd(.data$PSMCount, na.rm = TRUE),
-        .by = c(.data$x, .data$Glycan)
+        .by = c("x", "Glycan")
       ) %>%
-      dplyr::mutate(.by = .data$x,
+      dplyr::mutate(.by = "x",
                     sum_mean = sum(mean, na.rm = TRUE)) %>%
       dplyr::mutate(corrected_mean = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_mean, .data$mean))
 
@@ -65,7 +66,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
     tempdf <- tempdf %>%
       dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")],
                        by = c("Glycan", "x")) %>%
-      dplyr::mutate(.by = .data$x, mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
+      dplyr::mutate(.by = "x", mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
       dplyr::mutate(sum_count = .data$mean + .data$PSMCount) %>%
       dplyr::mutate(corrected_count = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_count, .data$PSMCount))
 
@@ -86,13 +87,13 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
       ggplot2::scale_fill_manual(values = c(colorScheme)) +
       ggplot2::scale_shape_manual(values = c(15, 17))
 
-    print(p)
+    return(p)
   }
   if(grouping == "condition"){
     #Get separate points
     tempdf <- input$PSMTable %>%
       dplyr::summarise(PSMCount = dplyr::n(),
-                       .by = c(.data$Condition, .data$BioReplicate, .data$Glycan)) %>%
+                       .by = c("Condition", "BioReplicate", "Glycan")) %>%
       dplyr::mutate(x = paste0(.data$Condition),
                     Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated")))
 
@@ -103,7 +104,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
         sd = stats::sd(.data$PSMCount, na.rm = TRUE),
         .by = c(.data$x, .data$Glycan)
       ) %>%
-      dplyr::mutate(.by = .data$x,
+      dplyr::mutate(.by = "x",
                     sum_mean = sum(mean, na.rm = TRUE)) %>%
       dplyr::mutate(corrected_mean = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_mean, .data$mean))
 
@@ -111,7 +112,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
     tempdf <- tempdf %>%
       dplyr::left_join(tempdfsum[c("x", "Glycan", "mean")],
                        by = c("Glycan", "x")) %>%
-      dplyr::mutate(.by = .data$x, mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
+      dplyr::mutate(.by = "x", mean = mean[which(.data$Glycan == "Glycosylated")[1]]) %>%
       dplyr::mutate(sum_count = .data$mean + .data$PSMCount) %>%
       dplyr::mutate(corrected_count = dplyr::if_else(.data$Glycan == "nonGlycosylated", .data$sum_count, .data$PSMCount))
 
@@ -132,7 +133,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
       ggplot2::scale_fill_manual(values = c(colorScheme)) +
       ggplot2::scale_shape_manual(values = c(15, 17))
 
-    print(p)
+    return(p)
   }
 
 }

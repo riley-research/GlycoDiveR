@@ -8,7 +8,8 @@ PlotPSMCount(
   input,
   grouping = "technicalReps",
   whichAlias = NULL,
-  whichPeptide = NA
+  whichPeptide = NA,
+  silent = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ for plotting}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{}
 }
 \value{
 the PSM count
