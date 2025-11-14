@@ -10,6 +10,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns Grouped heatmap
 #' @export
@@ -17,11 +18,13 @@
 #' @examples \dontrun{PlotCompletenessHeatmap(mydata)}
 PlotCompletenessHeatmap <- function(input, grouping = "peptide",
                                     peptideType  = "glyco", exportDataTo = FALSE,
-                                    whichAlias = NULL, whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+                                    whichAlias = NULL, whichPeptide = NA, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(grouping == "peptide"){
+    df <- GetMeanTechReps(input$PSMTable)
+  }else{
     df <- GetMeanTechReps(input$PSMTable)
   }
 
@@ -38,8 +41,8 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
   }
 
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
-    tidyr::pivot_wider(names_from = .data$Alias, values_from = .data$Run, values_fn = dplyr::first) %>%
-    dplyr::mutate(dplyr::across(-c(.data$ModifiedPeptide, .data$GlycanType), ~ ifelse(!is.na(.), 1, 0)))
+    tidyr::pivot_wider(names_from = "Alias", values_from = "Run", values_fn = dplyr::first) %>%
+    dplyr::mutate(dplyr::across(-c("ModifiedPeptide", "GlycanType"), ~ ifelse(!is.na(.), 1, 0)))
 
   #Get the matrix and in the right column order
   mtrx <- data.matrix(df[,3:ncol(df)])
@@ -59,11 +62,13 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
   row_ha = ComplexHeatmap::rowAnnotation(Glycan = df$GlycanType, show_legend = FALSE,
                                          col = list(Glycan = colH))
 
-  col_fun = circlize::colorRamp2(c(0,1), c("lightgrey", "darkgreen"))
-  col_fun(seq(-3, 3))
+  col_fun <- c("0" = "lightgrey",
+               "1" = "darkgreen")
 
-  lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = "", at = c(0, 1),
-               labels = c("Missing", "Identified"))
+  lgd <- ComplexHeatmap::Legend(at = c("0", "1"),
+    labels = c("Missing", "Identified"),
+    legend_gp = grid::gpar(fill = col_fun[c("0", "1")]),
+    title = "")
 
   #Now for clustering the columns
   colCluster <- sapply(colnames(mtrx), function(x) input$annotation$Condition[input$annotation$Alias == x][1])
@@ -75,5 +80,5 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
                                col = col_fun, show_heatmap_legend = FALSE,
                                column_split = colCluster)
 
-  print(ComplexHeatmap::draw(ht, annotation_legend_list = list(lgd)))
+  return(ComplexHeatmap::draw(ht, annotation_legend_list = list(lgd)))
 }

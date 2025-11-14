@@ -11,6 +11,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns The glycan composition
 #' @export
@@ -19,8 +20,8 @@
 #' protein = c("P10204", "Q92930"))}
 PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
                                      protein = "all", whichAlias = NULL,
-                                     whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+                                     whichPeptide = NA, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- GetMeanTechReps(input$PTMTable) %>%
@@ -31,7 +32,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
       dplyr::filter(.data$Alias %in% whichAlias)
   }
 
-  if(protein != "all"){
+  if(!identical(protein, "all")){
     df <- df %>%
       dplyr::filter(.data$UniprotIDs %in% protein)
 
@@ -42,7 +43,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
 
   if(grouping == "technicalReps"){
     p <- df %>%
-      dplyr::summarise(.by = c(.data$Run, .data$Alias, .data$GlycanType),
+      dplyr::summarise(.by = c("Run", "Alias", "GlycanType"),
                        GlycanCount = dplyr::n()) %>%
       tidyr::complete(.data$Run, .data$Alias, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
@@ -57,8 +58,8 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
     return(p)
   }else if(grouping == "biologicalReps"){
     p <- df %>%
-      dplyr::summarise(.by = c(.data$Condition, .data$BioReplicate,
-                               .data$GlycanType),
+      dplyr::summarise(.by = c("Condition", "BioReplicate",
+                               "GlycanType"),
                        GlycanCount = dplyr::n()) %>%
       tidyr::complete(.data$Condition, .data$BioReplicate, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate)) %>%
@@ -73,7 +74,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
     return(p)
   }else if(grouping == "condition"){
     p <- df %>%
-      dplyr::summarise(.by = c(.data$Condition, .data$GlycanType),
+      dplyr::summarise(.by = c("Condition", "GlycanType"),
                        GlycanCount = dplyr::n()) %>%
       tidyr::complete(.data$Condition, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +

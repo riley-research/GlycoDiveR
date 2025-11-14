@@ -1,5 +1,8 @@
 #' PlotGlycanPerSite
 #'
+#' This plot shows how many glycans were detected at each site—
+#' that is, how many sites have 1 glycan, 2 glycans, and so on.
+#'
 #' @param input Formatted data
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
@@ -7,13 +10,15 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns The number of glycans per site
 #' @export
 #'
 #' @examples \dontrun{PlotGlycanPerSite(myData)}
-PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA,
+                               silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- GetMeanTechReps(input$PTMTable)
@@ -25,14 +30,14 @@ PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA){
 
   df <- df %>%
     dplyr::filter(.data$GlycanType != "NonGlyco") %>%
-    dplyr::summarise(.by = c(.data$UniprotIDs, .data$ModificationID),
+    dplyr::summarise(.by = c("UniprotIDs", "ModificationID"),
                      GlycansPerSite = dplyr::n_distinct(.data$TotalGlycanComposition))
 
   df$GlycansPerSite <- sapply(df$GlycansPerSite, function(x) ifelse(x > 9, ">10", toString(x)))
   df$GlycansPerSite <- factor(df$GlycansPerSite, levels = rev(c("1", "2", "3", "4", "5", "6", "7", "8", "9", ">10")))
 
   df <- df %>%
-    dplyr::summarise(.by = .data$GlycansPerSite, Count = dplyr::n())
+    dplyr::summarise(.by = "GlycansPerSite", Count = dplyr::n())
 
   df <- df %>%
     dplyr::arrange(dplyr::desc(.data$GlycansPerSite)) %>%
@@ -45,7 +50,8 @@ PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA){
     ggplot2::scale_fill_manual(values = colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::geom_text(ggplot2::aes(label = .data$Count),
                        position = ggplot2::position_stack(vjust = 0.5)) +
-    ggplot2::labs(fill = "Glycans\nper site")
+    ggplot2::labs(fill = "Glycans\nper site") +
+    ggplot2::theme_void()
 
-  print(p + ggplot2::theme_void())
+  return(p)
 }

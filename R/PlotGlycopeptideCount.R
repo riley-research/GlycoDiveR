@@ -8,13 +8,15 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns A graph showing the number of unique glycopeptides
 #' @export
 #'
 #' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
-PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA,
+                                  silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
@@ -28,8 +30,8 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPepti
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
       dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all = TRUE) %>%
-      dplyr::select(.data$Run, .data$Alias, .data$Condition, .data$Glycan, .data$Genes) %>%
-      dplyr::summarise(.by = c(.data$Run, .data$Alias, .data$Glycan, .data$Condition),
+      dplyr::select("Run", "Alias", "Condition", "Glycan", "Genes") %>%
+      dplyr::summarise(.by = c("Run", "Alias", "Glycan", "Condition"),
                        PSMCount = dplyr::n())
 
     tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
@@ -40,22 +42,22 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPepti
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else if(grouping == "biologicalReps"){
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
       dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all = TRUE) %>%
-      dplyr::select(.data$Run, .data$Alias, .data$Condition, .data$BioReplicate,
-                    .data$TechReplicate, .data$Glycan, .data$Genes) %>%
-      dplyr::summarise(.by = c(.data$Alias, .data$Glycan, .data$Condition,
-                               .data$BioReplicate, .data$TechReplicate),
+      dplyr::select("Run", "Alias", "Condition", "BioReplicate",
+                    "TechReplicate", "Glycan", "Genes") %>%
+      dplyr::summarise(.by = c("Alias", "Glycan", "Condition",
+                               "BioReplicate", "TechReplicate"),
                        PSMCount = dplyr::n()) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate))
 
     tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
 
     tempdfsum <- tempdf %>%
-      dplyr::summarise(.by = c(.data$Condition, .data$BioReplicate, .data$x),
+      dplyr::summarise(.by = c("Condition", "BioReplicate", "x"),
                        mean = mean(.data$PSMCount, na.rm = TRUE),
                        sd = stats::sd(.data$PSMCount, na.rm = TRUE))
 
@@ -69,20 +71,20 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPepti
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else if(grouping == "condition"){
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
       dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all = TRUE) %>%
-      dplyr::select(.data$Run, .data$Alias, .data$Condition, .data$BioReplicate,
-                    .data$Glycan, .data$Genes) %>%
-      dplyr::summarise(.by = c(.data$Alias, .data$Glycan, .data$Condition, .data$BioReplicate),
+      dplyr::select("Run", "Alias", "Condition", "BioReplicate",
+                    "Glycan", "Genes") %>%
+      dplyr::summarise(.by = c("Alias", "Glycan", "Condition", "BioReplicate"),
                        PSMCount = dplyr::n())
 
     tempdf$Alias <- factor(tempdf$Alias, levels = levels(input$PSMTable$Alias))
 
     tempdfsum <- tempdf %>%
-      dplyr::summarise(.by = .data$Condition,
+      dplyr::summarise(.by = "Condition",
                        mean = mean(.data$PSMCount, na.rm = TRUE),
                        sd = stats::sd(.data$PSMCount, na.rm = TRUE))
 
@@ -97,7 +99,7 @@ PlotGlycopeptideCount <- function(input, grouping, whichAlias = NULL, whichPepti
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else{
     warning("Unidentified grouping: ", grouping)
   }

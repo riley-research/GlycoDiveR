@@ -8,13 +8,15 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns A GlycoPSM graph
 #' @export
 #'
 #' @examples \dontrun{PlotGlycoPSMCount(mydata, grouping = "condition")}
-PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide = NA,
+                              silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
@@ -27,10 +29,10 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide =
   if(grouping == "technicalReps"){
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
-      dplyr::summarise(PSMCount = dplyr::n(), .by = c(.data$Run,
-                                                      .data$Alias,
-                                                      .data$Condition,
-                                                      .data$Glycan)) %>%
+      dplyr::summarise(PSMCount = dplyr::n(), .by = c("Run",
+                                                      "Alias",
+                                                      "Condition",
+                                                      "Glycan")) %>%
       dplyr::mutate(Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
     p <- ggplot2::ggplot(tempdf, ggplot2::aes(x=.data$Alias, y = .data$PSMCount, fill = .data$Condition)) +
@@ -39,13 +41,13 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide =
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else if(grouping == "biologicalReps"){
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
       dplyr::summarise(PSMCount = dplyr::n(),
-                       .by = c(.data$Alias, .data$Glycan, .data$Condition,
-                               .data$BioReplicate, .data$TechReplicate)) %>%
+                       .by = c("Alias", "Glycan", "Condition",
+                               "BioReplicate", "TechReplicate")) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate),
                     Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
@@ -69,12 +71,12 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide =
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else if(grouping == "condition"){
     tempdf <- input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
       dplyr::summarise(PSMCount = dplyr::n(),
-                       .by=c(.data$Alias, .data$Glycan, .data$Condition, .data$BioReplicate)) %>%
+                       .by=c("Alias", "Glycan", "Condition", "BioReplicate")) %>%
       dplyr::mutate(Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias)))
 
     tempdfsum <- tempdf %>%
@@ -98,7 +100,7 @@ PlotGlycoPSMCount <- function(input, grouping, whichAlias = NULL, whichPeptide =
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +
       ggplot2::scale_fill_manual(values = c(colorScheme))
 
-    print(p)
+    return(p)
   }else{
     warning("Unidentified grouping: ", grouping)
   }

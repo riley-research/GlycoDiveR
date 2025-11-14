@@ -4,7 +4,13 @@
 \alias{PlotGlycoPSMCount}
 \title{PlotGlycoPSMCount}
 \usage{
-PlotGlycoPSMCount(input, grouping, whichAlias = NULL, whichPeptide = NA)
+PlotGlycoPSMCount(
+  input,
+  grouping,
+  whichAlias = NULL,
+  whichPeptide = NA,
+  silent = FALSE
+)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -18,6 +24,8 @@ for plotting}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 A GlycoPSM graph

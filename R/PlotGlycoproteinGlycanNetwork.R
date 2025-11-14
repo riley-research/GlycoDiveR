@@ -1,5 +1,9 @@
 #' PlotGlycoproteinGlycanNetwork
 #'
+#' Creates a network where each node in the circle represents one glycan
+#' composition (e.g., H1N1, or H1N1A), connecting to a protein represented as
+#' a bar plot and sorted by number of identified glycan sites.
+#'
 #' @param input Formatted data
 #' @param condition What condition to plot as listed in the annotation dataframe
 #' @param type Glycan type "N"
@@ -13,6 +17,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
@@ -31,7 +36,7 @@
 PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
                                           edgeWidth = 1.5, verticeSize = c(5,3),
                                           whichAlias = NULL, highlight = "all",
-                                          whichPeptide = NA){
+                                          whichPeptide = NA, silent = FALSE){
   if(!is.na(condition)){
     input$PTMTable <- input$PTMTable[input$PTMTable[["Condition"]] %in% condition, ]
 
@@ -40,7 +45,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
     }
   }
 
-  input <- FilterForCutoffs(input)
+  input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
@@ -160,13 +165,13 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   graphics::legend(#"topright", inset = c(-0.18, 0),
     x=1.05,
     y=1,
-         legend = dfcolmatch$GlycanType,
-         fill = dfcolmatch$col,
-         title = "Glycan Type",
-         cex = 0.8,
-         pt.cex = 0.6,
-         bty = "n",
-         xpd = NA)
+    legend = dfcolmatch$GlycanType,
+    fill = dfcolmatch$col,
+    title = "Glycan Type",
+    cex = 0.8,
+    pt.cex = 0.6,
+    bty = "n",
+    xpd = NA)
 
   graphics::legend(#"bottomright", inset = c(0, 0),
     x = 1.05,
@@ -178,4 +183,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
          pt.cex = 0.6,
          bty = "n",
          xpd = NA)
+
+  p <- grDevices::recordPlot()
+  return(p)
 }

@@ -12,7 +12,8 @@ PlotGlycoProteinGlycanNetwork(
   verticeSize = c(5, 3),
   whichAlias = NULL,
   highlight = "all",
-  whichPeptide = NA
+  whichPeptide = NA,
+  silent = FALSE
 )
 }
 \arguments{
@@ -36,12 +37,16 @@ for plotting}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 A glycoprotein to glycan network
 }
 \description{
-PlotGlycoproteinGlycanNetwork
+Creates a network where each node in the circle represents one glycan
+composition (e.g., H1N1, or H1N1A), connecting to a protein represented as
+a bar plot and sorted by number of identified glycan sites.
 }
 \examples{
 \dontrun{

@@ -10,7 +10,8 @@ PlotGlycanCompositionPie(
   scales = "free",
   protein = "all",
   whichAlias = NULL,
-  whichPeptide = NA
+  whichPeptide = NA,
+  silent = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ for plotting}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 The glycan composition

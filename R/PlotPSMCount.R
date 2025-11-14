@@ -8,7 +8,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns the PSM count
 #' @export
@@ -102,7 +102,7 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
       dplyr::summarise(
         mean = mean(.data$PSMCount, na.rm = TRUE),
         sd = stats::sd(.data$PSMCount, na.rm = TRUE),
-        .by = c(.data$x, .data$Glycan)
+        .by = c("x", "Glycan")
       ) %>%
       dplyr::mutate(.by = "x",
                     sum_mean = sum(mean, na.rm = TRUE)) %>%

@@ -25,7 +25,7 @@ with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequ
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
 
-\item{silent}{}
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 the PSM count

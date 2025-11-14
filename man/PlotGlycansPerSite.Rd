@@ -4,7 +4,7 @@
 \alias{PlotGlycansPerSite}
 \title{PlotGlycanPerSite}
 \usage{
-PlotGlycansPerSite(input, whichAlias = NULL, whichPeptide = NA)
+PlotGlycansPerSite(input, whichAlias = NULL, whichPeptide = NA, silent = FALSE)
 }
 \arguments{
 \item{input}{Formatted data}
@@ -16,12 +16,15 @@ for plotting}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 The number of glycans per site
 }
 \description{
-PlotGlycanPerSite
+This plot shows how many glycans were detected at each site—
+that is, how many sites have 1 glycan, 2 glycans, and so on.
 }
 \examples{
 \dontrun{PlotGlycanPerSite(myData)}
