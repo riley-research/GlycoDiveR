@@ -6,6 +6,7 @@
 #' @param cutoff An Intensity column, either in percentage or as an absolute number.
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param silent TRUE if you want info to be printed, FALSE if not
 #'
 #' @returns A graph.
 #' @export
@@ -17,8 +18,8 @@
 #'
 #' \dontrun{PlotSiteQuantification(inputdata, protein = "P04004", site = "N243", cutoff = "10%")}
 PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
-                                   whichAlias = NULL){
-  input <- FilterForCutoffs(input)
+                                   whichAlias = NULL, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
 
   df <- GetMeanTechReps(input$PTMTable)
 
@@ -29,9 +30,16 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
 
   df <- df %>%
     dplyr::filter(.data$UniprotIDs == protein & .data$ModificationID == site) %>%
-    dplyr::summarise(.by = c(.data$UniprotIDs, .data$ModificationID, .data$Condition,
-                             .data$BioReplicate, .data$TechReplicate, .data$TotalGlycanComposition),
+    dplyr::summarise(.by = c("UniprotIDs", "ModificationID", "Condition",
+                             "BioReplicate", "TechReplicate", "TotalGlycanComposition"),
                      Intensity = sum(.data$Intensity, na.rm = TRUE))
+
+  if(nrow(df) == 0){
+    if(!silent){
+      fmessage("Nothing left after filtering")
+    }
+    return(NULL)
+  }
 
   if(!is.na(cutoff)){
     if(substr(cutoff, nchar(cutoff), nchar(cutoff)) == "%"){
@@ -49,7 +57,7 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
   }
 
   dfsum <- df %>%
-    dplyr::summarise(.by = c(.data$Condition, .data$TotalGlycanComposition),
+    dplyr::summarise(.by = c("Condition", "TotalGlycanComposition"),
                      mean = mean(.data$Intensity, na.rm = TRUE),
                      sd = stats::sd(.data$Intensity, na.rm = TRUE)) %>%
     dplyr::arrange(dplyr::desc(mean))

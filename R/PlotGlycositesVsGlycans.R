@@ -15,6 +15,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns A scatter plot comparing the number of glycosites to the number of glycans
 #' for each protein.
@@ -23,8 +24,8 @@
 #' @examples \dontrun{PlotGlycositesVsGlycans(mydata)}
 PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
                                     labelGlycositeCutoff = 0, labelGlycanCutoff = 0,
-                                    maxOverlaps = 10, whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+                                    maxOverlaps = 10, whichPeptide = NA, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
@@ -36,9 +37,9 @@ PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
   df <- input$PTMTable %>%
     dplyr::filter(!is.na(.data$TotalGlycanComposition) & .data$TotalGlycanComposition != "" &
                     .data$GlycanType != "NonGlyco") %>%
-    dplyr::mutate(.by = .data$UniprotIDs,
+    dplyr::mutate(.by = "UniprotIDs",
                   count = dplyr::n_distinct(.data$TotalGlycanComposition)) %>%
-    dplyr::summarise(.by = c(.data$UniprotIDs, .data$count, .data$Genes),
+    dplyr::summarise(.by = c("UniprotIDs", "count", "Genes"),
                              numberOfGlycosites = dplyr::n_distinct(.data$ModificationID))
 
   #Get labels
@@ -51,8 +52,8 @@ PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
     ggplot2::ggplot(mapping = ggplot2::aes(x=.data$numberOfGlycosites, y =.data$count)) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "grey50", linetype = "dashed") +
     ggplot2::geom_point(color = "#7b5799", alpha = 0.5) +
-    ggrepel::geom_label_repel(ggplot2::aes(label = .data$label), max.overlaps = 10,
-                              fill = NA, label.size = NA) +
+    suppressWarnings(ggrepel::geom_label_repel(ggplot2::aes(label = .data$label), max.overlaps = 10,
+                              fill = NA, label.size = NA)) +
     ggplot2::annotate("text", x= 0.95 * max(df$numberOfGlycosites), y= 1.1 * max(df$numberOfGlycosites),
                       label= "y=x", color = "grey30") +
     ggplot2::labs(x = "Number of glycosites", y = "Number of glycans")

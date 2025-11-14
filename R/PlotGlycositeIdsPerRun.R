@@ -11,7 +11,7 @@
 #'
 #' @examples \dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
 PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = FALSE){
-  input <- FilterForCutoffs(input)
+  input <- FilterForCutoffs(input, silent)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
@@ -70,6 +70,5 @@ PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = F
     ggplot2::scale_y_continuous(breaks = unique(foundMods$y), labels = unique(foundMods$Alias)) +
     ggplot2::theme(axis.text.y = ggplot2::element_text())
 
-  print(p)
   return(p)
 }

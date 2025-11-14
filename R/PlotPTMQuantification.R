@@ -8,14 +8,15 @@
 #' to remove the line
 #' @param rowFontSize font size for the row labels
 #' @param showRowNames set to TRUE or FALSE
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns The PTM quantification for a specific protein
 #' @export
 #'
 #' @examples \dontrun{PlotPTMQuantification(mydata, "P07361")}
 PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth = 2,
-                                  rowFontSize = 12, showRowNames = TRUE){
-  input <- FilterForCutoffs(input)
+                                  rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
@@ -32,14 +33,13 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
   if(nrow(df) > 0){
     #Generate lineplot with PTM annotation
     labeldf <- dplyr::distinct(df[c("ProteinPTMLocalization", "ModificationID")])
-    #labeldf <- rbind(labeldf, data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
-    #                                     "ModificationID" = c(1, df$ProteinLength[1])))
+
     labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
                            "ModificationID" = c(1, df$ProteinLength[1]))
 
     p1 <- ggplot2::ggplot(df) +
       ggplot2::geom_line(data = data.frame(x = seq(1,df$ProteinLength[1]), y = 1),
-                         ggplot2::aes(x = .data$x, y = .data$y), size = 6, color = "#009DDC") +
+                         ggplot2::aes(x = .data$x, y = .data$y), linewidth = 6, color = "#009DDC") +
       ggplot2::geom_point(data = df, ggplot2::aes(x= .data$ProteinPTMLocalization, y = 1),
                           fill = "pink", color = "#6761A8", size = 8, shape = 21) +
       ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,
@@ -70,11 +70,11 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
                     hmdf)
 
       hmdf <- hmdf %>%
-        dplyr::arrange(.data$ProteinPTMLocalization) %>%
-        dplyr::select(!.data$ProteinPTMLocalization) %>%
-        dplyr::summarise(.by = c(.data$Alias, .data$GlycanIdentifier),
+        dplyr::arrange("ProteinPTMLocalization") %>%
+        dplyr::select(!"ProteinPTMLocalization") %>%
+        dplyr::summarise(.by = c("Alias", "GlycanIdentifier"),
                          Intensity = log(sum(.data$Intensity, na.rm = TRUE), base = 2)) %>%
-        tidyr::pivot_wider(names_from = .data$Alias, values_from = .data$Intensity)
+        tidyr::pivot_wider(names_from = "Alias", values_from = "Intensity")
 
       row_to_remove <- which(apply(hmdf, 1, function(row) "filler" %in% row))
       hmdf <- hmdf[-row_to_remove,]
@@ -131,7 +131,7 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
                                                                              show_row_names = showRowNames),
                                                      heatmap_legend_list = lgd, heatmap_legend_side = "top"))
 
-      print(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))
+      return(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))
     }
 
   }else{message("No glyco on this protein: ", protein)}

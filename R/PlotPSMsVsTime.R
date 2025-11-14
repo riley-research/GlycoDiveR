@@ -4,7 +4,7 @@
 #' @param type Choose between "allGlyco", "both", "glyco", "combined", "all", or
 #' supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Complex/Hybrid",
 #' "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose")
-#' @param bindwidth the bin width used
+#' @param binWidth the bin width used
 #' @param whichAlias  provide a vector of Aliases to only select these aliases
 #' for plotting
 #' @param gradientLength Define the LC gradient length. If no length is supplied
@@ -13,19 +13,20 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns a lineplot
 #' @export
 #'
 #' @examples \dontrun{PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
-#' bindwidth = 1, gradientLength = NA)
+#' binWidth = 1, gradientLength = NA)
 #' }
-PlotPSMsVsTime <- function(input, type = "all", bindwidth = 5, whichAlias = NULL,
-                           gradientLength = NA, whichPeptide = NA){
+PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
+                           gradientLength = NA, whichPeptide = NA, silent = FALSE){
   glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
                 "Fucose", "Truncated", "High Mannose", "Paucimannose")
 
-  input <- FilterForCutoffs(input)
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
@@ -74,9 +75,9 @@ PlotPSMsVsTime <- function(input, type = "all", bindwidth = 5, whichAlias = NULL
 
   #Now the binning####
   if(!is.na(gradientLength)){
-    bins <- seq(0, ceiling(gradientLength / bindwidth) * bindwidth, bindwidth)
+    bins <- seq(0, ceiling(gradientLength / binWidth) * binWidth, binWidth)
   }else{
-    bins <- seq(0, ceiling(max(df$RetentionTime) / bindwidth) * bindwidth, bindwidth)
+    bins <- seq(0, ceiling(max(df$RetentionTime) / binWidth) * binWidth, binWidth)
   }
 
   df <- df %>%
@@ -88,7 +89,7 @@ PlotPSMsVsTime <- function(input, type = "all", bindwidth = 5, whichAlias = NULL
 
   #Get the summed dataframe####
   df <- df %>%
-    dplyr::summarise(.by = c(.data$Alias, .data$PSMType, .data$bin),
+    dplyr::summarise(.by = c("Alias", "PSMType", "bin"),
               count = dplyr::n())
 
   #Fill in with 0s for all bins with no IDs

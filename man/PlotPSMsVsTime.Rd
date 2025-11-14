@@ -7,10 +7,11 @@
 PlotPSMsVsTime(
   input,
   type = "all",
-  bindwidth = 5,
+  binWidth = 5,
   whichAlias = NULL,
   gradientLength = NA,
-  whichPeptide = NA
+  whichPeptide = NA,
+  silent = FALSE
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ PlotPSMsVsTime(
 supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Complex/Hybrid",
 "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose")}
 
-\item{bindwidth}{the bin width used}
+\item{binWidth}{the bin width used}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
@@ -32,6 +33,8 @@ the maximum PSM retention time is used}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 a lineplot
@@ -41,6 +44,6 @@ PlotPSMsVsTime
 }
 \examples{
 \dontrun{PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
-bindwidth = 1, gradientLength = NA)
+binWidth = 1, gradientLength = NA)
 }
 }

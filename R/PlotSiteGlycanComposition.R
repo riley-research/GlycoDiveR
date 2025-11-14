@@ -11,7 +11,7 @@
 #' @param yNudge nudge the points up
 #' @param boxSpacing defines the spacing of the box around the points. Larger numbers
 #' mean more spacing
-#' @param silent TRUE if you want info to be printed, FALSE if not
+#' @param silent TRUE if you want info to be printed, FALSE if not.
 #'
 #' @returns A plot showing glyco site
 #' @export
@@ -50,8 +50,8 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
 
   df_sum <- df %>%
     dplyr::distinct(.data$ModificationID, .data$TotalGlycanComposition, .keep_all = TRUE) %>%
-    dplyr::summarise(.by = c(.data$ModificationID, .data$GlycanType, .data$Domains,
-                             .data$ProteinLength, .data$ProteinPTMLocalization),
+    dplyr::summarise(.by = c("ModificationID", "GlycanType", "Domains",
+                             "ProteinLength", "ProteinPTMLocalization"),
                      count = dplyr::n())
 
   #Get the protein plot if there is domain information####
@@ -60,7 +60,7 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
     dplyr::mutate(Domain = sub("\\(.*", "", .data$Domains),
                   FirstAA = as.integer(sub(".*\\(([^-]+)-.*", "\\1", .data$Domains)),
                   LastAA = as.integer(sub(".*-(.*)\\)", "\\1", .data$Domains))) %>%
-    dplyr::select(.data$Domain, .data$FirstAA, .data$LastAA) %>%
+    dplyr::select("Domain", "FirstAA", "LastAA") %>%
     dplyr::bind_rows(data.frame(Domain = "Peptide", FirstAA = 1, LastAA = df_sum$ProteinLength[1])) %>%
     dplyr::mutate(size = ifelse(.data$Domain == "Peptide", 5, 7),
                   centerOfAA = (.data$FirstAA + .data$LastAA) / 2) %>%
@@ -88,14 +88,14 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
                     .data$TotalGlycanComposition,
                     .data$GlycanType,
                     .data$ProteinPTMLocalization) %>%
-    dplyr::summarise(.by = c(.data$ModificationID, .data$GlycanType, .data$ProteinPTMLocalization),
+    dplyr::summarise(.by = c("ModificationID", "GlycanType", "ProteinPTMLocalization"),
                      count = dplyr::n()) %>%
-    dplyr::mutate(.by = .data$ModificationID,
+    dplyr::mutate(.by = "ModificationID",
                   colCount = ceiling(sqrt(sum(.data$count))),
                   count = purrr::map_chr(.data$count, ~ paste(1:.x, collapse = ";"))) %>%
     tidyr::separate_longer_delim(cols = "count", delim = ";") %>%
     dplyr::arrange(.data$GlycanType) %>%
-    dplyr::mutate(.by = .data$ModificationID,
+    dplyr::mutate(.by = "ModificationID",
                   count = as.numeric(.data$count),
                   cumCount = 1:length(.data$count),
                   x = ((.data$cumCount - 1) %% .data$colCount) + 1,
@@ -104,7 +104,7 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
     #Make sure points are top centered
     maxPointY <- max(point_df$y, na.rm = TRUE)
     point_df <- point_df %>%
-      dplyr::mutate(.by = .data$ModificationID,
+      dplyr::mutate(.by = "ModificationID",
                     y = (maxPointY - max(.data$y)) + .data$y,
                     y = min(.data$y) + max(.data$y) - .data$y)
 
@@ -167,7 +167,7 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
 
   #Where do we want the boxes####
   rect_df <- point_df %>%
-    dplyr::mutate(.by = .data$ModificationID,
+    dplyr::mutate(.by = "ModificationID",
                   xmin = min(.data$x_corrected, na.rm = TRUE) - boxSpacing * df_sum$ProteinLength[1] * 0.25,
                   xmax = max(.data$x_corrected, na.rm = TRUE) + boxSpacing * df_sum$ProteinLength[1] * 0.25,
                   ymin = min(.data$y_corrected, na.rm = TRUE) - boxSpacing * maxY,
@@ -177,8 +177,8 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
   #Lines to the boxes####
   #If box was not adjusted due to overlap use a straight
   line_df <- point_df %>%
-    dplyr::summarise(.by = c(.data$ModificationID, .data$ProteinPTMLocalization,
-                             .data$Corrected),
+    dplyr::reframe(.by = c("ModificationID", "ProteinPTMLocalization",
+                             "Corrected"),
                   maximumY = max(.data$y_corrected, na.rm = TRUE),
                   boxX = ifelse(.data$Corrected == "No", .data$ProteinPTMLocalization,
                                 mean(c(min(.data$x_corrected), max(.data$x_corrected)))),
@@ -186,7 +186,7 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
     dplyr::distinct() %>%
     dplyr::mutate(xCords = paste(.data$ProteinPTMLocalization, .data$boxX, sep = ";"),
                   yCords = paste(.data$pointY, .data$maximumY, sep = ";")) %>%
-    dplyr::mutate(.by = .data$ModificationID,
+    dplyr::mutate(.by = "ModificationID",
                   xCords = ifelse(.data$Corrected == "No", .data$xCords,
                                   calculateElbowCoords(xVec = .data$xCords, yVec = .data$yCords, return = "x")),
                   yCords = ifelse(.data$Corrected == "No", .data$yCords,
@@ -206,8 +206,8 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
                                                     ymin = .data$ymin, ymax = .data$ymax),
                        fill = "white", color = "#27b56e", linewidth = 0.65, show.legend = FALSE)+
     ggplot2::geom_segment(data = linePlot_df, mapping = ggplot2::aes(x = .data$FirstAA, xend = .data$LastAA,
-                                                   y = maxY + 1, yend = maxY + 1, size = .data$size,
-                                                   ), color = linePlot_df$color, size = linePlot_df$size,
+                                                   y = maxY + 1, yend = maxY + 1, linewidth = .data$size,
+                                                   ), color = linePlot_df$color, linewidth = linePlot_df$size,
                           show.legend = FALSE) +
     ggrepel::geom_text_repel(data = text_df, ggplot2::aes(x = .data$centerOfAA, y = maxY + 1.2, label = .data$Domain),
                              direction = "x", show.legend = FALSE, color = text_df$color,

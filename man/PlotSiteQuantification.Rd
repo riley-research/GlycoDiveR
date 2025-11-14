@@ -4,7 +4,14 @@
 \alias{PlotSiteQuantification}
 \title{Barplot quantification per site}
 \usage{
-PlotSiteQuantification(input, protein, site, cutoff = NA, whichAlias = NULL)
+PlotSiteQuantification(
+  input,
+  protein,
+  site,
+  cutoff = NA,
+  whichAlias = NULL,
+  silent = FALSE
+)
 }
 \arguments{
 \item{input}{The input data as imported through one of the GlycoDiveR importers.}
@@ -17,6 +24,8 @@ PlotSiteQuantification(input, protein, site, cutoff = NA, whichAlias = NULL)
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{silent}{TRUE if you want info to be printed, FALSE if not}
 }
 \value{
 A graph.

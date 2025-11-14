@@ -13,6 +13,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent TRUE if you want info to be printed, FALSE if not.
 #'
 #' @returns An UpSet plot
 #' @export
@@ -24,8 +25,8 @@
 #' }
 PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
                       type = "glyco", level = "peptide", nintersects = 40,
-                      whichPeptide = NA){
-  input <- FilterForCutoffs(input)
+                      whichPeptide = NA, silent = FALSE){
+  input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
@@ -70,18 +71,18 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
                        sets.bar.color = colorCode$colorScheme,
                        nintersects = nintersects)
 
-    print(p)
+    return(p)
   }else if(grouping == "biologicalReps"){
     if(level == "peptide"){
       df <- input$PSMTable %>%
         dplyr::mutate(ID = paste0(.data$Condition, .data$BioReplicate)) %>%
-        dplyr::summarise(.by = c(.data$ID, .data$ModifiedPeptide, .data$Condition))
+        dplyr::summarise(.by = c("ID", "ModifiedPeptide", "Condition"))
 
       df_list <- split(df$ModifiedPeptide, df$ID)
     }else if(level == "protein"){
       df <- input$PSMTable %>%
         dplyr::mutate(ID = paste0(.data$Condition, .data$BioReplicate)) %>%
-        dplyr::summarise(.by = c(.data$ID, .data$UniprotIDs, .data$Condition))
+        dplyr::summarise(.by = c("ID", "UniprotIDs", "Condition"))
 
       df_list <- split(df$UniprotIDs, df$ID)
     }else{
@@ -109,16 +110,16 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
                        sets.bar.color = colorCode$colorScheme,
                        nintersects = nintersects)
 
-    print(p)
+    return(p)
   }else if(grouping == "condition"){
     if(level == "peptide"){
       df <- input$PSMTable %>%
-        dplyr::summarise(.by = c(.data$ModifiedPeptide, .data$Condition))
+        dplyr::summarise(.by = c("ModifiedPeptide", "Condition"))
 
       df_list <- split(df$ModifiedPeptide, df$Condition)
     }else if(level == "protein"){
       df <- input$PSMTable %>%
-        dplyr::summarise(.by = c(.data$UniprotIDs, .data$Condition))
+        dplyr::summarise(.by = c("UniprotIDs", "Condition"))
 
       df_list <- split(df$UniprotIDs, df$Condition)
     }else{
@@ -141,7 +142,7 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
                        sets.bar.color = colorCode$colorScheme,
                        nintersects = nintersects)
 
-    print(p)
+    return(p)
   }else{
     stop("Check your grouping argument. Your input is not recognized.")
   }

@@ -9,13 +9,14 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param silent silence printed information (default = TRUE)
 #'
 #' @returns Log2 intensity boxplots
 #' @export
 #'
 #' @examples \dontrun{PlotQuantificationQC(mydata, whichQuantification = "both")}
 PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification = "both",
-                                 whichPeptide = NA){
+                                 whichPeptide = NA, silent = FALSE){
   df <- FilterForPeptides(input$PSMTable, whichPeptide)
 
   if(!is.null(whichAlias)){
@@ -35,7 +36,7 @@ PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification =
       ggplot2::scale_fill_manual(values = colorScheme)
   }else if(whichQuantification == "both"){
     p <- df %>%
-      tidyr::pivot_longer(cols = c(.data$Intensity, .data$RawIntensity),
+      tidyr::pivot_longer(cols = c("Intensity", "RawIntensity"),
                           names_to = "QuantificationType", values_to = "Quantification") %>%
       ggplot2::ggplot(df, mapping = ggplot2::aes(x=.data$Alias,y=log(.data$Quantification,2), fill = .data$Condition))+
       ggplot2::geom_boxplot() +
@@ -45,7 +46,7 @@ PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification =
   }else{
     fmessage("Did not recognize whichQuantification parameter. Defaulting to 'both'")
     p <- df %>%
-      tidyr::pivot_longer(cols = c(.data$Intensity, .data$RawIntensity),
+      tidyr::pivot_longer(cols = c("Intensity", "RawIntensity"),
                           names_to = "QuantificationType", values_to = "Quantification") %>%
       ggplot2::ggplot(df, mapping = ggplot2::aes(x=.data$Alias,y=log(.data$Quantification,2), fill = .data$Condition))+
       ggplot2::geom_boxplot() +

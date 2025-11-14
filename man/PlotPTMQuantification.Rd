@@ -10,7 +10,8 @@ PlotPTMQuantification(
   whichAlias = NULL,
   lineWidth = 2,
   rowFontSize = 12,
-  showRowNames = TRUE
+  showRowNames = TRUE,
+  silent = FALSE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ to remove the line}
 \item{rowFontSize}{font size for the row labels}
 
 \item{showRowNames}{set to TRUE or FALSE}
+
+\item{silent}{silence printed information (default = TRUE)}
 }
 \value{
 The PTM quantification for a specific protein

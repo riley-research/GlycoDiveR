@@ -34,7 +34,7 @@ less spacing between the points}
 \item{boxSpacing}{defines the spacing of the box around the points. Larger numbers
 mean more spacing}
 
-\item{silent}{TRUE if you want info to be printed, FALSE if not}
+\item{silent}{TRUE if you want info to be printed, FALSE if not.}
 }
 \value{
 A plot showing glyco site

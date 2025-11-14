@@ -62,8 +62,8 @@ PlotComparisonVolcano <- function(input, whichComparison,
     ggplot2::geom_point(color = df$col, alpha = 0.8) +
     ggplot2::geom_hline(yintercept = -log(statisticalCutoff, 10), linetype="dashed", color="grey60") +
     ggplot2::geom_vline(xintercept = c(-log2FCCutoff, log2FCCutoff), linetype="dashed", color="grey60") +
-    ggrepel::geom_label_repel(ggplot2::aes(label = .data$plotLabel), fill = NA,
-                              label.size = NA, max.overlaps = maxOverlaps) +
+    suppressWarnings(ggrepel::geom_label_repel(ggplot2::aes(label = .data$plotLabel), fill = NA,
+                              label.size = NA, max.overlaps = maxOverlaps, na.rm = TRUE)) +
     ggplot2::labs(y = ylabel, x = "Log2 fold change", title = whichComparison) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
 

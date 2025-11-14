@@ -11,7 +11,8 @@ PlotUpSet(
   type = "glyco",
   level = "peptide",
   nintersects = 40,
-  whichPeptide = NA
+  whichPeptide = NA,
+  silent = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ or all peptides/proteins}
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{silent}{TRUE if you want info to be printed, FALSE if not.}
 }
 \value{
 An UpSet plot
