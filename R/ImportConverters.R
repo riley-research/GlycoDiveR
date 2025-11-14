@@ -36,7 +36,6 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
                       Intensity = medianNormalization(intensityVec = .data$Intensity,
                                                       globalMedian = globalMedian))
       fmessage("Successfully median normalized the intensities.")
-
     }
   }else{
     fmessage("Successfully imported Intensity column. Note: No quantitative values found.")

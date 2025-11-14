@@ -39,18 +39,10 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 
-  #lengthList <- length(strsplit(unfiltereddf$Spectrum.File[1], "\\", fixed = T)[[1]])
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
                                    scrape, normalization, convertFPModCodeToMass)
-
-  if(sum(!is.na(filtereddf$Intensity)) > 0 & sum(filtereddf$Intensity, na.rm = TRUE) != 0){
-    quantAvailable <- TRUE
-  }else{
-    quantAvailable <- FALSE
-    warning("No quantitative values in the imported data!")
-  }
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
@@ -61,13 +53,9 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
                rawPSMTable = unfiltereddf,
                PTMTable = PTMdf,
                annotation = annotationdf,
-               glycoType = "N",
                searchEngine = "MSFragger",
                peptideScoreCutoff = peptideScoreCutoff,
-               glycanScoreCutoff = glycanScoreCutoff,
-               quantAvailable = quantAvailable)
-
-  class(data)
+               glycanScoreCutoff = glycanScoreCutoff)
 
   return(data)
 }

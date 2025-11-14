@@ -52,7 +52,6 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
                                 max.overlaps = Inf) +
       ggplot2::theme_void()
 
-    if(input$quantAvailable){
       dfQuant <- GetMeanTechReps(df)
 
       #Get levels right
@@ -134,7 +133,6 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
                                                      heatmap_legend_list = lgd, heatmap_legend_side = "top"))
 
       return(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))
-    }
 
   }else{message("No glyco on this protein: ", protein)}
 
