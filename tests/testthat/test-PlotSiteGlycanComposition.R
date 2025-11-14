@@ -29,6 +29,6 @@ test_that("PlotSiteGlycanComposition: yNudge", {
 test_that("PlotSiteGlycanComposition: boxSpacing", {
   skip_if_not(exists("mydata"), "User data not loaded")
   testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
-  p1 <- PlotSiteGlycanComposition(mydata, protein = testProtein, boxSpacing = -1, silent = TRUE)
+  p1 <- PlotSiteGlycanComposition(mydata, protein = testProtein, boxSpacing = 0.2, silent = TRUE)
   expect_s3_class(p1, "gg")
 })

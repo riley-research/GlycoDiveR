@@ -126,8 +126,8 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
       stop("Check your level argument. Your input is not recognized.")
     }
 
-    p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
-                       nsets = length(names(df_list)), nintersects = nintersects)
+    p <- suppressMessages(UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
+                       nsets = length(names(df_list)), nintersects = nintersects))
 
     #Extract labels and get color coding right
     colorCode <- data.frame(Condition = trimws(p$labels)) %>%
@@ -137,10 +137,10 @@ PlotUpSet <- function(input, grouping = "condition", whichAlias = NULL,
       )
 
     #replot with correct colors
-    p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
+    p <- suppressMessages(UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme,
-                       nintersects = nintersects)
+                       nintersects = nintersects))
 
     return(p)
   }else{

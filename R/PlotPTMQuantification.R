@@ -23,6 +23,8 @@ PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth =
     dplyr::filter(.data$GlycanType != "NonGlyco") %>%
     dplyr::filter(.data$UniprotIDs == protein)
 
+  CheckForQuantitativeValues(df$Intensity)
+
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)

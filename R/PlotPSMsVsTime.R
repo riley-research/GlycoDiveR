@@ -24,7 +24,8 @@
 PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
                            gradientLength = NA, whichPeptide = NA, silent = FALSE){
   glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
-                "Fucose", "Truncated", "High Mannose", "Paucimannose")
+                "Fucose", "Truncated", "High Mannose", "Paucimannose",
+                "")
 
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
@@ -46,6 +47,7 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
                                              grepl("Truncated", .data$GlycanType) ~ "Truncated",
                                              grepl("High Mannose", .data$GlycanType) ~ "High Mannose",
                                              grepl("Paucimannose", .data$GlycanType) ~ "Paucimannose",
+                                             grepl("OGlycan", .data$GlycanType) ~ "OGlycan",
                                              TRUE ~ "ERROR"))
 
   if (length(type) == 1 && identical(type, "allGlyco")) {
@@ -113,6 +115,7 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
 
   #Get the colors right####
   glycan_colors <- c(
+    "OGlycan" = "#e6ab02",
     "Complex/Hybrid" = "#1b9e77",
     "Sialyl+Fucose"  = "#d95f02",
     "Sialyl"         = "#7570b3",

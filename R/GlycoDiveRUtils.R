@@ -63,12 +63,13 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
 
     if(is.na(mod) | mod == ""){
       modType <- append(modType, "NonGlyco")
-    }else if(!(modifiedResidue %in% c("S", "T", "N"))){
-      modType <- append(modType, "NonGlyco")
-        }else if((glycanComp != "" & modifiedResidue == "N") | (!is.na(glycanComp) & modifiedResidue == "N")){
-      glycanMass = strsplit(glycanComp, "%")[[1]][2]
-      glycanMass = substring(glycanMass, 2, nchar(glycanMass) - 1 )
+    }
 
+    glycanMass <- sub(".*\\((.*)\\).*", "\\1", i)
+
+    if(glycanMass %in% c("15.9949", "57.0214", "57.0215", "42.0106")){
+      modType <- append(modType, "NonGlyco")
+    }else if((glycanComp != "" & modifiedResidue == "N") | (!is.na(glycanComp) & modifiedResidue == "N")){
       if(TRUE %in% grepl(glycanMass, mod)){
         hexNAc_count <- suppressWarnings(as.numeric(sub(".*N\\(([0-9]+)\\).*", "\\1", glycanComp)))
         hex_count <- suppressWarnings(as.numeric(sub(".*H\\(([0-9]+)\\).*", "\\1", glycanComp)))
@@ -84,16 +85,19 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
           TRUE ~ "Complex/Hybrid"
         )
         modType <- append(modType, glycanCat)
-      }else if((glycanComp != "" & modifiedResidue %in% c("S", "T")) | (!is.na(glycanComp) & modifiedResidue %in% c("S", "T"))){
+      }else{
+        modType <- append(modType, "UndefinedGlyco")
+      }}else if((glycanComp != "" & modifiedResidue %in% c("S", "T")) | (!is.na(glycanComp) & modifiedResidue %in% c("S", "T"))){
         modType <- append(modType, "OGlycan")
+      }else if(glycanComp != "" & !is.na(glycanComp)){
+        modType <- append(modType, "NonCanonicalGlyco")
       }else{
         modType <- append(modType, "NonGlyco")
       }
-        }
   }
 
   return(as.vector(modType))
-  }
+}
 
 GetPeptide <- function(pep, modpep){
   if(!is.na(modpep) & modpep != ""){
@@ -497,4 +501,14 @@ FilterForPeptides <- function(rawdf, whichPeptides){
   }else{
     return(returnVec)
   }
+}
+
+CheckForQuantitativeValues <- function(intensityValues){
+  valid <- !is.na(intensityValues) & intensityValues != 0 & is.finite(intensityValues)
+
+  if (!any(valid)) {
+    stop("No quantitative data found. Aborting.")
+  }
+
+  invisible(NULL)
 }

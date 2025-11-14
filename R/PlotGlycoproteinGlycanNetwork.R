@@ -49,7 +49,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
-    dplyr::filter(.data$GlycanType != "NonGlyco" & .data$GlycanType != "OGlycan")
+    dplyr::filter(.data$GlycanType != "NonGlyco")
 
   if(!is.null(whichAlias)){
     df <- df %>%

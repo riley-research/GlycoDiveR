@@ -34,6 +34,8 @@ PlotSiteQuantification <- function(input, protein, site, cutoff = NA,
                              "BioReplicate", "TechReplicate", "TotalGlycanComposition"),
                      Intensity = sum(.data$Intensity, na.rm = TRUE))
 
+  CheckForQuantitativeValues(df$Intensity)
+
   if(nrow(df) == 0){
     if(!silent){
       fmessage("Nothing left after filtering")
