@@ -1,3 +1,16 @@
+#' ImportMSstatsComparison
+#'
+#' This imports the MSstats comparison results. It needs the following columns to
+#' work fully: Protein, proteinName, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
+#'
+#' @param path The filepath to the MSstats output file.
+#' @param cleanCCarbamidomethylation Removes \\[57.0215\\] from the MSstats
+#' ModifiedPeptide column (default = TRUE)
+#'
+#' @returns A comparison table with the MSstats comparison results
+#' @export
+#'
+#' @examples \dontrun{ImportMSstatsComparison("C:/MSstatsFile.csv")}
 ImportMSstatsComparison <- function(path, cleanCCarbamidomethylation = TRUE){
   MSstats_raw <- utils::read.csv(path)
   existingCols <- names(MSstats_raw)
