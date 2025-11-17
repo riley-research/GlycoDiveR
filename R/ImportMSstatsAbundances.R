@@ -27,7 +27,7 @@ ImportMSstatsAbundances <- function(input, MSstatsPath, cleanCCarbamidomethylati
   MSstats_raw <- utils::read.csv(MSstatsPath) %>%
     dplyr::select("Alias" = "originalRUN", "ModifiedPeptide", "LogIntensities") %>%
     dplyr::mutate(Intensity = 2 ^ .data$LogIntensities,
-                  Alias = factor(Alias, levels = levels(input$PSMTable$Alias))) %>%
+                  Alias = factor(.data$Alias, levels = levels(input$PSMTable$Alias))) %>%
     dplyr::select(-"LogIntensities")
 
   if(cleanCCarbamidomethylation){

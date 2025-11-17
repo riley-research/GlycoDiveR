@@ -13,7 +13,7 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent silence printed information (default = TRUE)
+#' @param silent silence printed information (default = FALSE)
 #'
 #' @returns a lineplot
 #' @export
@@ -25,7 +25,7 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
                            gradientLength = NA, whichPeptide = NA, silent = FALSE){
   glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
                 "Fucose", "Truncated", "High Mannose", "Paucimannose",
-                "")
+                "OGlycan")
 
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
