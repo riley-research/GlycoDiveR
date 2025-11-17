@@ -21,6 +21,8 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
                                     whichAlias = NULL, whichPeptide = NA, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
+  input$PSMTable <- input$PSMTable %>%
+    dplyr::filter(!is.na(.data$Intensity))
 
   if(grouping == "peptide"){
     df <- GetMeanTechReps(input$PSMTable)
