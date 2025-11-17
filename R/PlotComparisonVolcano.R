@@ -66,7 +66,7 @@ PlotComparisonVolcano <- function(input, whichComparison,
                               label.size = NA, max.overlaps = maxOverlaps, na.rm = TRUE)) +
     ggplot2::labs(y = ylabel, x = "Log2 fold change", title = whichComparison) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
-                   axis.text.x = element_text(angle = 0, hjust = 0.5))
+                   axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5))
 
   return(p)
 
