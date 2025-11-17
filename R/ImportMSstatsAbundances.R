@@ -58,7 +58,8 @@ ImportMSstatsAbundances <- function(input, MSstatsPath, cleanCCarbamidomethylati
     dplyr::group_by(.data$Alias) %>%
     tidyr::fill(c("Condition", "BioReplicate", "TechReplicate", "Run")) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(GlycanQValue = 0)
+    dplyr::mutate(GlycanQValue = 0,
+                  PSMScore = 1000)
 
   nrowPSMTable <- input$PSMTable %>%
     dplyr::filter(!is.na(.data$Intensity)) %>%
