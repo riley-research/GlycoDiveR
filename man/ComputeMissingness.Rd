@@ -7,6 +7,7 @@
 ComputeMissingness(
   input,
   type = "glyco",
+  removeAllNA = TRUE,
   whichPeptide = NA,
   whichAlias = NULL,
   silent = FALSE
@@ -16,6 +17,9 @@ ComputeMissingness(
 \item{input}{Your formatted GlycoDiveR data.}
 
 \item{type}{Choose between "glyco" or "all"}
+
+\item{removeAllNA}{Remove peptides with only NA values. This can, for example
+happen if you upload abundance values using Perseus or MSstats.}
 
 \item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
