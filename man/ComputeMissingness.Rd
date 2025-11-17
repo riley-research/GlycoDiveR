@@ -32,7 +32,8 @@ The percentage of missing data.
 }
 \description{
 This computes the percentage of missing values in your GlycoDiveR uploaded data.
-The computation is done on a (glyco)peptide level.
+The computation is done on a (glyco)peptide level. Peptides with a quantitative
+value of 0 are considered missing.
 }
 \examples{
 \dontrun{ComputeMissingness(mydata, type = "glyco")}
