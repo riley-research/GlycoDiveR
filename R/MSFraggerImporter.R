@@ -34,6 +34,7 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
                               filterForNoNSequon = FALSE, OPairLevelConversion = c(0,0,0.05,0.1)){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
+  CheckAnnotation(annotationdf)
 
   fileList <- list.files(path, recursive = TRUE)
   fileList <- fileList[grepl("psm.tsv", fileList)]
