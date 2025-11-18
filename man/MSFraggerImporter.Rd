@@ -12,7 +12,9 @@ MSFraggerImporter(
   glycanScoreCutoff,
   scrape = FALSE,
   normalization = "median",
-  convertFPModCodeToMass = TRUE
+  convertFPModCodeToMass = TRUE,
+  filterForNoNSequon = FALSE,
+  OPairLevelConversion = c(0, 0, 0.05, 0.1)
 )
 }
 \arguments{
@@ -35,6 +37,15 @@ Choose between "none" or "median"}
 modified sequences. This replaces the code with the mass of the modification.
 Keep this enabled when importing MSstats comparison results as MSstats uses
 modification masses instead of modification codes. Default = TRUE}
+
+\item{filterForNoNSequon}{Filter for peptides without an N-sequon. Only works
+for OPair data (default = FALSE).}
+
+\item{OPairLevelConversion}{Convert the OPair site probability levels to glycan
+q-scores. Provide a vector that has values for each level. The default is
+c(0,0,0.05,0.1), which means level1 = 0, level1b = 0, level2 = 0.05, and
+level3 = 0.1). This qscore filtering is used with the Importers
+glycanScoreCutoff argument.}
 }
 \value{
 Formatted dataframes

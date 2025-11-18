@@ -151,14 +151,27 @@ FilterForCutoffs <- function(input, silent = FALSE){
     if(!silent){
       fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
       fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
+      if(input$filterForNoNSequon){
+        fmessage(paste0("Filtering for peptides without an N-sequon (OPair peptides only)"))
+      }
     }
     input$PSMTable <- input$PSMTable %>%
       dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
           (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
 
+    if("HasNSequon" %in% names(input$PSMTable) && input$filterForNoNSequon){
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(!.data$HasNSequon | is.na(.data$HasNSequon))
+    }
+
     input$PTMTable <- input$PTMTable %>%
       dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
           (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+
+    if("HasNSequon" %in% names(input$PTMTable) && input$filterForNoNSequon){
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(!.data$HasNSequon | is.na(.data$HasNSequon))
+    }
 
     if(!silent){
       fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))

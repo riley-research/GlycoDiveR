@@ -12,6 +12,13 @@
 #' modified sequences. This replaces the code with the mass of the modification.
 #' Keep this enabled when importing MSstats comparison results as MSstats uses
 #' modification masses instead of modification codes. Default = TRUE
+#' @param filterForNoNSequon Filter for peptides without an N-sequon. Only works
+#' for OPair data (default = FALSE).
+#' @param OPairLevelConversion Convert the OPair site probability levels to glycan
+#' q-scores. Provide a vector that has values for each level. The default is
+#' c(0,0,0.05,0.1), which means level1 = 0, level1b = 0, level2 = 0.05, and
+#' level3 = 0.1). This qscore filtering is used with the Importers
+#' glycanScoreCutoff argument.
 #'
 #' @returns Formatted dataframes
 #' @export
@@ -23,7 +30,8 @@
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
 MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                              scrape = FALSE, normalization = "median", convertFPModCodeToMass = TRUE){
+                              scrape = FALSE, normalization = "median", convertFPModCodeToMass = TRUE,
+                              filterForNoNSequon = FALSE, OPairLevelConversion = c(0,0,0.05,0.1)){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
 
@@ -42,7 +50,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
   unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
-                                   scrape, normalization, convertFPModCodeToMass)
+                                   scrape, normalization, convertFPModCodeToMass,
+                                   OPairLevelConversion)
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
@@ -55,7 +64,8 @@ MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, g
                annotation = annotationdf,
                searchEngine = "MSFragger",
                peptideScoreCutoff = peptideScoreCutoff,
-               glycanScoreCutoff = glycanScoreCutoff)
+               glycanScoreCutoff = glycanScoreCutoff,
+               filterForNoNSequon = filterForNoNSequon)
 
   return(data)
 }

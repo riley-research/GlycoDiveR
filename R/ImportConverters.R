@@ -1,5 +1,5 @@
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
-                               normalization, convertFPModCodeToMass){
+                               normalization, convertFPModCodeToMass, OPairLevelConversion){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
@@ -41,6 +41,13 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
     fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
   }
 
+  #HasNSequon####
+  if("Has.N.Glyc.Sequon" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(HasNSequon = unfiltereddf$Has.N.Glyc.Sequon)
+    fmessage("Successfully imported RawIntensity column.")}
+  else{fmessage("No NSequon information(OPair only) in data, skipping")}
+
   #PSMScore####
   if ("Hyperscore" %in% existingCols) {
     filtereddf <- cbind(filtereddf, PSMScore = as.double(unfiltereddf$Hyperscore))
@@ -67,18 +74,37 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
   #GlycanQValue####
-  if ("Glycan.q.value" %in% existingCols) {
-    filtereddf <- cbind(filtereddf, GlycanQValue = as.double(unfiltereddf$Glycan.q.value))
-    fmessage("Successfully imported Glycan q Value column.")}
-  else if("Confidence.Level" %in% existingCols){
-    filtereddf <- cbind(filtereddf, GlycanQValue = unfiltereddf$Confidence.Level)
+  if ("Glycan.q.value" %in% existingCols & !("Confidence.Level" %in% existingCols)) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(GlycanQValue = as.double(unfiltereddf$Glycan.q.value))
+    fmessage("Successfully imported Glycan q Value column.")
+  }else if(!("Glycan.q.value" %in% existingCols) & "Confidence.Level" %in% existingCols){
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(GlycanQValue = unfiltereddf$Confidence.Level)
 
-    filtereddf$GlycanQValue <- dplyr::case_when(filtereddf$GlycanQValue %in% c("Level1", "Level1b") ~ "0",
-                                                    filtereddf$GlycanQValue %in% c("Level2") ~ "0.05",
-                                                    filtereddf$GlycanQValue %in% c("Level3") ~ "0.1",
-                                                    TRUE ~ filtereddf$GlycanQValue)
+    filtereddf$GlycanQValue <- dplyr::case_when(filtereddf$GlycanQValue == "Level1" ~ as.character(OPairLevelConversion[1]),
+                                                filtereddf$GlycanQValue == "Level1b" ~ as.character(OPairLevelConversion[2]),
+                                                filtereddf$GlycanQValue == "Level2" ~ as.character(OPairLevelConversion[3]),
+                                                filtereddf$GlycanQValue == "Level3" ~ as.character(OPairLevelConversion[4]),
+                                                TRUE ~ filtereddf$GlycanQValue)
+
     filtereddf$GlycanQValue <- as.numeric(filtereddf$GlycanQValue)
-    fmessage("Successfully imported Glycan q Value column.")}
+    fmessage("Successfully imported Glycan q Value column.")
+    }else if("Glycan.q.value" %in% existingCols & "Confidence.Level" %in% existingCols){
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(GlycanQValue = as.double(unfiltereddf$Glycan.q.value),
+                      ConfidenceLevel = unfiltereddf$Confidence.Level)
+
+      filtereddf$GlycanQValue <- as.double(dplyr::case_when(is.na(filtereddf$GlycanQValue) & filtereddf$ConfidenceLevel == "Level1" ~ OPairLevelConversion[1],
+                                                  is.na(filtereddf$GlycanQValue) & filtereddf$ConfidenceLevel == "Level1b" ~ OPairLevelConversion[2],
+                                                  is.na(filtereddf$GlycanQValue) & filtereddf$ConfidenceLevel == "Level2" ~ OPairLevelConversion[3],
+                                                  is.na(filtereddf$GlycanQValue) & filtereddf$ConfidenceLevel == "Level3" ~ OPairLevelConversion[4],
+                                                  TRUE ~ filtereddf$GlycanQValue))
+
+      filtereddf <- filtereddf %>%
+        dplyr::select(-"ConfidenceLevel")
+      fmessage("Successfully imported Glycan q Value column.")
+    }
   else {stop("The column Glycan.q.value was not found in the input dataframe.")}
 
   #IsUnique####
