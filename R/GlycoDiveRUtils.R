@@ -35,6 +35,9 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
+  tempdf$TotalGlycanComposition <- CleanGlycanComp(tempdf$AssignedModifications,
+                                                   tempdf$TotalGlycanComposition)
+
   tempdf <- tempdf %>%
     dplyr::mutate(
       PeptidePTMLocalization = as.numeric(stringr::str_extract(.data$AssignedModifications, "\\d+")),
@@ -48,6 +51,35 @@ PSMToPTMTable <- function(PSMTable){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
 
   return(tempdf)
+}
+
+CleanGlycanComp <- function(AssModVec, TotGlycoVec){
+  tdf <- data.frame(AssMod = AssModVec,
+                       TotGlyco = TotGlycoVec,
+                       CorrectGlyco = character(length(TotGlycoVec)))
+
+  for(i in seq_len(nrow(tdf))){
+    TotGlycoi <- tdf$TotGlyco[i]
+    if(is.na(TotGlycoi) || TotGlycoi == ""){
+      tdf$CorrectGlyco[i] <- ""
+      next
+    }else if(grepl(",", TotGlycoi)){
+    TotGlycoSplit <- strsplit(TotGlycoi, ",")[[1]]
+
+    for(j in TotGlycoSplit){
+      glycoMass <- ComputeGlycanMass(j)
+      AssModMass <- as.double(stringr::str_extract(tdf$AssMod[i], "(?<=\\()[0-9.]+(?=\\))"))
+
+      if(abs(glycoMass - AssModMass) < 0.02){
+        tdf$CorrectGlyco[i] <- j
+        break}
+      }
+    }else{
+      tdf$CorrectGlyco[i] <- TotGlycoi
+    }
+    }
+
+  return(tdf$CorrectGlyco)
 }
 
 GlycanComptToGlycanType <- function(mod, glycanComp){
@@ -138,16 +170,18 @@ GetMeanTechReps <- function(df){
 }
 
 CleanGlycanNames <- function(glycan){
-  glycan <- gsub("HexNAc", "N", glycan)
-  glycan <- gsub("Hex", "H", glycan)
-  glycan <- gsub("NeuAc", "A", glycan)
-  glycan <- gsub("Fuc", "F", glycan)
-  glycan <- gsub("NeuGc", "G", glycan)
+  GlycanDatabaseClean <- GlycanDatabase %>%
+    dplyr::mutate(len = nchar(.data$FullName)) %>%
+    dplyr::arrange(dplyr::desc("len"))
+
+  GlycanReplacements <- stats::setNames(GlycanDatabaseClean$ShortName, GlycanDatabaseClean$FullName)
+
+  glycan <- stringr::str_replace_all(glycan, GlycanReplacements)
   return(glycan)
 }
 
 FilterForCutoffs <- function(input, silent = FALSE){
-  if(input$searchEngine %in% c("MSFragger")){
+  if(input$searchEngine %in% c("MSFragger", "Byonic")){
     if(!silent){
       fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
       fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
@@ -524,4 +558,179 @@ CheckForQuantitativeValues <- function(intensityValues){
   }
 
   invisible(NULL)
+}
+
+CheckAnnotation <- function(annotation){
+  if(anyNA(annotation)){
+    warning("Spotted NA values in your annotation file. Did you forget to edit the file?")
+  }
+  if(anyDuplicated(annotation$Alias) > 0){
+    warning("The annotation file contains duplicated values in the Alias column.
+            This may result in unexpected behaviour.")
+  }
+}
+
+ConvertByonicAssignedModifications <- function(ModPepVec, AssignedModsVec){
+  # ModPepVec <- "SGLAPNPT[2158.803]N[2158.803]ATTKAAGGGGSGGGSHHHHHHHHHH"
+  # AssignedModsVec <- "N[2158.803],T[2158.803]"
+  tempdf <- data.frame(ModPep = ModPepVec, AssignedMods = AssignedModsVec)
+  tempdf$AssignedMods <- gsub(" ", "", tempdf$AssignedMods)
+  tempdf$AssignedMods <- gsub("\\]\\[" , "\\],\\[", tempdf$AssignedMods)
+  tempdf$AssignedMods <- gsub("\\+" , "", tempdf$AssignedMods)
+
+  #Convert to exact masses and adds the AA if not listed
+  for(i in seq_len(nrow(tempdf))){
+    if(is.na(tempdf[i,"AssignedMods"]) | tempdf[i,"AssignedMods"] == ""){
+      next
+    }
+    mods <- strsplit(tempdf[i,"AssignedMods"], ",")[[1]]
+    for(j in seq_len(length(mods))){
+      modsj <- stringr::str_extract_all(tempdf[i,"ModPep"], "\\[.*?\\]")[[1]]
+      tempList <- as.list(as.double(gsub("\\[|\\+|\\]", "", modsj)))
+      names(tempList) <- modsj
+
+      modsSub <- mods[j]
+
+      modAssMod <- as.double(stringr::str_extract(modsSub, "(?<=\\[)\\d+\\.?\\d*(?=\\])"))
+      indexOfSub <- which.min(abs(unlist(tempList) - modAssMod))
+
+      # Prepend previous AA if modsSub starts with "["
+      if(substring(modsSub,1,1) == "[") {
+        fullMod <- paste0(substring(mods[j-1], 1, 1), modsSub)
+        tempdf[i,"AssignedMods"] <- gsub(paste0(",", modsSub),
+                                         paste0(",", fullMod),
+                                         tempdf[i,"AssignedMods"],
+                                         fixed = TRUE)
+      }
+
+      # Replace numeric mass with 3 decimals
+      formattedValue <- sprintf("%.3f", tempList[[indexOfSub]][1])
+      tempdf[i,"AssignedMods"] <- sub(
+        paste0("\\[", modAssMod, "\\]"),
+        paste0("[", formattedValue, "]"),
+        tempdf[i,"AssignedMods"]
+      )
+    }
+}
+
+  #Add the AA number
+  tempdf$formattedAssignedMods <- NA
+  for(i in seq_len(nrow(tempdf))){
+    if(is.na(tempdf[i,"AssignedMods"]) | tempdf[i,"AssignedMods"] == ""){
+      next
+    }
+    if(grepl("\\*",tempdf[i,"AssignedMods"])){
+      rawString <- strsplit(tempdf[i,"AssignedMods"], "\\*")[[1]][1]
+      timesA <- as.integer(substring(tempdf[i,"AssignedMods"], nchar(tempdf[i,"AssignedMods"]), nchar(tempdf[i,"AssignedMods"])))
+      tempdf[i,"AssignedMods"] <- paste(rep(rawString,timesA), collapse=",")
+    }
+    mods <- strsplit(tempdf[i,"AssignedMods"], ",")[[1]]
+
+    Pep <- tempdf[i,"ModPep"]
+    cleanMod <- c()
+
+    for(j in mods){
+      substr <- strsplit(Pep, j, fixed=TRUE)[[1]][1]
+      substr <- gsub("[^A-Z]", "", substr)
+      loc <- nchar(substr) + 1
+
+      Pep <- sub(j, substring(j,1,1), Pep, fixed=TRUE)
+
+      cleanMod <- c(cleanMod, paste0(loc,
+                                     substring(j,1,1),
+                                     "[",
+                                     substring(j,3,nchar(j))))
+    }
+    tempdf$formattedAssignedMods[i] <- paste(cleanMod, collapse=",")
+  }
+
+  #Clean and return
+  tempdf$formattedAssignedMods <- gsub("\\[", "\\(", tempdf$formattedAssignedMods)
+  tempdf$formattedAssignedMods <- gsub("\\]", "\\)", tempdf$formattedAssignedMods)
+
+  returnVal <- as.vector(tempdf$formattedAssignedMods)
+
+  return(returnVal)
+}
+
+ComputeGlycanMass <- function(glycanComposition){
+  if(is.na(glycanComposition) || glycanComposition == ""){
+    return(NA)
+  }
+  glycanMass_df <- GlycanDatabase %>%
+    dplyr::mutate(count = 0, mass = 0)
+
+  for(i in seq_len(nrow(glycanMass_df))){
+    mono <- glycanMass_df$ShortName[i]
+
+    pattern <- paste0("(?<![A-Za-z])", mono, "\\(([0-9]+)\\)")
+    match <- stringr::str_match(glycanComposition, pattern)[,2]
+
+    count <- as.numeric(match)
+
+    if(!is.na(count)){
+      glycanMass_df$count[i] <- count
+      glycanMass_df$mass[i] <- count * glycanMass_df$GMass[i]
+    }
+  }
+
+  totalMass <- sum(glycanMass_df$mass, na.rm = TRUE)
+
+  return(totalMass)
+}
+
+AssignedModsToGlycanComp_Byonic <- function(AssModVec, GlycanTable){
+  AssMod <- data.frame(AssMod = AssModVec,
+                          TotGlyComp = character(length(AssModVec)))
+  TotalGlycanComp <- c()
+  for(i in seq_len(nrow(AssMod))){
+    AssModVeci <- AssMod$AssMod[i]
+
+    TotGlycoi <- c()
+
+    if(AssModVeci == "" || is.na(AssModVeci)){
+      AssMod$TotGlyComp[i] <- NA
+      next
+    }
+
+    AssModSplit <- strsplit(AssModVeci, ",")[[1]]
+
+    for(j in AssModSplit){
+      modMass <- as.double(stringr::str_extract(j, "(?<=\\()[0-9.]+(?=\\))"))
+
+      GlycCompj <- GlycanTable %>%
+        dplyr::filter(abs(.data$Mass - modMass) < 0.02)
+
+      if(nrow(GlycCompj) > 0){
+        GlycCompj <- GlycCompj %>%
+          dplyr::slice_min(order_by = abs(.data$Mass - modMass), n = 1) %>%
+          dplyr::pull("Rule")
+
+        TotGlycoi <- c(TotGlycoi, GlycCompj)
+      }else{
+        TotGlycoi <- c(TotGlycoi, "")
+      }
+    }
+    AssMod$TotGlyComp[i] <- gsub(" ", "", paste(TotGlycoi[TotGlycoi != ""], collapse = ","))
+  }
+  return(AssMod$TotGlyComp)
+}
+
+Databases <- function(){
+  GlycanDatabase <- data.frame(
+    FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
+                 "KDN", "HexA", "pseudaminic"),
+    ShortName = c("N", "H", "A", "F", "G", "P", "Kdn", "HexA", "p"),
+    GMass = c(203.07937, 162.05282, 291.09542, 146.05791, 307.09033, 132.0423,
+              250.06889, 176.03209, 232.10592),
+    stringsAsFactors = FALSE
+  )
+
+  colorScheme <- c(
+    "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
+    "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
+    "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
+  )
+
+  #usethis::use_data(GlycanDatabase, colorScheme, internal = TRUE, overwrite = TRUE)
 }

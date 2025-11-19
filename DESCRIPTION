@@ -28,7 +28,8 @@ Imports:
     rlang,
     UniprotR,
     purrr,
-    tidyselect
+    tidyselect,
+    readxl
 Depends: 
     R (>= 3.5)
 Suggests: 
