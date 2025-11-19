@@ -55,6 +55,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
     fmessage("Removed >Reverse proteins")
   }
 
+  #Clean the modification df
   modification_df <- modification_df %>%
     dplyr::mutate(
       ModificationType = ifelse(grepl("Glycan", .data$Rule), "Glyco", "NonGlyco"),
@@ -76,6 +77,15 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
              .data$Rule,
              .data$Mass),
         ~ if (..1 == "Glyco") ComputeGlycanMass(..2) else ..3))
+
+  #Add variable mods to ModificationDatabase
+  modToAdd <- modification_df %>%
+    dplyr::filter(.data$ModificationType != "Glyco") %>%
+    dplyr::select("FullName" = "Rule",
+                  "ModificationMass" = "Mass") %>%
+    dplyr::mutate(ModificationMass = sprintf("%.3f", as.numeric(.data$ModificationMass)))
+
+  .modEnv$ModificationDatabase <- bind_rows(.modEnv$ModificationDatabase, modToAdd)
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
                   modification_df, scrape)

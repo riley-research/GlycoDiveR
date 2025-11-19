@@ -99,7 +99,7 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
 
     glycanMass <- sub(".*\\((.*)\\).*", "\\1", i)
 
-    if(glycanMass %in% c("15.9949", "57.0214", "57.0215", "42.0106")){
+    if(glycanMass %in% .modEnv$ModificationDatabase$ModificationMass){
       modType <- append(modType, "NonGlyco")
     }else if((glycanComp != "" & modifiedResidue == "N") | (!is.na(glycanComp) & modifiedResidue == "N")){
       if(TRUE %in% grepl(glycanMass, mod)){
@@ -726,11 +726,17 @@ Databases <- function(){
     stringsAsFactors = FALSE
   )
 
+  ModificationDatabase <- data.frame(
+    FullName = c("MOxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
+                 "NAcetylation"),
+    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106")
+  )
+
   colorScheme <- c(
     "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
     "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
     "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
   )
 
-  #usethis::use_data(GlycanDatabase, colorScheme, internal = TRUE, overwrite = TRUE)
+  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, internal = TRUE, overwrite = TRUE)
 }
