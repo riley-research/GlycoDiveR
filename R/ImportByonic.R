@@ -85,7 +85,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
                   "ModificationMass" = "Mass") %>%
     dplyr::mutate(ModificationMass = sprintf("%.3f", as.numeric(.data$ModificationMass)))
 
-  .modEnv$ModificationDatabase <- bind_rows(.modEnv$ModificationDatabase, modToAdd)
+  .modEnv$ModificationDatabase <- dplyr::bind_rows(.modEnv$ModificationDatabase, modToAdd)
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
                   modification_df, scrape)
