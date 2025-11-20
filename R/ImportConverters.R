@@ -366,3 +366,177 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
 
   return(filtereddf)
 }
+
+pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
+                            modification_df, normalization, scrape){
+  fmessage("Now starting import.")
+  filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
+  existingCols <- unique(names(unfiltereddf))
+
+  #Run####
+  if("RawName" %in% existingCols){
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(Run = as.character(unfiltereddf$RawName))
+    fmessage("Successfully imported Run column.")
+  }
+  else{stop("The column Run was not found in the input dataframe.")}
+
+  #ModifiedPeptide####
+  if("Peptide" %in% existingCols & "Mod" %in% existingCols){
+    filtereddf$ModifiedPeptide <- GetModifiedPeppGlyco(unfiltereddf$Peptide, unfiltereddf$Mod, modification_df)
+    fmessage("Successfully imported Peptide ProteinMetrics Confidential  column.")}
+  else{stop("The column Peptide ProteinMetrics Confidential was not found in the input dataframe.")}
+
+  #RawIntensity####
+  if("IsotopeArea" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(RawIntensity = as.numeric(unfiltereddf$IsotopeArea))
+    fmessage("Successfully imported RawIntensity column.")}
+  else{filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(0))
+  warning("Intensity column not found. Filled with NA.")}
+
+  #Intensity####
+  filtereddf$Intensity <- filtereddf$RawIntensity
+  if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0)){
+    if(normalization == "none"){
+      fmessage("Successfully imported Intensity column without normalization.")
+    }else if(normalization == "median"){
+      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = .data$Run,
+                      Intensity = medianNormalization(intensityVec = .data$Intensity,
+                                                      globalMedian = globalMedian))
+      fmessage("Successfully median normalized the intensities.")
+    }
+  }else{
+    fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
+  }
+
+  #PSMScore####
+  if ("PeptideFDR" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(PSMScore = as.double(unfiltereddf$PeptideFDR))
+    fmessage("Successfully imported Score column and renamed to PSMScore.")}
+  else{stop("The column Score was not found in the input dataframe.")}
+
+  #AssignedModifications####
+  if (all(c("Mod", "GlyMass", "GlySite", "Peptide") %in% existingCols)) {
+    filtereddf$AssignedModifications <- AssignmedModspGlyco(unfiltereddf$Mod,
+                                                            unfiltereddf$GlyMass,
+                                                            unfiltereddf$GlySite,
+                                                            unfiltereddf$Peptide,
+                                                            modification_df)
+    fmessage("Successfully imported AssignedModifications column.")}
+  else {stop("One or more of these columns were not found: Mod, GlyMass, GlySite, Peptide.")}
+
+  #TotalGlycanComposition####
+  if("GlycanComposition" %in% existingCols){
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(TotalGlycanComposition = gsub(";", ",", unfiltereddf$GlycanComposition))
+    fmessage("Successfully imported Total Glycan Composition column.")
+  }else{
+    filtereddf$TotalGlycanComposition <- NA
+    fmessage("No glyco found in the glyco table. All glyco are listed as NA")
+  }
+
+  #GlycanQValue####
+  if ("GlycanFDR" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(GlycanQValue = as.double(unfiltereddf$GlycanFDR))
+    fmessage("Successfully imported GlycanFDR (as Glycan Q Value) Value column.")
+  }else{
+    filtereddf$GlycanQValue <- NA
+    fmessage("No GlycanFDR found.")
+  }
+
+  #UniprotIDs####
+  if ("Proteins" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(UniprotIDs = stringr::str_extract(unfiltereddf$Proteins, "(?<=\\|).*?(?=\\|)"))
+    fmessage("Successfully imported UniprotIDs column.")
+  } else {
+    stop("The column Proteins was not found in the input dataframe.")}
+
+  #Genes####
+  if ("Genes" %in% existingCols) {
+    filtereddf$Genes <- apply(unfiltereddf[c("Proteins", "Genes")], 1, function(x)
+                        ifelse(x[2] == "" | is.na(x[2]),
+                               strsplit(strsplit(x[1], "\\|")[[1]][3], "_")[[1]][1],
+                               toupper(x[2])))
+    fmessage("Successfully imported genes column.")
+  } else {stop("The column Genes was not found in the input dataframe.")}
+
+  #ProteinLength####
+  if("UniprotIDs" %in% names(filtereddf)){
+    if(file.exists(fastaPath)){
+      fastaFile <- seqinr::read.fasta(file = fastaPath)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = "UniprotIDs",
+                      ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
+                                                       fastaFile = fastaFile))
+    }else{stop("Fasta path does not exist.")}
+  }
+
+  #NumberOfNSites/NumberOfOSites####
+  if("UniprotIDs" %in% names(filtereddf)){
+    if(file.exists(fastaPath)){
+      fastaFile <- seqinr::read.fasta(file = fastaPath)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = "UniprotIDs",
+                      NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
+                                                              fastaFile = fastaFile))
+
+      filtereddf <- filtereddf %>%
+        tidyr::separate_wider_delim(.data$NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
+        dplyr::mutate(NumberOfNSites = as.numeric(.data$NumberOfNSites),
+                      NumberOfOSites = as.numeric(.data$NumberOfOSites))
+      fmessage("Successfully mapped number of N and O glycosites per protein.")
+    }else{warning("Fasta path does not exist.")}
+  }
+
+  #ProteinStart####
+  if ("ModifiedPeptide" %in% names(filtereddf)) {
+    fastaFile <- seqinr::read.fasta(file = fastaPath)
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(.by = c("ModifiedPeptide", "UniprotIDs"),
+        ProteinStart = GetPeptideLocInProtein(.data$UniprotIDs, .data$ModifiedPeptide, fastaFile))
+  }else {filtereddf$ProteinStart = NA
+  warning("The column Protein Start was not found in the input dataframe.")}
+
+  #RetentionTime####
+  if ("RT" %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(RetentionTime = as.double(unfiltereddf$RT / 60))
+  }else {filtereddf$RetentionTime = NA
+  warning("The column Scan Time was not found in the input dataframe.")}
+
+  #GlycanType####
+  filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  filtereddf <- filtereddf %>%
+    dplyr::mutate(GlycanType = sapply(.data$GlycanType, toString))
+  fmessage("Successfully added GlycanType column.")
+
+  if(scrape){
+    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.
+             Grab a coffee. This might take a while.")
+
+    #Get subcellular localization and domain information####
+    filtereddf <- filtereddf %>%
+      dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
+    fmessage("Successfully added subcellular localization and domain information.")
+  }else{
+    filtereddf$SubcellularLocalization <- NA
+    filtereddf$Domains <- NA
+  }
+
+  filtereddf <- filtereddf %>%
+    dplyr::left_join(annotationdf, by = "Run")
+
+  filtereddf$Alias <- factor(filtereddf$Alias, levels = unique(annotationdf$Alias))
+
+  if(anyNA(filtereddf[c("Condition", "BioReplicate", "TechReplicate", "Alias")])){
+    warning("NA detected. Please verify annotation dataframe!")
+  }
+
+  return(filtereddf)
+}

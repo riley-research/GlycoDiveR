@@ -5,9 +5,9 @@
 #' @param fastaPath Path to FASTA file
 #' @param peptideScoreCutoff Peptide score cutoff
 #' @param glycanScoreCutoff Glycan score cutoff
-#' @param scrape set TRUE/FALSE to use scraping of Uniprot data
-#' @param normalization The (glyco)peptide modification.
-#' Choose between "none" or "median"
+#' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
+#' @param normalization The (glyco)peptide normalization used.
+#' Choose between "none" or "median" (default = "median").
 #' @param convertFPModCodeToMass MSFragger uses modification code in peptide
 #' modified sequences. This replaces the code with the mass of the modification.
 #' Keep this enabled when importing MSstats comparison results as MSstats uses
@@ -20,7 +20,7 @@
 #' level3 = 0.1). This qscore filtering is used with the Importers
 #' glycanScoreCutoff argument.
 #'
-#' @returns Formatted dataframes
+#' @returns Formatted GlycoDiveR data file.
 #' @export
 #'
 #' @examples \dontrun{MSFraggerImporter(path = "Z:/Folder",

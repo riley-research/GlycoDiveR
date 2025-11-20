@@ -4,7 +4,7 @@
 #' is a Excel file with at least a Summary and a Spectra tab. This script will look
 #' for all files in the folder and all subfolders using the name tag "Byonic.xslx".
 #'
-#' @param path The folder path, which will be used to find all "Byonic.xlsl" files
+#' @param path The folder path, which will be used to find all "Byonic.xsls" files
 #' in this folder and all subfolders.
 #' @param annotation The annotation dataframe. Please generate a template using
 #' GetAnnotationTemplate("path", tool = "Byonic")
@@ -88,7 +88,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
   .modEnv$ModificationDatabase <- dplyr::bind_rows(.modEnv$ModificationDatabase, modToAdd)
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
-                  modification_df, scrape)
+                                modification_df, scrape)
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

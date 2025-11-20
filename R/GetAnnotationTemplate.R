@@ -1,7 +1,9 @@
 #' GetAnnotationTemplate
 #'
-#' @param path The path the the folder that holds the subforlder with the PSM files
-#' @param tool The search engine used. Options: MSFragger
+#' This created an annotation.csv file in the path you specify.
+#'
+#' @param path The path the the folder that holds the subfolder with the PSM files
+#' @param tool The search engine used. Options: MSFragger, Byonic, pGlyco
 #'
 #' @returns Exported annotation file
 #' @export
@@ -50,6 +52,30 @@ GetAnnotationTemplate <- function(path, tool){
                          gsub("3) Parameter file:  |\\\\objs\\\\params.prf", "", as.character(readxl::read_xlsx(paste0(path, "/", file), sheet = 1, range = "B3:B4"))))
     }
     tempdf <- data.frame(Run = unique(unfilteredvec),
+                         Condition = NA,
+                         Alias = NA,
+                         BioReplicate = NA,
+                         TechReplicate = NA)
+
+    if(grepl("/$", path)){
+      utils::write.csv(tempdf, paste0(path,"annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"annotation.csv")))
+    }else{
+      utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
+  }else if(tool == "pGlyco"){
+    fileList <- list.files(path, recursive = TRUE)
+    fileList <- fileList[grepl("pGlycoDB-GP-FDR-Pro-Quant-Site.txt", fileList)]
+    unfiltereddf <- data.frame()
+
+    if(length(fileList) == 0){stop("No files found.")}
+    for(file in fileList){
+      print(paste0(path, "/", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE)
+      unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
+    }
+
+    tempdf <- data.frame(Run = unique(unfiltereddf$RawName),
                          Condition = NA,
                          Alias = NA,
                          BioReplicate = NA,

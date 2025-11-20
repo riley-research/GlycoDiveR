@@ -7,15 +7,15 @@
 GetAnnotationTemplate(path, tool)
 }
 \arguments{
-\item{path}{The path the the folder that holds the subforlder with the PSM files}
+\item{path}{The path the the folder that holds the subfolder with the PSM files}
 
-\item{tool}{The search engine used. Options: MSFragger}
+\item{tool}{The search engine used. Options: MSFragger, Byonic, pGlyco}
 }
 \value{
 Exported annotation file
 }
 \description{
-GetAnnotationTemplate
+This created an annotation.csv file in the path you specify.
 }
 \examples{
 \dontrun{GetAnnotationTemplate("Z:/Subfolder", tool = "MSFragger")}

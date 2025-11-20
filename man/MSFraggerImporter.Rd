@@ -28,10 +28,10 @@ MSFraggerImporter(
 
 \item{glycanScoreCutoff}{Glycan score cutoff}
 
-\item{scrape}{set TRUE/FALSE to use scraping of Uniprot data}
+\item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
-\item{normalization}{The (glyco)peptide modification.
-Choose between "none" or "median"}
+\item{normalization}{The (glyco)peptide normalization used.
+Choose between "none" or "median" (default = "median").}
 
 \item{convertFPModCodeToMass}{MSFragger uses modification code in peptide
 modified sequences. This replaces the code with the mass of the modification.
@@ -48,7 +48,7 @@ level3 = 0.1). This qscore filtering is used with the Importers
 glycanScoreCutoff argument.}
 }
 \value{
-Formatted dataframes
+Formatted GlycoDiveR data file.
 }
 \description{
 Title

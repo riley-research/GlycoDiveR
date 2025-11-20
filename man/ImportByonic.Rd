@@ -15,7 +15,7 @@ ImportByonic(
 )
 }
 \arguments{
-\item{path}{The folder path, which will be used to find all "Byonic.xlsl" files
+\item{path}{The folder path, which will be used to find all "Byonic.xsls" files
 in this folder and all subfolders.}
 
 \item{annotation}{The annotation dataframe. Please generate a template using

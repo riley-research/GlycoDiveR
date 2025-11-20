@@ -211,6 +211,23 @@ FilterForCutoffs <- function(input, silent = FALSE){
       fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))
     }
     return(input)
+  }else if(input$searchEngine %in% c("pGlyco")){
+    if(!silent){
+      fmessage(paste0("Filtering for PSMScore <= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
+      fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
+    }
+    input$PSMTable <- input$PSMTable %>%
+      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
+                      (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+
+    input$PTMTable <- input$PTMTable %>%
+      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
+                      (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+
+    if(!silent){
+      fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))
+    }
+    return(input)
   }else{
     warning("No search engine recognized, returning unfiltered dataframe.")
     return(input)
@@ -561,6 +578,19 @@ CheckForQuantitativeValues <- function(intensityValues){
 }
 
 CheckAnnotation <- function(annotation){
+  clNames <- names(annotation)
+  if(!("Condition") %in% clNames){
+    stop("The column 'Condition' is missing")
+  }
+  if(!("Run") %in% clNames){
+    stop("The column 'Run' is missing")
+  }
+  if(!("BioReplicate") %in% clNames){
+    stop("The column 'BioReplicate' is missing")
+  }
+  if(!("TechReplicate") %in% clNames){
+    stop("The column 'TechReplicate' is missing")
+  }
   if(anyNA(annotation)){
     warning("Spotted NA values in your annotation file. Did you forget to edit the file?")
   }
@@ -716,6 +746,138 @@ AssignedModsToGlycanComp_Byonic <- function(AssModVec, GlycanTable){
   return(AssMod$TotGlyComp)
 }
 
+GetModifiedPeppGlyco <- function(PepVec, ModVec, ModDB){
+  tempdf <- data.frame(Pep = PepVec,
+                       Mod = ModVec,
+                       cleanName = character(length(PepVec)))
+
+  for(i in seq_len(nrow(tempdf))){
+    modi <- tempdf[i,"Mod"]
+    if(modi == "" | is.na(modi)){
+      tempdf$cleanName[i] <- tempdf[i,"Pep"]
+    }else{
+      modi <- strsplit(modi, ";")[[1]]
+      pepi <- tempdf[i,"Pep"]
+      addAA <- 0
+
+      num <- as.numeric(stringr::str_extract(modi, "^[0-9]+"))
+
+      modi <- modi[order(num)]
+
+      for(j in seq_len(length(modi))){
+        residueNumber <- as.numeric(stringr::str_extract(modi[j], "^[0-9]+"))
+        ModName <- stringr::str_extract(modi[j], "(?<=,).*?(?=\\[)")
+        ModMass <- .modEnv$ModificationDatabase %>%
+          dplyr::filter(.data$FullName == ModName) %>%
+          dplyr::slice(1) %>%
+          dplyr::pull(.data$ModificationMass)
+        massLength <- nchar(ModMass) + 2
+
+        #print(paste0(modi[j], "---", residueNumber, "---", ModName, "---", ModMass, "---", massLength))
+
+        substr1 <- substr(pepi, 1, residueNumber + addAA)
+        substr2 <- substr(pepi, residueNumber + addAA + 1, nchar(pepi))
+
+        pepi <- paste0(substr1, "[", ModMass, "]", substr2)
+        addAA <- addAA + massLength
+      }
+      tempdf$cleanName[i] <- pepi
+    }
+  }
+
+  tempdf$cleanName <- gsub("\\[57\\.0215\\]", "", tempdf$cleanName)
+  tempdf$cleanName <- gsub("J", "N", tempdf$cleanName)
+  return(tempdf$cleanName)
+}
+
+AssignmedModspGlyco <- function(modVec, glymassVec, glysiteVec,
+                                peptideVec, modDB){
+  tempdf <- data.frame(mod = modVec, glymass = glymassVec,
+                       glysite = glysiteVec, formattedMod = character(length(modVec)),
+                       peptide = gsub("J", "N", peptideVec),
+                       formattedGlycan = character(length(modVec)),
+                       formattedAssignedMod = character(length(modVec)))
+
+  #First clean mod column
+  for(i in seq_len(nrow(tempdf))){
+    modi <- tempdf[i,"mod"]
+    if(modi == "" | is.na(modi)){
+      tempdf$formattedMod[i] <- ""
+    }else{
+      modi <- strsplit(modi, ";")[[1]]
+      cleanedModi <- c()
+
+      for(j in seq_len(length(modi))){
+        ResidueNumber <- as.numeric(stringr::str_extract(modi[j], "^[0-9]+"))
+        ModName <- stringr::str_extract(modi[j], "(?<=,).*?(?=\\[)")
+        ModMass <- .modEnv$ModificationDatabase %>%
+          dplyr::filter(.data$FullName == ModName) %>%
+          dplyr::slice(1) %>%
+          dplyr::pull(.data$ModificationMass)
+        ModResidue <- stringr::str_extract(modi[j], "(?<=\\[)[^]]+(?=\\])")
+
+        cleanedModi <- c(cleanedModi, paste0(ResidueNumber, ModResidue, "(", ModMass, ")"))
+      }
+
+      tempdf$formattedMod[i] <- paste(cleanedModi, collapse=",")
+  }
+  }
+
+  #Add the glycan part
+  for(i in seq_len(nrow(tempdf))){
+    glymassi <- tempdf[i,"glymass"]
+    if(glymassi == "" | is.na(glymassi)){
+      tempdf$formattedMod[i] <- ""
+    }else{
+      glymassi <- strsplit(as.character(glymassi), ";")[[1]]
+      glysitei <- strsplit(as.character(tempdf[i,"glysite"]), ";")[[1]]
+      pepi <- tempdf[i,"peptide"]
+
+      cleanGlycan <- c()
+
+      for(j in seq_len(length(glymassi))){
+        ResidueNumber <- glysitei[j]
+        ModMass <- glymassi[j]
+        ModResidue <- substring(pepi, as.numeric(ResidueNumber), as.numeric(ResidueNumber))
+
+        cleanGlycan <- c(cleanGlycan, paste0(ResidueNumber, ModResidue, "(", ModMass, ")"))
+      }
+      tempdf$formattedGlycan[i] <- paste(cleanGlycan, collapse=",")
+    }
+    }
+
+    #Stitch them together and get them in the correct order
+  tempdf$formattedAssignedMod <- paste(tempdf$formattedMod, tempdf$formattedGlycan, sep = ",")
+  tempdf$formattedAssignedMod <- sub("^,+", "", tempdf$formattedAssignedMod)
+
+  for(i in seq_len(nrow(tempdf))){
+    modi <- tempdf[i,"formattedAssignedMod"]
+    if(modi == "" | is.na(modi)){
+      tempdf$formattedAssignedMod[i] <- tempdf[i,"formattedAssignedMod"]
+    }else{
+      modi <- strsplit(modi, ",")[[1]]
+      num <- as.numeric(stringr::str_extract(modi, "^[0-9]+"))
+      modi <- modi[order(num)]
+      tempdf$formattedAssignedMod[i] <- paste(modi, collapse = ",")
+    }
+    }
+
+  return(tempdf$formattedAssignedMod)
+}
+
+GetPeptideLocInProtein <- function(uniprotID, pep, fastaFile){
+  uniprotID <- strsplit(uniprotID[1], ",")[[1]][1]
+  IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
+  seq <- paste(IDhit[[1]], collapse = "")
+  seq <- toupper(seq)
+
+  uppercase_only <- gsub("[^A-Z]", "", pep[1])
+
+  AANumber <- regexpr(uppercase_only, seq)
+
+  return(AANumber)
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
@@ -727,9 +889,9 @@ Databases <- function(){
   )
 
   ModificationDatabase <- data.frame(
-    FullName = c("MOxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
-                 "NAcetylation"),
-    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106")
+    FullName = c("Oxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
+                 "NAcetylation", "Carbamidomethyl"),
+    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215")
   )
 
   colorScheme <- c(
