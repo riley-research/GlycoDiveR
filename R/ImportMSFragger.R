@@ -1,4 +1,4 @@
-#' Title
+#' ImportMSFragger
 #'
 #' @param path Path to search engine output folder
 #' @param annotation Path to annotation file
@@ -23,13 +23,13 @@
 #' @returns Formatted GlycoDiveR data file.
 #' @export
 #'
-#' @examples \dontrun{MSFraggerImporter(path = "Z:/Folder",
+#' @examples \dontrun{ImportMSFragger(path = "Z:/Folder",
 #' annotation = "Z:/Folder/annotation.csv",
 #' fasta = "Z:/fasta.fasta",
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
-MSFraggerImporter <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
+ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
                               scrape = FALSE, normalization = "median", convertFPModCodeToMass = TRUE,
                               filterForNoNSequon = FALSE, OPairLevelConversion = c(0,0,0.05,0.1)){
   unfiltereddf <- data.frame()
