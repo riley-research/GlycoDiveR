@@ -131,7 +131,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
 
   #Add both the a graph
   g <- igraph::make_empty_graph(n = 0, directed = FALSE)
-  g <- igraph::add_vertices(g, nv = nrow(dfprot), attr = list(name = dfprot$UniprotIDs, frame.color = NA  ))
+  g <- igraph::add_vertices(g, nv = nrow(dfprot), attr = list(name = dfprot$UniprotIDs, frame.color = "transparent"))
   g <- igraph::add_vertices(g, nv = nrow(dfgly), attr = list(name = dfgly$TotalGlycanComposition, frame.color = "black"))
 
   igraph::V(g)$shape <- c(rep("square", nrow(dfprot)), rep("circle", nrow(dfgly)))
