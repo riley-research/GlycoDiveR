@@ -30,9 +30,11 @@
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                              scrape = FALSE, normalization = "median", convertFPModCodeToMass = TRUE,
-                              filterForNoNSequon = FALSE, OPairLevelConversion = c(0,0,0.05,0.1)){
+                            scrape = FALSE, normalization = "median",
+                            convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
+                            OPairLevelConversion = c(0,0,0.05,0.1)){
   unfiltereddf <- data.frame()
+  quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
   CheckAnnotation(annotationdf)
 
@@ -48,9 +50,21 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, gly
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 
-  unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
+  if(normalization %in% c("FP_Normalized", "FP_MaxLFQ")){
+    quantPath <- list.files(path, recursive = TRUE)
+    quantPath <- quantPath[grepl("combined_modified_peptide.tsv", quantPath)]
 
-  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath,
+    if(length(quantPath) == 0){
+      stop("No combined_modified_peptide.tsv files found. Select the right location or using different quantification.")
+    }
+    for(quant in quantPath){
+      fmessage(paste0("Now importing: ", quant))
+      temptable <- data.table::fread(paste0(path, "/", quant), sep = "\t", check.names = TRUE, fill = TRUE)
+      quantdf <- plyr::rbind.fill(quantdf, temptable)
+    }
+  }
+
+  filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, quantdf,
                                    scrape, normalization, convertFPModCodeToMass,
                                    OPairLevelConversion)
 

@@ -19,12 +19,12 @@ PlotPSMCount <- function(input, grouping = "technicalReps", whichAlias = NULL,
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
 
-  input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
-
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%
       dplyr::filter(.data$Alias %in% whichAlias)
   }
+
+  input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 
   if(grouping == "technicalReps"){
     tempdf <- input$PSMTable %>%

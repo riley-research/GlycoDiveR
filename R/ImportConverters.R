@@ -1,11 +1,12 @@
-MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
+MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, scrape,
                                normalization, convertFPModCodeToMass, OPairLevelConversion){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
 
   #Run####
-  if("Run" %in% existingCols){
+  if("Spectrum.File" %in% existingCols){
+    unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
     filtereddf <- cbind(filtereddf, Run = as.character(unfiltereddf$Run))
     fmessage("Successfully imported Run column.")
   }
@@ -17,35 +18,11 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
     fmessage("Successfully imported Modified Peptide column.")}
   else{stop("The column Modified.Peptide was not found in the input dataframe.")}
 
-  #RawIntensity####
-  if("Intensity" %in% existingCols) {
-    filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(unfiltereddf$Intensity))
-    fmessage("Successfully imported RawIntensity column.")}
-  else{filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(NA))
-       warning("Intensity column not found. Filled with NA.")}
-
-  #Intensity####
-  filtereddf$Intensity <- filtereddf$RawIntensity
-  if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0)){
-    if(normalization == "none"){
-      fmessage("Successfully imported Intensity column without normalization.")
-    }else if(normalization == "median"){
-      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
-      filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = .data$Run,
-                      Intensity = medianNormalization(intensityVec = .data$Intensity,
-                                                      globalMedian = globalMedian))
-      fmessage("Successfully median normalized the intensities.")
-    }
-  }else{
-    fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
-  }
-
   #HasNSequon####
   if("Has.N.Glyc.Sequon" %in% existingCols) {
     filtereddf <- filtereddf %>%
       dplyr::mutate(HasNSequon = unfiltereddf$Has.N.Glyc.Sequon)
-    fmessage("Successfully imported RawIntensity column.")}
+    fmessage("Successfully imported HasNSequon column.")}
   else{fmessage("No NSequon information(OPair only) in data, skipping")}
 
   #PSMScore####
@@ -69,7 +46,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
   #TotalGlycanComposition####
   if ("Total.Glycan.Composition" %in% existingCols) {
     filtereddf <- cbind(filtereddf, TotalGlycanComposition = as.character(unfiltereddf$Total.Glycan.Composition))
-    filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) CleanGlycanNames(x))
+    filtereddf$TotalGlycanComposition <- CleanGlycanNames(filtereddf$TotalGlycanComposition)
     fmessage("Successfully imported Total Glycan Composition column.")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
@@ -192,6 +169,33 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
   }else{
     filtereddf$SubcellularLocalization <- NA
     filtereddf$Domains <- NA
+  }
+
+  #RawIntensity####
+  if("Intensity" %in% existingCols) {
+    filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(unfiltereddf$Intensity))
+    fmessage("Successfully imported RawIntensity column.")}
+  else{filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(NA))
+  warning("Intensity column not found. Filled with NA.")}
+
+  #Intensity####
+  filtereddf$Intensity <- filtereddf$RawIntensity
+  if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0)){
+    if(normalization == "none"){
+      fmessage("Successfully imported Intensity column without normalization.")
+    }else if(normalization == "median"){
+      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = .data$Run,
+                      Intensity = medianNormalization(intensityVec = .data$Intensity,
+                                                      globalMedian = globalMedian))
+      fmessage("Successfully median normalized the intensities.")
+    }else if(normalization %in% c("FP_Normalized", "FP_MaxLFQ")){
+      filtereddf <- UpdateFPIntensities(filtereddf, quantdf, normalization)
+      fmessage(paste0("Successfully imported Intensity column using: ", normalization))
+    }
+  }else{
+    fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
   }
 
   filtereddf <- filtereddf %>%

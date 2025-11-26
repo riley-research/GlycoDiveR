@@ -235,23 +235,40 @@ FilterForCutoffs <- function(input, silent = FALSE){
 }
 
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
-  inputVector <- strsplit(IDVec[1], ",")[[1]]
-  uniprotID <- inputVector[1]
+  # inputVector <- strsplit(IDVec[1], ",")[[1]]
+  # uniprotID <- inputVector[1]
+  # IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
+  # seq <- paste(IDhit[[1]], collapse = "")
+  # seq <- toupper(seq)
+  #
+  # pattern_NXS <- "N[^P]S"
+  # pattern_NXT <- "N[^P]T"
+  # pattern_S <- "S"
+  # pattern_T <- "T"
+  #
+  # count_NXS <- length(regmatches(seq, gregexpr(pattern_NXS, seq))[[1]])
+  # count_NXT <- length(regmatches(seq, gregexpr(pattern_NXT, seq))[[1]])
+  # count_S <- length(regmatches(seq, gregexpr(pattern_S, seq))[[1]])
+  # count_T <- length(regmatches(seq, gregexpr(pattern_T, seq))[[1]])
+  #
+  # rslt <- paste0(sum(count_NXS, count_NXT), ";", sum(count_S, count_T))
+  # Precompile patterns
+  pattern_NX <- "N[^P][ST]"
+  pattern_ST <- "[ST]"
+
+  # Extract first UniProt ID
+  uniprotID <- sub(",.*", "", IDVec[1])
+
+  # Filter fasta once
   IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
-  seq <- paste(IDhit[[1]], collapse = "")
-  seq <- toupper(seq)
+  seq <- toupper(paste(IDhit[[1]], collapse = ""))
 
-  pattern_NXS <- "N[^P]S"
-  pattern_NXT <- "N[^P]T"
-  pattern_S <- "S"
-  pattern_T <- "T"
+  # Count motifs
+  count_NX <- lengths(regmatches(seq, gregexpr(pattern_NX, seq)))
+  count_ST <- lengths(regmatches(seq, gregexpr(pattern_ST, seq)))
 
-  count_NXS <- length(regmatches(seq, gregexpr(pattern_NXS, seq))[[1]])
-  count_NXT <- length(regmatches(seq, gregexpr(pattern_NXT, seq))[[1]])
-  count_S <- length(regmatches(seq, gregexpr(pattern_S, seq))[[1]])
-  count_T <- length(regmatches(seq, gregexpr(pattern_T, seq))[[1]])
-
-  rslt <- paste0(sum(count_NXS, count_NXT), ";", sum(count_S, count_T))
+  # Format result
+  rslt <- paste0(count_NX, ";", count_ST)
 
   return(rslt)
 }
@@ -567,6 +584,41 @@ FilterForPeptides <- function(rawdf, whichPeptides){
   }
 }
 
+FilterForProteins <- function(rawdf, whichProtein, exactProteinMatch = TRUE){
+  if(identical(whichProtein, NA)){
+    return(rawdf)
+  }else if(is.data.frame(whichProtein) && "UniprotIDs" %in% names(rawdf) && "UniprotIDs" %in% names(whichProtein)){
+    if(exactProteinMatch){
+      rawdf <- rawdf %>%
+        dplyr::filter(.data$UniprotIDs %in% whichProtein$UniprotIDs)
+    }else{
+      testList <- sapply(unique(rawdf$UniprotIDs), function(x) strsplit(x, ","))
+      check <- sapply(testList, function(x) any(whichProtein$UniprotIDs %in% x))
+      toInclude <- names(testList[check])
+      rawdf <- rawdf %>%
+        dplyr::filter(.data$UniprotIDs %in% toInclude)
+    }
+  }else if(is.vector(whichProtein) && length(whichProtein) > 0){
+    if(exactProteinMatch){
+      rawdf <- rawdf %>%
+        dplyr::filter(.data$UniprotIDs %in% whichProtein)
+    }else{
+      testList <- sapply(unique(rawdf$UniprotIDs), function(x) strsplit(x, ","))
+      check <- sapply(testList, function(x) any(whichProtein %in% x))
+      toInclude <- names(testList[check])
+      rawdf <- rawdf %>%
+        dplyr::filter(.data$UniprotIDs %in% toInclude)
+    }}else{
+      stop("whichPeptides input is invalid")
+  }
+
+  if(nrow(rawdf) == 0){
+    return(rawdf)
+  }else{
+    return(rawdf)
+  }
+}
+
 CheckForQuantitativeValues <- function(intensityValues){
   valid <- !is.na(intensityValues) & intensityValues != 0 & is.finite(intensityValues)
 
@@ -876,6 +928,61 @@ GetPeptideLocInProtein <- function(uniprotID, pep, fastaFile){
   AANumber <- regexpr(uppercase_only, seq)
 
   return(AANumber)
+}
+
+UpdateFPIntensities <- function(rawdata, quantdata, normalization){
+  uniqueRundf <- data.frame(Run = unique(rawdata$Run))
+
+  if(normalization == "FP_Normalized"){
+    uniqueRundf$colName <- paste("X", uniqueRundf$Run, ".Intensity", sep = "")
+  }else if(normalization == "FP_MaxLFQ"){
+    uniqueRundf$colName <- paste("X", uniqueRundf$Run, ".MaxLFQ.Intensity", sep = "")
+  }else{
+    stop("The normalization was not recognized: ", normalization)
+  }
+
+  if(any(!uniqueRundf$colName %in% names(quantdata))){
+    notfound <- uniqueRundf$Run[!uniqueRundf$colName %in% names(quantdata)]
+
+    warning(
+      "Did not find the following runs in combined_peptide.tsv:\n",
+      paste(" -", notfound, collapse = "\n")
+    )
+  }
+
+  quantdata <- quantdata %>%
+    dplyr::select("ModifiedPeptide" = "Modified.Sequence",
+                  dplyr::any_of(uniqueRundf$colName)) %>%
+    dplyr::mutate(ModifiedPeptide = gsub("\\[57\\.0214\\]|\\[57\\.0215\\]", "", .data$ModifiedPeptide)) %>%
+    tidyr::pivot_longer(cols = dplyr::any_of(uniqueRundf$colName), names_to = "colName", values_to = "Intensity") %>%
+    dplyr::filter(!is.na(.data$Intensity))%>%
+    dplyr::left_join(uniqueRundf, by = "colName") %>%
+    dplyr::select(-"colName")
+
+  rawdata <- rawdata %>%
+    dplyr::select(-"Intensity") %>%
+    dplyr::full_join(quantdata, by = c("Run", "ModifiedPeptide"))
+
+  #Fill the rawdata data with the rest of the data
+  rawdata <- rawdata %>%
+    dplyr::group_by(.data$ModifiedPeptide) %>%
+    tidyr::fill(c("ModifiedPeptide", "AssignedModifications", "TotalGlycanComposition",
+                  "IsUnique", "UniprotIDs", "Genes", "ProteinLength", "NumberOfNSites",
+                  "NumberOfOSites", "ProteinStart", "GlycanType", "SubcellularLocalization",
+                  "Domains", "RetentionTime", "ID", "GlycanQValue", "PSMScore"),
+                .direction = "downup") %>%
+    dplyr::ungroup()
+
+  if(any(is.na(rawdata$Intensity))){
+    warning("NA intensity values detected after importing combined_peptide.tsv")
+  }
+
+  rawdata <- rawdata %>%
+    dplyr::mutate(Intensity = dplyr::case_when(is.na(.data$RawIntensity) & .data$Intensity == 0 ~ NA_real_,
+                                               TRUE ~ .data$Intensity)) %>%
+    dplyr::filter(!(is.na(.data$RawIntensity) & !is.na(.data$Intensity)))
+
+  return(rawdata)
 }
 
 Databases <- function(){
