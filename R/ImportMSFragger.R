@@ -32,7 +32,7 @@
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
                             scrape = FALSE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
-                            OPairLevelConversion = c(0,0,0.05,0.1)){
+                            confidenceLevel = NA){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -65,8 +65,7 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, gly
   }
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, quantdf,
-                                   scrape, normalization, convertFPModCodeToMass,
-                                   OPairLevelConversion)
+                                   scrape, normalization, convertFPModCodeToMass)
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
@@ -80,7 +79,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, gly
                searchEngine = "MSFragger",
                peptideScoreCutoff = peptideScoreCutoff,
                glycanScoreCutoff = glycanScoreCutoff,
-               filterForNoNSequon = filterForNoNSequon)
+               filterForNoNSequon = filterForNoNSequon,
+               confidenceLevels = confidenceLevel)
 
   return(data)
 }
