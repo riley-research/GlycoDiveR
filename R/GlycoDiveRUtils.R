@@ -1044,11 +1044,17 @@ Databases <- function(){
     ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215")
   )
 
+  GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
+                                           "Fucose", "High Mannose", "Truncated",
+                                           "Paucimannose", "OGlycan", "NonCanonicalGlyco"),
+                            color = c("#00394a", "#ff7f2a", "#2475b5", "#aaaaaa", "#28b36d",
+                                      "#D0A5C0", "#8B1E3F", "#f2d46f", "#6a4c8b"))
+
   colorScheme <- c(
     "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
     "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
     "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
   )
 
-  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, internal = TRUE, overwrite = TRUE)
+  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }
