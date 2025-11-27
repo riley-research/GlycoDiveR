@@ -7,4 +7,5 @@ NULL
   .modEnv$GlycanDatabase <- GlycanDatabase
   .modEnv$ModificationDatabase <- ModificationDatabase
   .modEnv$colorScheme <- colorScheme
+  .modEnv$GlycanColors <- GlycanColors
 }
