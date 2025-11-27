@@ -1,6 +1,6 @@
 test_that("PlotPTMQuantification: defaults", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
 
   result <- tryCatch(
     PlotPTMQuantification(mydata, protein = testProtein, rowFontSize = 10, silent = TRUE),
@@ -16,7 +16,7 @@ test_that("PlotPTMQuantification: defaults", {
 
 test_that("PlotPTMQuantification: linewidth", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
 
   result1 <- tryCatch(
     PlotPTMQuantification(mydata, protein = testProtein, lineWidth = 10, silent = TRUE),
@@ -43,7 +43,7 @@ test_that("PlotPTMQuantification: linewidth", {
 
 test_that("PlotPTMQuantification: rowFontSize", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
 
   result <- tryCatch(
     PlotPTMQuantification(mydata, protein = testProtein, rowFontSize = 10, silent = TRUE),
@@ -59,7 +59,7 @@ test_that("PlotPTMQuantification: rowFontSize", {
 
 test_that("PlotPTMQuantification: showRowNames", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
 
   result <- tryCatch(
     PlotPTMQuantification(mydata, protein = testProtein, showRowNames = FALSE, silent = TRUE),

@@ -13,6 +13,8 @@
 #' is the lower limit.
 #' @param glycanScoreCutoff The score cutoff in the Log Prob column. The score is the
 #' upper limit.
+#' @param deltaModCutoff The score cutoff for the Delta Mod score. The score is the
+#' lower limit.
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param removeReverse Remove reverse hits as noted with the ">Reverse " tag.
 #'
@@ -25,7 +27,7 @@
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 1)}
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                              scrape = FALSE, removeReverse = TRUE){
+                         deltaModCutoff = 1, scrape = FALSE, removeReverse = TRUE){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -99,7 +101,9 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
                searchEngine = "Byonic",
                peptideScoreCutoff = peptideScoreCutoff,
                glycanScoreCutoff = glycanScoreCutoff,
-               filterForNoNSequon = FALSE)
+               filterForNoNSequon = FALSE,
+               confidenceLevels = FALSE,
+               deltaModCutoff = deltaModCutoff)
 
   return(data)
 }

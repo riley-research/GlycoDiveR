@@ -8,13 +8,13 @@ ImportMSFragger(
   path,
   annotation,
   fastaPath,
-  peptideScoreCutoff,
-  glycanScoreCutoff,
+  peptideScoreCutoff = 0,
+  glycanScoreCutoff = 0.01,
   scrape = FALSE,
   normalization = "median",
   convertFPModCodeToMass = TRUE,
   filterForNoNSequon = FALSE,
-  OPairLevelConversion = c(0, 0, 0.05, 0.1)
+  confidenceLevel = FALSE
 )
 }
 \arguments{
@@ -31,7 +31,13 @@ ImportMSFragger(
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
 \item{normalization}{The (glyco)peptide normalization used.
-Choose between "none" or "median" (default = "median").}
+Choose between "median" (default), FP_Normalized, FP_MaxLFQ, or none.
+median: performs median normalization.
+FP_Normalized: extracts the intensity values in the Intensity columns of the
+combined_modified_peptide.tsv files.
+FP_MaxLFQ: extracts the intensity values in the MaxLFQ.Intensity columns of the
+combined_modified_peptide.tsv files.
+none: uses the raw intensity values from the PSM.tsv files.}
 
 \item{convertFPModCodeToMass}{MSFragger uses modification code in peptide
 modified sequences. This replaces the code with the mass of the modification.
@@ -41,11 +47,9 @@ modification masses instead of modification codes. Default = TRUE}
 \item{filterForNoNSequon}{Filter for peptides without an N-sequon. Only works
 for OPair data (default = FALSE).}
 
-\item{OPairLevelConversion}{Convert the OPair site probability levels to glycan
-q-scores. Provide a vector that has values for each level. The default is
-c(0,0,0.05,0.1), which means level1 = 0, level1b = 0, level2 = 0.05, and
-level3 = 0.1). This qscore filtering is used with the Importers
-glycanScoreCutoff argument.}
+\item{confidenceLevel}{What OPair confidence levels to accept, options are
+Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
+confidenceLevel = c("Level1", "Level1b")}
 }
 \value{
 Formatted GlycoDiveR data file.

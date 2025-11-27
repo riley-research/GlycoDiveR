@@ -74,7 +74,9 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
                searchEngine = "pGlyco",
                peptideScoreCutoff = peptideScoreCutoff,
                glycanScoreCutoff = glycanScoreCutoff,
-               filterForNoNSequon = FALSE)
+               filterForNoNSequon = FALSE,
+               confidenceLevels = FALSE,
+               deltaModCutoff = FALSE)
 
   return(data)
   }

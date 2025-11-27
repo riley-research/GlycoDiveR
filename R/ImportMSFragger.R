@@ -7,18 +7,22 @@
 #' @param glycanScoreCutoff Glycan score cutoff
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param normalization The (glyco)peptide normalization used.
-#' Choose between "none" or "median" (default = "median").
+#' Choose between "median" (default), FP_Normalized, FP_MaxLFQ, or none.
+#' median: performs median normalization.
+#' FP_Normalized: extracts the intensity values in the Intensity columns of the
+#' combined_modified_peptide.tsv files.
+#' FP_MaxLFQ: extracts the intensity values in the MaxLFQ.Intensity columns of the
+#' combined_modified_peptide.tsv files.
+#' none: uses the raw intensity values from the PSM.tsv files.
 #' @param convertFPModCodeToMass MSFragger uses modification code in peptide
 #' modified sequences. This replaces the code with the mass of the modification.
 #' Keep this enabled when importing MSstats comparison results as MSstats uses
 #' modification masses instead of modification codes. Default = TRUE
 #' @param filterForNoNSequon Filter for peptides without an N-sequon. Only works
 #' for OPair data (default = FALSE).
-#' @param OPairLevelConversion Convert the OPair site probability levels to glycan
-#' q-scores. Provide a vector that has values for each level. The default is
-#' c(0,0,0.05,0.1), which means level1 = 0, level1b = 0, level2 = 0.05, and
-#' level3 = 0.1). This qscore filtering is used with the Importers
-#' glycanScoreCutoff argument.
+#' @param confidenceLevel What OPair confidence levels to accept, options are
+#' Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
+#' confidenceLevel = c("Level1", "Level1b")
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -29,10 +33,10 @@
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
-ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                            scrape = FALSE, normalization = "median",
+ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
+                            glycanScoreCutoff = 0.01, scrape = FALSE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
-                            confidenceLevel = NA){
+                            confidenceLevel = FALSE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -80,7 +84,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff, gly
                peptideScoreCutoff = peptideScoreCutoff,
                glycanScoreCutoff = glycanScoreCutoff,
                filterForNoNSequon = filterForNoNSequon,
-               confidenceLevels = confidenceLevel)
+               confidenceLevels = confidenceLevel,
+               deltaModCutoff = FALSE)
 
   return(data)
 }

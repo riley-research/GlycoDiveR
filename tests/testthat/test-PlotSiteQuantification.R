@@ -1,6 +1,6 @@
 test_that("PlotSiteQuantification: default quantification", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
   testSite <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & UniprotIDs == testProtein)$ModificationID[1]
 
   result <- tryCatch(
@@ -18,7 +18,7 @@ test_that("PlotSiteQuantification: default quantification", {
 
 test_that("PlotSiteQuantification: intensity thresholds", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  testProtein <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & GlycanQValue < 0.01)$UniprotIDs[1]
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
   testSite <- subset(mydata$PTMTable, GlycanType != "NonGlyco" & UniprotIDs == testProtein)$ModificationID[1]
 
   result1 <- tryCatch(

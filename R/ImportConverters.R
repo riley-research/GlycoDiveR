@@ -55,7 +55,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
     filtereddf <- filtereddf %>%
       dplyr::mutate(GlycanQValue = as.double(unfiltereddf$Glycan.q.value))
     fmessage("Successfully imported Glycan q Value column.")
-  }else {warning("The column Glycan.q.value was not found in the input dataframe.")}
+  }else {fmessage("The column Glycan.q.value was not found in the input dataframe.")}
 
   #ConfidenceLevel####
   if("Confidence.Level" %in% existingCols){
@@ -175,8 +175,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
     }else if(normalization %in% c("FP_Normalized", "FP_MaxLFQ")){
       filtereddf <- UpdateFPIntensities(filtereddf, quantdf, normalization)
       fmessage(paste0("Successfully imported Intensity column using: ", normalization))
-    }
-  }else{
+    }else{
+      fmessage("normalization not recognized. Using raw intensity values.")
+  }}else{
     fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
   }
 
@@ -260,6 +261,16 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   }else{
     filtereddf$GlycanQValue <- NA
     fmessage("No |Log Prob| found.")
+  }
+
+  #DeltaMod####
+  if("Delta\r\nMod" %in% existingCols){
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(DeltaMod = as.double(unfiltereddf$`Delta\r\nMod`))
+    fmessage("Successfully imported Delta Mod column.")
+  }else{
+    filtereddf$DeltaMod <- NA
+    fmessage("No |Delta Mod found.")
   }
 
   #UniprotIDs####

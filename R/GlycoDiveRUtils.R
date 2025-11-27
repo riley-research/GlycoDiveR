@@ -182,29 +182,72 @@ CleanGlycanNames <- function(glycan){
 
 FilterForCutoffs <- function(input, silent = FALSE){
   if(input$searchEngine %in% c("MSFragger", "Byonic")){
+    existingColsPSMTable <- names(input$PSMTable)
+    existingColsPTMTable <- names(input$PTMTable)
     if(!silent){
-      fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
       fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
+      if("PSMScore" %in% existingColsPSMTable & !identical(input$peptideScoreCutoff,FALSE)){
+        fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff))
+      }
+      if("GlycanQValue" %in% existingColsPSMTable & !identical(input$glycanScoreCutoff,FALSE)){
+        fmessage(paste0("Filtering for GlycanQValue <= ", input$glycanScoreCutoff))
+      }
       if(input$filterForNoNSequon){
         fmessage(paste0("Filtering for peptides without an N-sequon (OPair peptides only)"))
       }
+      if(!identical(input$confidenceLevels,FALSE)){
+        fmessage(paste0("Filtering for peptides confidence levels (O-glycopeptides only): ", paste(input$confidenceLevels, collapse= ";")))
+      }
+      if(!identical(input$deltaModCutoff,FALSE)){
+        fmessage(paste0("Filtering for Delta Mod >= ", input$deltaModCutoff))
+      }
     }
-    input$PSMTable <- input$PSMTable %>%
-      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
-          (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
-
-    if("HasNSequon" %in% names(input$PSMTable) && input$filterForNoNSequon){
+    #PSMTable####
+    if("PSMScore" %in% existingColsPSMTable){
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$PSMScore >= input$peptideScoreCutoff | is.na(.data$PSMScore))
+    }
+    if("GlycanQValue" %in% existingColsPSMTable){
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$GlycanQValue <= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
+    }
+    if("HasNSequon" %in% existingColsPSMTable && input$filterForNoNSequon){
       input$PSMTable <- input$PSMTable %>%
         dplyr::filter(!.data$HasNSequon | is.na(.data$HasNSequon))
     }
 
-    input$PTMTable <- input$PTMTable %>%
-      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
-          (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+    if("ConfidenceLevel" %in% existingColsPSMTable && !identical(input$confidenceLevels,FALSE)){
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$ConfidenceLevel %in% input$confidenceLevels | is.na(.data$HasNSequon))
+    }
 
-    if("HasNSequon" %in% names(input$PTMTable) && input$filterForNoNSequon){
+    if("DeltaMod" %in% existingColsPSMTable && !identical(input$deltaModCutoff,FALSE)){
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$DeltaMod >= input$deltaModCutoff | is.na(.data$DeltaMod))
+    }
+
+    #PTMTable####
+    if("PSMScore" %in% existingColsPTMTable){
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$PSMScore >= input$peptideScoreCutoff | is.na(.data$PSMScore))
+    }
+    if("GlycanQValue" %in% existingColsPTMTable){
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$GlycanQValue <= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
+    }
+    if("HasNSequon" %in% existingColsPTMTable && input$filterForNoNSequon){
       input$PTMTable <- input$PTMTable %>%
         dplyr::filter(!.data$HasNSequon | is.na(.data$HasNSequon))
+    }
+
+    if("ConfidenceLevel" %in% existingColsPTMTable && !identical(input$confidenceLevels,FALSE)){
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$ConfidenceLevel %in% input$confidenceLevels | is.na(.data$HasNSequon))
+    }
+
+    if("DeltaMod" %in% existingColsPTMTable && !identical(input$deltaModCutoff,FALSE)){
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$DeltaMod >= input$deltaModCutoff | is.na(.data$DeltaMod))
     }
 
     if(!silent){
@@ -966,10 +1009,10 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   #Fill the rawdata data with the rest of the data
   rawdata <- rawdata %>%
     dplyr::group_by(.data$ModifiedPeptide) %>%
-    tidyr::fill(c("ModifiedPeptide", "AssignedModifications", "TotalGlycanComposition",
-                  "IsUnique", "UniprotIDs", "Genes", "ProteinLength", "NumberOfNSites",
+    tidyr::fill(dplyr::any_of(c("ModifiedPeptide", "AssignedModifications", "TotalGlycanComposition",
+                  "IsUnique", "UniprotIDs", "Genes", "ProteinLength", "ConfidenceLevel", "NumberOfNSites",
                   "NumberOfOSites", "ProteinStart", "GlycanType", "SubcellularLocalization",
-                  "Domains", "RetentionTime", "ID", "GlycanQValue", "PSMScore"),
+                  "Domains", "RetentionTime", "ID", "GlycanQValue", "PSMScore")),
                 .direction = "downup") %>%
     dplyr::ungroup()
 

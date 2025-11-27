@@ -10,6 +10,7 @@ ImportByonic(
   fastaPath,
   peptideScoreCutoff,
   glycanScoreCutoff,
+  deltaModCutoff = 1,
   scrape = FALSE,
   removeReverse = TRUE
 )
@@ -28,6 +29,9 @@ is the lower limit.}
 
 \item{glycanScoreCutoff}{The score cutoff in the Log Prob column. The score is the
 upper limit.}
+
+\item{deltaModCutoff}{The score cutoff for the Delta Mod score. The score is the
+lower limit.}
 
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
