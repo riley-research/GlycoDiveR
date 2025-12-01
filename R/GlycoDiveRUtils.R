@@ -181,11 +181,12 @@ CleanGlycanNames <- function(glycan){
 }
 
 FilterForCutoffs <- function(input, silent = FALSE){
+  existingColsPSMTable <- names(input$PSMTable)
+  existingColsPTMTable <- names(input$PTMTable)
+  preFilterPSMRows <- nrow(input$PSMTable)
+  preFilterPTMRows <- nrow(input$PTMTable)
   if(input$searchEngine %in% c("MSFragger", "Byonic")){
-    existingColsPSMTable <- names(input$PSMTable)
-    existingColsPTMTable <- names(input$PTMTable)
     if(!silent){
-      fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
       if("PSMScore" %in% existingColsPSMTable & !identical(input$peptideScoreCutoff,FALSE)){
         fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff))
       }
@@ -249,32 +250,28 @@ FilterForCutoffs <- function(input, silent = FALSE){
       input$PTMTable <- input$PTMTable %>%
         dplyr::filter(.data$DeltaMod >= input$deltaModCutoff | is.na(.data$DeltaMod))
     }
-
-    if(!silent){
-      fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))
-    }
-    return(input)
   }else if(input$searchEngine %in% c("pGlyco")){
     if(!silent){
       fmessage(paste0("Filtering for PSMScore <= ", input$peptideScoreCutoff, " and glycan score <= ", input$glycanScoreCutoff))
-      fmessage(paste0("Prefilter number of rows PSM table: ", nrow(input$PSMTable), ". Prefilter number of rows PTM table: ", nrow(input$PTMTable)))
     }
     input$PSMTable <- input$PSMTable %>%
-      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
-                      (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+      dplyr::filter(.data$PSMScore <= input$peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue <= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
 
     input$PTMTable <- input$PTMTable %>%
-      dplyr::filter((.data$PSMScore >= input$peptideScoreCutoff & .data$GlycanQValue <= input$glycanScoreCutoff) |
-                      (.data$PSMScore >= input$peptideScoreCutoff & is.na(.data$GlycanQValue)))
+      dplyr::filter(.data$PSMScore <= input$peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue <= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
 
-    if(!silent){
-      fmessage(paste0("Postfilter number of rows PSM table: ", nrow(input$PSMTable), ". Postfilter number of rows PTM table: ", nrow(input$PTMTable)))
-    }
-    return(input)
   }else{
     warning("No search engine recognized, returning unfiltered dataframe.")
     return(input)
   }
+
+  if(!silent){
+    fmessage(paste0("Filtered PSM table: ", preFilterPSMRows, " to ", nrow(input$PSMTable), " rows and ",
+                    "PTM table: ", preFilterPTMRows, " to ", nrow(input$PTMTable), " rows."))
+  }
+  return(input)
 }
 
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
@@ -618,7 +615,7 @@ TTest_log2FC <- function(val1, val2){
 }
 
 FilterForPeptides <- function(rawdf, whichPeptides){
-  if(identical(whichPeptides, NA)){
+  if(identical(whichPeptides, NULL)){
     return(rawdf)
   }else if(is.data.frame(whichPeptides) && "ModifiedPeptide" %in% names(rawdf) && "ModifiedPeptide" %in% names(whichPeptides)){
     returnVec <- rawdf %>%
@@ -631,14 +628,14 @@ FilterForPeptides <- function(rawdf, whichPeptides){
   }
 
   if(nrow(returnVec) == 0){
-    stop("No data is left after filtering for peptides")
+    return(returnVec)
   }else{
     return(returnVec)
   }
 }
 
 FilterForProteins <- function(rawdf, whichProtein, exactProteinMatch = TRUE){
-  if(identical(whichProtein, NA)){
+  if(identical(whichProtein, NULL)){
     return(rawdf)
   }else if(is.data.frame(whichProtein) && "UniprotIDs" %in% names(rawdf) && "UniprotIDs" %in% names(whichProtein)){
     if(exactProteinMatch){
