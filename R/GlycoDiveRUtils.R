@@ -278,41 +278,18 @@ FilterForCutoffs <- function(input, silent = FALSE){
 }
 
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
-  # inputVector <- strsplit(IDVec[1], ",")[[1]]
-  # uniprotID <- inputVector[1]
-  # IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
-  # seq <- paste(IDhit[[1]], collapse = "")
-  # seq <- toupper(seq)
-  #
-  # pattern_NXS <- "N[^P]S"
-  # pattern_NXT <- "N[^P]T"
-  # pattern_S <- "S"
-  # pattern_T <- "T"
-  #
-  # count_NXS <- length(regmatches(seq, gregexpr(pattern_NXS, seq))[[1]])
-  # count_NXT <- length(regmatches(seq, gregexpr(pattern_NXT, seq))[[1]])
-  # count_S <- length(regmatches(seq, gregexpr(pattern_S, seq))[[1]])
-  # count_T <- length(regmatches(seq, gregexpr(pattern_T, seq))[[1]])
-  #
-  # rslt <- paste0(sum(count_NXS, count_NXT), ";", sum(count_S, count_T))
-  # Precompile patterns
   pattern_NX <- "N[^P][ST]"
   pattern_ST <- "[ST]"
 
-  # Extract first UniProt ID
   uniprotID <- sub(",.*", "", IDVec[1])
 
-  # Filter fasta once
   IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
   seq <- toupper(paste(IDhit[[1]], collapse = ""))
 
-  # Count motifs
   count_NX <- lengths(regmatches(seq, gregexpr(pattern_NX, seq)))
   count_ST <- lengths(regmatches(seq, gregexpr(pattern_ST, seq)))
 
-  # Format result
   rslt <- paste0(count_NX, ";", count_ST)
-
   return(rslt)
 }
 
@@ -320,52 +297,84 @@ fmessage <- function(m){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
 }
 
-GetUniprotGlycoInfo <- function(accVec, PTMLocalization, type){
-  # if(type[1] == "" | is.na(type[1]) | type[1] %in% c("NonGlyco", "Unmodified")){
-  #   return(NA)
-  # }
-  #
-  # acc <- strsplit(accVec[1], ",")[[1]][1]
-  # geturl <- paste0("https://rest.uniprot.org/uniprotkb/search?query=accession:", acc, "&format=tsv&fields=ft_carbohyd")
-  # scrape <- read.csv(URLencode(geturl), sep = "\t")
-  # scrape <- scrape %>%
-  #   tidyr::separate_longer_delim(cols = "Glycosylation", delim = " CARBOHYD ") %>%
-  #   dplyr::mutate(Glycosylation = gsub("CARBOHYD ", "", Glycosylation)) %>%
-  #   tidyr::separate_wider_delim(cols = "Glycosylation", delim = "; /note=", names = c("Site", "Info"))
-  #
-  # scrape <- subset(scrape, Site == as.character(PTMLocalization[1]))
-  #
-  # if(is.null(scrape) | nrow(scrape) == 0 | is.null(nrow(scrape))){
-  #   return("No evidence")
-  # }
+GetRawUniprotInfo <- function(accVec, silent = FALSE){
+  #https://www.uniprot.org/help/return_fields
+  baseUrl <- "https://rest.uniprot.org/uniprotkb/search?query=accession:"
+  fieldsUrl <- "&format=tsv&fields=accession,cc_subcellular_location,ft_intramem,ft_topo_dom,ft_transmem"
+  errorIDs <- c()
+  scrape_df <- data.frame()
 
-  return()
+  tempdf <- data.frame(UniprotIDs = accVec) %>%
+    dplyr::distinct(.data$UniprotIDs) %>%
+    dplyr::mutate(Entry = gsub(",.*", "", .data$UniprotIDs))
+
+  if(!silent){
+    fmessage(paste0("Now connecting to Uniprot for ", nrow(tempdf), " proteins...
+                    Use scrape = FALSE to the importer to skip this step."))
+  }
+
+  totalNum <- nrow(tempdf)
+  for (i in seq(1, nrow(tempdf), by = 25)) {
+    cat("\rGetting information from Uniprot. Now at protein ", i, "of ", totalNum, "...")
+    rows <- tempdf[i:min(i + 25 - 1, nrow(tempdf)), "Entry"]
+
+    fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl)
+
+    result <- tryCatch({
+      result <- suppressWarnings(utils::read.csv(utils::URLencode(fullUrl), header = TRUE, sep = "\t"))
+      },
+      error = function(e){
+        Sys.sleep(0.5)
+        res <- httr::GET(fullUrl)
+        res <- httr::content(res, as="text", encoding = "UTF-8")
+
+        matches <- stringr::str_extract_all(gsub("'accession'", "", res), "'(.*?)'")[[1]]
+        matches <- gsub("'", "", matches)
+
+        errorIDs <- c(errorIDs, matches)
+
+        rows <- rows[!(rows %in% errorIDs)]
+        if(length(rows) == 0) next
+
+        fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl)
+
+        result <- suppressWarnings(utils::read.csv(utils::URLencode(fullUrl), header = TRUE, sep = "\t"))
+      })
+
+    scrape_df <- dplyr::bind_rows(scrape_df, result)
+    Sys.sleep(0.5)
+  }
+
+  scrape_df <- scrape_df %>%
+    dplyr::distinct(.data$Entry, .keep_all=TRUE) %>%
+    dplyr::right_join(tempdf, by = "Entry") %>%
+    dplyr::select(-"Entry")
+
+  return(scrape_df)
 }
 
-GetUniprotSubcellularInfo <- function(UniprotIDs){
-  UniprotIDs_df <- data.frame(UniprotIDs = UniprotIDs, stringsAsFactors = FALSE) %>%
-    dplyr::mutate(UID = purrr::map_chr(.data$UniprotIDs, ~ stringr::str_split(.x, ",")[[1]][1]))
+GetUniprotInfo <- function(UniprotIDs){
+  UniprotIDs_df <- data.frame(UniprotIDs = UniprotIDs, stringsAsFactors = FALSE)
 
-  UniprotIDsClean <-  UniprotIDs_df %>%
-    dplyr::distinct(.data$UID)
+  scrape_df <- GetRawUniprotInfo(UniprotIDs_df$UniprotIDs)
 
-  tempdf <- UniprotR::GetSubcellular_location(UniprotIDsClean$UID)
+  if(nrow(scrape_df) == 0){return(data.frame(
+    SubcellularLocalization = rep(NA, nrow(UniprotIDs_df)),
+    Domains = rep(NA, nrow(UniprotIDs_df))))}
 
-  tempdf$SubcellularLocalization <- sapply(tempdf$Subcellular.location..CC., function(x) cleanSubcellularLocation(x))
-  tempdf$TopoDomain <- sapply(tempdf$Topological.domain, function(x) getTopoDomain(x))
-  tempdf$TransmembraneDomain <- sapply(tempdf$Transmembrane, function(x) getTransmembraneDomain(x))
+  scrape_df$SubcellularLocalization <- sapply(scrape_df$Subcellular.location..CC., function(x) cleanSubcellularLocation(x))
+  scrape_df$TopoDomain <- sapply(scrape_df$Topological.domain, function(x) getTopoDomain(x))
+  scrape_df$TransmembraneDomain <- sapply(scrape_df$Transmembrane, function(x) getTransmembraneDomain(x))
 
-  tempdf$UID <- rownames(tempdf)
-
-  tempdf <- tempdf %>%
+  scrape_df <- scrape_df %>%
     dplyr::mutate(Domains = dplyr::case_when(is.na(.data$TopoDomain) & is.na(.data$TransmembraneDomain) ~ NA_character_,
                                              is.na(.data$TopoDomain) ~ .data$TransmembraneDomain,
                                              is.na(.data$TransmembraneDomain) ~ .data$TopoDomain,
                                              TRUE ~ paste(TopoDomain, TransmembraneDomain, sep = ";"))) %>%
-    dplyr::select(.data$UID, .data$SubcellularLocalization, .data$Domains)
+    dplyr::select("UniprotIDs", "SubcellularLocalization", "Domains")
 
   UniprotIDs_df <- UniprotIDs_df %>%
-    dplyr::left_join(tempdf, by = c("UID"))
+    dplyr::left_join(scrape_df, by = "UniprotIDs")
 
   return(UniprotIDs_df[c("SubcellularLocalization", "Domains")])
 }

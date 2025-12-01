@@ -26,12 +26,12 @@ Imports:
     stringr,
     UpSetR,
     rlang,
-    UniprotR,
     purrr,
     tidyselect,
-    readxl
+    readxl,
+    httr
 Depends: 
-    R (>= 3.5)
+    R (>= 4.1.0)
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

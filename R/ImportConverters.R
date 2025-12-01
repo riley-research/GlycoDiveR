@@ -141,12 +141,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   fmessage("Successfully added GlycanType column.")
 
   if(scrape){
-    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.
-             Grab a coffee. This might take a while.")
-
     #Get subcellular localization and domain information####
     filtereddf <- filtereddf %>%
-      dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
+      dplyr::bind_cols(GetUniprotInfo(filtereddf$UniprotIDs))
     fmessage("Successfully added subcellular localization and domain information.")
   }else{
     filtereddf$SubcellularLocalization <- NA
@@ -340,12 +337,9 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   fmessage("Successfully added GlycanType column.")
 
   if(scrape){
-    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.
-             Grab a coffee. This might take a while.")
-
     #Get subcellular localization and domain information####
     filtereddf <- filtereddf %>%
-      dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
+      dplyr::bind_cols(GetUniprotInfo(filtereddf$UniprotIDs))
     fmessage("Successfully added subcellular localization and domain information.")
   }else{
     filtereddf$SubcellularLocalization <- NA
@@ -514,12 +508,9 @@ pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
   fmessage("Successfully added GlycanType column.")
 
   if(scrape){
-    fmessage("Now scraping Uniprot. Set 'scrape = FALSE' to the importer function to skip this step.
-             Grab a coffee. This might take a while.")
-
     #Get subcellular localization and domain information####
     filtereddf <- filtereddf %>%
-      dplyr::bind_cols(GetUniprotSubcellularInfo(filtereddf$UniprotIDs))
+      dplyr::bind_cols(GetUniprotInfo(filtereddf$UniprotIDs))
     fmessage("Successfully added subcellular localization and domain information.")
   }else{
     filtereddf$SubcellularLocalization <- NA
