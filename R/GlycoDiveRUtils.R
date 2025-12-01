@@ -297,10 +297,11 @@ fmessage <- function(m){
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: ", m, "\033[0m")
 }
 
-GetRawUniprotInfo <- function(accVec, silent = FALSE){
+GetRawUniprotInfo <- function(accVec, size = 100, silent = FALSE){
   #https://www.uniprot.org/help/return_fields
   baseUrl <- "https://rest.uniprot.org/uniprotkb/search?query=accession:"
   fieldsUrl <- "&format=tsv&fields=accession,cc_subcellular_location,ft_intramem,ft_topo_dom,ft_transmem"
+  sizeUrl <- paste0("&size=", size)
   errorIDs <- c()
   scrape_df <- data.frame()
 
@@ -310,15 +311,15 @@ GetRawUniprotInfo <- function(accVec, silent = FALSE){
 
   if(!silent){
     fmessage(paste0("Now connecting to Uniprot for ", nrow(tempdf), " proteins...
-                    Use scrape = FALSE to the importer to skip this step."))
+                    Use scrape = FALSE using the importer function to skip this step."))
   }
 
   totalNum <- nrow(tempdf)
-  for (i in seq(1, nrow(tempdf), by = 25)) {
+  for (i in seq(1, nrow(tempdf), by = size)) {
     cat("\rGetting information from Uniprot. Now at protein ", i, "of ", totalNum, "...")
-    rows <- tempdf[i:min(i + 25 - 1, nrow(tempdf)), "Entry"]
+    rows <- tempdf[i:min(i + size - 1, nrow(tempdf)), "Entry"]
 
-    fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl)
+    fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl, sizeUrl)
 
     result <- tryCatch({
       result <- suppressWarnings(utils::read.csv(utils::URLencode(fullUrl), header = TRUE, sep = "\t"))
@@ -336,7 +337,7 @@ GetRawUniprotInfo <- function(accVec, silent = FALSE){
         rows <- rows[!(rows %in% errorIDs)]
         if(length(rows) == 0) next
 
-        fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl)
+        fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl, sizeUrl)
 
         result <- suppressWarnings(utils::read.csv(utils::URLencode(fullUrl), header = TRUE, sep = "\t"))
       })
