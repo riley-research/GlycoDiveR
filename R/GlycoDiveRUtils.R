@@ -443,6 +443,9 @@ getTopoDomain <- function(rawString){
   rawStringVec <- strsplit(rawString, "TOPO_DOM")[[1]]
 
   for(i in 2:length(rawStringVec)){
+    if(!grepl("..", rawStringVec[i], fixed=TRUE)){
+      next
+    }
     firstAA <- 0
     lastAA <- 0
     domainType <- ""
@@ -673,10 +676,10 @@ CheckForQuantitativeValues <- function(intensityValues){
   valid <- !is.na(intensityValues) & intensityValues != 0 & is.finite(intensityValues)
 
   if (!any(valid)) {
-    stop("No quantitative data found. Aborting.")
+    return(TRUE)
   }
 
-  invisible(NULL)
+  return(FALSE)
 }
 
 CheckAnnotation <- function(annotation){
