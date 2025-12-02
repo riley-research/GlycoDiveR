@@ -1,28 +1,43 @@
 #' PlotGlycanCompositionPie
 #'
-#' @param input Formatted data
-#' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition"
-#' @param scales Controls plot normalization, choose "fixed" or "free",
-#' @param protein Use "all" for all proteins, otherwise provide a vector containing
-#' proteins from your data  as in the UniprotIDs column
-#' @param whichAlias provide a vector of Aliases to only select these aliases
-#' for plotting
+#' Visualize glycan compositions as a pie chart.
+#'
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition".
+#' @param scales Controls plot normalization, choose "fixed" or "free".
+#' @param whichAlias Provide a vector of Aliases to only select these aliases
+#' for plotting.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent silence printed information (default = TRUE)
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param  exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
+#' @param silent silence printed information (default = FALSE)
 #'
 #' @returns The glycan composition
 #' @export
 #'
-#' @examples \dontrun{PlotGlycanCompositionPie(mydata, grouping = "technicalReps",
-#' protein = c("P10204", "Q92930"))}
-PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
-                                     protein = "all", whichAlias = NULL,
-                                     whichPeptide = NA, silent = FALSE){
+#' @examples \dontrun{
+#' PlotGlycanCompositionPie(mydata)
+#'
+#' PlotGlycanCompositionPie(mydata, grouping = "technicalReps",
+#'                          whichProtein = c("P10204", "Q92930"))
+#' }
+PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "free",
+                                     whichAlias = NULL, whichPeptide = NULL,
+                                     whichProtein = NULL, exactProteinMatch = TRUE,
+                                     silent = FALSE){
+
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
   df <- GetMeanTechReps(input$PTMTable) %>%
     dplyr::filter(.data$GlycanType != "NonGlyco")
@@ -32,14 +47,15 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
       dplyr::filter(.data$Alias %in% whichAlias)
   }
 
-  if(!identical(protein, "all")){
-    df <- df %>%
-      dplyr::filter(.data$UniprotIDs %in% protein)
-
-    if (nrow(df) == 0) {
-      return("No glycans found after filtering.")
+  if(nrow(df) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
     }
   }
+
+  colH <- stats::setNames(.modEnv$GlycanColors$color, .modEnv$GlycanColors$GlycanType)
 
   if(grouping == "technicalReps"){
     p <- df %>%
@@ -50,7 +66,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
       ggplot2::geom_bar(stat="identity", width=1, color= "black") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Alias, scales = scales) +
-      ggplot2::scale_fill_manual(values = colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
+      ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
       ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())
@@ -67,7 +83,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
       ggplot2::geom_bar(stat="identity", width=1, color= "black") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$x, scales = scales) +
-      ggplot2::scale_fill_manual(values = colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
+      ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
       ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())
@@ -81,7 +97,7 @@ PlotGlycanCompositionPie <- function(input, grouping, scales = "free",
       ggplot2::geom_bar(stat="identity", width=1, color= "black") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Condition, scales = scales) +
-      ggplot2::scale_fill_manual(values = colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
+      ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
       ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())

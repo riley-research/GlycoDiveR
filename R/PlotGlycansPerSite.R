@@ -3,29 +3,48 @@
 #' This plot shows how many glycans were detected at each site—
 #' that is, how many sites have 1 glycan, 2 glycans, and so on.
 #'
-#' @param input Formatted data
-#' @param whichAlias provide a vector of Aliases to only select these aliases
-#' for plotting
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param whichAlias Provide a vector of Aliases to only select these aliases
+#' for plotting.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent silence printed information (default = TRUE)
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
+#' @param silent silence printed information (default = FALSE)
 #'
 #' @returns The number of glycans per site
 #' @export
 #'
-#' @examples \dontrun{PlotGlycanPerSite(myData)}
-PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA,
+#' @examples \dontrun{
+#' PlotGlycanPerSite(myData)}
+PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NULL,
+                               whichProtein = NULL, exactProteinMatch = TRUE,
                                silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
   df <- GetMeanTechReps(input$PTMTable)
 
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
+  }
+
+  if(nrow(df) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
+    }
   }
 
   df <- df %>%
@@ -47,7 +66,7 @@ PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NA,
   p <- ggplot2::ggplot(df, ggplot2::aes(x="", y=.data$Count, fill=.data$GlycansPerSite)) +
     ggplot2::geom_bar(stat="identity", width=1, color= "black") +
     ggplot2::coord_polar("y", start=0) +
-    ggplot2::scale_fill_manual(values = colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
+    ggplot2::scale_fill_manual(values = .modEnv$colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::geom_text(ggplot2::aes(label = .data$Count),
                        position = ggplot2::position_stack(vjust = 0.5)) +
     ggplot2::labs(fill = "Glycans\nper site") +

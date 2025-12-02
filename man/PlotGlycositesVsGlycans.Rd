@@ -10,12 +10,16 @@ PlotGlycositesVsGlycans(
   labelGlycositeCutoff = 0,
   labelGlycanCutoff = 0,
   maxOverlaps = 10,
-  whichPeptide = NA,
+  whichPeptide = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
+  plotColor = "#6761A8",
+  alpha = 0.5,
   silent = FALSE
 )
 }
 \arguments{
-\item{input}{The formatted GlycoDiveR data.}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
@@ -33,6 +37,20 @@ with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequ
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
 
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
+
+\item{plotColor}{The color of plotted points.}
+
+\item{alpha}{The alpha of the plotted points.}
+
 \item{silent}{silence printed information (default = TRUE)}
 }
 \value{
@@ -44,5 +62,8 @@ Plots the proteins by the number of glycosites on the proteins to the
 number of identified glycans identified on that protein.
 }
 \examples{
-\dontrun{PlotGlycositesVsGlycans(mydata)}
+\dontrun{
+PlotGlycositesVsGlycans(mydata)
+
+PlotGlycositesVsGlycans(mydata, plotColor = "black", alpha = 0.1, maxOverlaps = Inf)}
 }

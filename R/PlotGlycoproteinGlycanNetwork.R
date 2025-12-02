@@ -4,20 +4,26 @@
 #' composition (e.g., H1N1, or H1N1A), connecting to a protein represented as
 #' a bar plot and sorted by number of identified glycan sites.
 #'
-#' @param input Formatted data
-#' @param condition What condition to plot as listed in the annotation dataframe
-#' @param type Glycan type "N"
-#' @param edgeWidth defines the linewidth of the edges
-#' @param verticeSize defines the size of the glycan and protein
-#' nodes c(3,5) means a glycan node size of 3 and a protein node size of 5
-#' @param whichAlias provide a vector of Aliases to only select these aliases
-#' for plotting
-#' @param highlight specify what glycan category to highlight, or use "all" to highlight all
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param edgeWidth Defines the linewidth of the edges.
+#' @param verticeSize Defines the size of the glycan and protein nodes,
+#' verticeSize = c(3,5) means a glycan node size of 3 and a protein node size of 5.
+#' @param whichAlias Provide a vector of Aliases to only select these aliases
+#' for plotting.
+#' @param highlight Specify what glycan category to highlight, or use "all" to highlight all.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent silence printed information (default = TRUE)
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
+#' @param silent silence printed information (default = FALSE).
 #'
 #' @returns A glycoprotein to glycan network
 #' @export
@@ -28,25 +34,19 @@
 #'
 #' PlotGlycoProteinGlycanNetwork(
 #'   mydata,
-#'   condition = "DB_treated",
+#'   highlight = c("Sialyl", "Truncated"),
 #'   edgeWidth = 3,
 #'   verticeSize = c(3, 4)
 #' )
 #' }
-PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
-                                          edgeWidth = 1.5, verticeSize = c(5,3),
-                                          whichAlias = NULL, highlight = "all",
-                                          whichPeptide = NA, silent = FALSE){
-  if(!is.na(condition)){
-    input$PTMTable <- input$PTMTable[input$PTMTable[["Condition"]] %in% condition, ]
-
-    if(nrow(input$PTMTable) == 0){
-      stop("Just tried selecting the following condition: ", condition, ".\nNo rows are left after filtering.")
-    }
-  }
-
+PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
+                                          verticeSize = c(5,3), whichAlias = NULL,
+                                          highlight = "all", whichPeptide = NULL,
+                                          whichProtein = NULL, exactProteinMatch = TRUE,
+                                          silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
   df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco")
@@ -54,6 +54,14 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
+  }
+
+  if(nrow(df) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
+    }
   }
 
   df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
@@ -84,12 +92,9 @@ PlotGlycoProteinGlycanNetwork <- function(input, condition = NA, type = "N",
     dplyr::distinct() %>%
     dplyr::arrange(.data$GlycanType)
 
-  dfcolmatch <- data.frame(GlycanType = unique(df$GlycanType),
-                           col = NA)
-
-  for(i in 1:nrow(dfcolmatch)){
-    dfcolmatch$col[i] <- colorScheme[i]
-  }
+  dfcolmatch <- .modEnv$GlycanColors %>%
+    dplyr::rename("col" = "color") %>%
+    dplyr::filter(.data$GlycanType %in% unique(dfgly$GlycanType))
 
   dfgly <- dfgly %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)

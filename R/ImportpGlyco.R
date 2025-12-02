@@ -26,8 +26,8 @@
 #' peptideScoreCutoff = 0.01,
 #' glycanScoreCutoff = 0.01,
 #' scrape = FALSE)}
-ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                         normalization = "median", scrape = FALSE){
+ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
+                         glycanScoreCutoff = 0.01, normalization = "median", scrape = TRUE){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
   CheckAnnotation(annotationdf)

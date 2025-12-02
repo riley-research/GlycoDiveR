@@ -4,24 +4,41 @@
 \alias{PlotGlycositeIdsPerRun}
 \title{PlotGlycositeIdsPerRun}
 \usage{
-PlotGlycositeIdsPerRun(input, protein, whichAlias = NULL, silent = FALSE)
+PlotGlycositeIdsPerRun(
+  input,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
+  whichAlias = NULL,
+  colorVec = c("#6dc381", "pink", "#6761A8"),
+  silent = FALSE
+)
 }
 \arguments{
-\item{input}{Formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{protein}{Protein listed as in the UniprotIDs column}
+\item{whichProtein}{Filter what protein to plot (make sure to only provide one).
+These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
+This can either be a dataframe with a UniprotIDs column, or a vector with the
+UniprotID you want to keep.}
+
+\item{exactProteinMatch}{When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases}
 
-\item{silent}{TRUE if you want info to be printed, FALSE if not
-for plotting}
+\item{colorVec}{The color scheme used in the plot. Default = c("#6dc381", "pink", "#6761A8")}
+
+\item{silent}{silence printed information (default = FALSE).}
 }
 \value{
 A plot displaying the glycosites identified across different runs
 }
 \description{
-PlotGlycositeIdsPerRun
+Visualize site coverage per protein for different runs.
 }
 \examples{
-\dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
+\dontrun{
+PlotGlycositeIdsPerRun(mydata, whichProtein = "P17047")}
 }

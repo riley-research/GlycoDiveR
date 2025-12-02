@@ -332,7 +332,7 @@ GetRawUniprotInfo <- function(accVec, size = 100, silent = FALSE){
         errorIDs <- c(errorIDs, matches)
 
         rows <- rows[!(rows %in% errorIDs)]
-        if(length(rows) == 0) next
+        if(length(rows) == 0) {return(data.frame())}
 
         fullUrl <- paste0(baseUrl, paste(rows, collapse = "%20OR%20accession:"), fieldsUrl, sizeUrl)
 
@@ -1056,9 +1056,11 @@ Databases <- function(){
 
   GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
                                            "Fucose", "High Mannose", "Truncated",
-                                           "Paucimannose", "OGlycan", "NonCanonicalGlyco"),
+                                           "Paucimannose", "OGlycan", "NonCanonicalGlyco",
+                                           "Multi"),
                             color = c("#00394a", "#ff7f2a", "#2475b5", "#aaaaaa", "#28b36d",
-                                      "#D0A5C0", "#8B1E3F", "#f2d46f", "#6a4c8b"))
+                                      "#D0A5C0", "#8B1E3F", "#f2d46f", "#6a4c8b",
+                                      "#1ABC9C"))
 
   colorScheme <- c(
     "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",

@@ -1,21 +1,25 @@
 #' PlotComparisonVolcano
 #'
-#' @param input formatted comparison dataframe (e.g. using GlycoDiveR's
+#' A volcano plot showing Log2 transformed intensity values and either
+#' p values or FDR values.
+#'
+#' @param input Formatted comparison dataframe (e.g. using GlycoDiveR's
 #' ImportMSstatsComparison function)
-#' @param whichComparison which comparison as in the Label column
-#' @param statisticalCutoff what statistical cutoff (default = 0.05)
-#' @param log2FCCutoff what log2 fold-change cutoff (default = 1)
-#' @param statistic choose "adjpvalue" or "pvalue"
-#' @param whichLabel what to label in the plot.
+#' @param whichComparison Which comparison as in the Label column.
+#' @param statisticalCutoff What statistical cutoff.
+#' @param log2FCCutoff What log2 fold-change cutoff).
+#' @param statistic Choose "adjpvalue" or "pvalue".
+#' @param whichLabel What to label in the plot.
 #' choose "significant", "none", or supply a vector with the points to label.
 #' For example c("HPT-149", "SPA3K-N271"). These are internally generated using
 #' the comparison dataframe: paste(Proteins, ModificationID, sep = "-")
-#' @param maxOverlaps the maximum number of overlapping labels in the volcanoplot
+#' @param maxOverlaps The maximum number of overlapping labels in the volcanoplot
 #'
 #' @returns A volcanoplot
 #' @export
 #'
-#' @examples \dontrun{PlotComparisonVolcano(comparison, whichComparison = "Sal-PBS",
+#' @examples \dontrun{
+#' PlotComparisonVolcano(comparison, whichComparison = "Sal-PBS",
 #' statistic = "pvalue", statisticalCutoff = 0.01)}
 PlotComparisonVolcano <- function(input, whichComparison,
                                   statisticalCutoff = 0.05, log2FCCutoff = 1,
@@ -39,8 +43,8 @@ PlotComparisonVolcano <- function(input, whichComparison,
 
   df <- df %>%
     dplyr::filter(.data$Label == whichComparison & !is.na(.data$statistic)) %>%
-    dplyr::mutate(col = dplyr::case_when(.data$statistic < statisticalCutoff & .data$log2FC < -log2FCCutoff ~ colorScheme[1],
-                                         .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ colorScheme[2],
+    dplyr::mutate(col = dplyr::case_when(.data$statistic < statisticalCutoff & .data$log2FC < -log2FCCutoff ~ .modEnv$colorScheme[1],
+                                         .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ .modEnv$colorScheme[2],
                                          TRUE ~ "black"))
 
   if(identical(whichLabel, "significant")){

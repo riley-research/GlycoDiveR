@@ -1,22 +1,34 @@
 #' PlotGlycositeIdsPerRun
 #'
-#' @param input Formatted data
-#' @param protein Protein listed as in the UniprotIDs column
+#' Visualize site coverage per protein for different runs.
+#'
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param whichProtein Filter what protein to plot (make sure to only provide one).
+#' These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
+#' This can either be a dataframe with a UniprotIDs column, or a vector with the
+#' UniprotID you want to keep.
+#' @param exactProteinMatch When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
 #' @param whichAlias provide a vector of Aliases to only select these aliases
-#' @param silent TRUE if you want info to be printed, FALSE if not
-#' for plotting
+#' @param colorVec The color scheme used in the plot. Default = c("#6dc381", "pink", "#6761A8")
+#' @param silent silence printed information (default = FALSE).
 #'
 #' @returns A plot displaying the glycosites identified across different runs
 #' @export
 #'
-#' @examples \dontrun{PlotGlycositeIdsPerRun(mydata, protein = "P17047")}
-PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = FALSE){
+#' @examples \dontrun{
+#' PlotGlycositeIdsPerRun(mydata, whichProtein = "P17047")}
+PlotGlycositeIdsPerRun <- function(input, whichProtein = NULL, exactProteinMatch = TRUE,
+                                   whichAlias = NULL, colorVec = c("#6dc381", "pink", "#6761A8"),
+                                   silent = FALSE){
   input <- FilterForCutoffs(input, silent)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
-    dplyr::filter(.data$GlycanType != "NonGlyco") %>%
-    dplyr::filter(.data$UniprotIDs == protein)
+    dplyr::filter(.data$GlycanType != "NonGlyco")
 
   if(!is.null(whichAlias)){
     df <- df %>%
@@ -24,10 +36,10 @@ PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = F
   }
 
   if(nrow(df) == 0){
-    if(silent){
-      return()
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
     }else{
-      return(fmessage("No glycosylation found on the protein"))
+      return()
     }
   }
 
@@ -56,9 +68,9 @@ PlotGlycositeIdsPerRun <- function(input, protein, whichAlias = NULL, silent = F
 
   p <- ggplot2::ggplot(df) +
     ggplot2::geom_line(data = data.frame(x = seq(1,df$ProteinLength[1]), y = yVal),
-                       ggplot2::aes(x = .data$x, y = .data$y), linewidth = 6, color = "#6dc381") +
+                       ggplot2::aes(x = .data$x, y = .data$y), linewidth = 6, color = colorVec[1]) +
     ggplot2::geom_point(data = df, ggplot2::aes(x= .data$ProteinPTMLocalization, y = yVal),
-                        fill = "pink", color = "#6761A8", size = 8, shape = 21) +
+                        fill = colorVec[2], color = colorVec[3], size = 8, shape = 21) +
     ggplot2::geom_point(data = foundMods, mapping = ggplot2::aes(x=.data$ProteinPTMLocalization, y = .data$y),
                         shape = 22, size = 5, na.rm = TRUE, fill = "grey50", color = "black") +
     ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,

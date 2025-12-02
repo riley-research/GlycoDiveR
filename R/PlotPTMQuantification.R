@@ -1,7 +1,21 @@
 #' PlotPTMQuantification
 #'
-#' @param input Formatted data
-#' @param protein What protein to quantify the PTM for
+#' Visualize the glycan quantification of a single protein using a heatmap.
+#'
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param whichProtein Filter what protein to plot (make sure to only provide one).
+#' These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
+#' This can either be a dataframe with a UniprotIDs column, or a vector with the
+#' UniprotID you want to keep.
+#' @param plotColors Defines the colors of the barplot.
+#' Default: plotColors = c("#00394c", "#27b56e", "white").
+#' @param heatmapColors Defines the colors of the heatmap.
+#' Default: heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315").
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
 #' @param lineWidth defines the black line around the heatmap cells. Use NA
@@ -13,127 +27,150 @@
 #' @returns The PTM quantification for a specific protein
 #' @export
 #'
-#' @examples \dontrun{PlotPTMQuantification(mydata, "P07361")}
-PlotPTMQuantification <- function(input, protein, whichAlias = NULL, lineWidth = 2,
+#' @examples \dontrun{
+#' PlotPTMQuantification(mydata, whichProtein = "P07361")
+#'
+#' PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
+#'                       showRowNames = FALSE, lineWidth = 0)}
+PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#00394c", "#27b56e", "white"),
+                                  heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315"),
+                                  exactProteinMatch = TRUE, whichAlias = NULL, lineWidth = 2,
                                   rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
-    dplyr::filter(.data$GlycanType != "NonGlyco") %>%
-    dplyr::filter(.data$UniprotIDs == protein)
-
-  CheckForQuantitativeValues(df$Intensity)
+    dplyr::filter(.data$GlycanType != "NonGlyco")
 
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
   }
 
+  if(nrow(df) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
+    }
+  }
+
+  if(CheckForQuantitativeValues(df$Intensity)){
+    if(!silent){
+      return(fmessage("No quantitative data found."))
+    }else{
+      return()
+    }
+  }
+
   df$GlycanIdentifier <- apply(df[,c("ModificationID", "TotalGlycanComposition")], 1, function(x) paste(x[1], x[2], sep = "-"))
 
-  if(nrow(df) > 0){
-    #Generate lineplot with PTM annotation
-    labeldf <- dplyr::distinct(df[c("ProteinPTMLocalization", "ModificationID")])
+  plotTitle = paste0(df$UniprotIDs[1], ";", df$Genes[1])
 
-    labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
-                           "ModificationID" = c(1, df$ProteinLength[1]))
+  #Generate lineplot with PTM annotation
+  labeldf <- dplyr::distinct(df[c("ProteinPTMLocalization", "ModificationID")])
 
-    p1 <- ggplot2::ggplot(df) +
-      ggplot2::geom_line(data = data.frame(x = seq(1,df$ProteinLength[1]), y = 1),
-                         ggplot2::aes(x = .data$x, y = .data$y), linewidth = 6, color = "#009DDC") +
-      ggplot2::geom_point(data = df, ggplot2::aes(x= .data$ProteinPTMLocalization, y = 1),
-                          fill = "pink", color = "#6761A8", size = 8, shape = 21) +
-      ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,
-                                                        y = 1, label = .data$ModificationID),
-                          label.size = NA) +
-      ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
-                                                             y = 1, label = .data$ModificationID),
-                                max.overlaps = Inf) +
-      ggplot2::theme_void()
+  labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
+                         "ModificationID" = c(1, df$ProteinLength[1]))
 
-      dfQuant <- GetMeanTechReps(df)
+  p1 <- ggplot2::ggplot(df) +
+    ggplot2::geom_line(data = data.frame(x = seq(1,df$ProteinLength[1]), y = 1),
+                       ggplot2::aes(x = .data$x, y = .data$y), linewidth = 6, color = plotColors[1]) +
+    ggplot2::geom_point(data = df, ggplot2::aes(x= .data$ProteinPTMLocalization, y = 1),
+                        fill = plotColors[2], color = plotColors[3], size = 8, shape = 21) +
+    ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,
+                                                      y = 1, label = .data$ModificationID),
+                        label.size = NA) +
+    ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
+                                                           y = 1, label = .data$ModificationID),
+                              max.overlaps = Inf, nudge_y = 0.01, label.size = NA, fill = NA,
+                              color = plotColors[2], show.legend = FALSE, verbose = FALSE) +
+    ggplot2::theme_void() +
+    ggplot2::theme(plot.margin = ggplot2::margin(b = 10)) +
+    ggplot2::coord_cartesian(clip = "off")
 
-      #Get levels right
-      if(!is.null(whichAlias)){
-        levels_mtrx <- levels(input$PTMTable$Alias)
-        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
-      }else{
-        levels_mtrx <- levels(input$PTMTable$Alias)
-      }
+    dfQuant <- GetMeanTechReps(df)
 
-      hmdf <- dfQuant[c("Alias", "GlycanIdentifier", "Intensity", "ProteinPTMLocalization")]
+    #Get levels right
+    if(!is.null(whichAlias)){
+      levels_mtrx <- levels(input$PTMTable$Alias)
+      levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+    }else{
+      levels_mtrx <- levels(input$PTMTable$Alias)
+    }
 
-      hmdf <- rbind(data.frame(Alias = levels_mtrx,
-                               GlycanIdentifier = "filler",
-                               Intensity = NA,
-                               ProteinPTMLocalization = NA),
-                    hmdf)
+    hmdf <- dfQuant[c("Alias", "GlycanIdentifier", "Intensity", "ProteinPTMLocalization")]
 
-      hmdf <- hmdf %>%
-        dplyr::arrange("ProteinPTMLocalization") %>%
-        dplyr::select(!"ProteinPTMLocalization") %>%
-        dplyr::summarise(.by = c("Alias", "GlycanIdentifier"),
-                         Intensity = log(sum(.data$Intensity, na.rm = TRUE), base = 2)) %>%
-        tidyr::pivot_wider(names_from = "Alias", values_from = "Intensity")
+    hmdf <- rbind(data.frame(Alias = levels_mtrx,
+                             GlycanIdentifier = "filler",
+                             Intensity = NA,
+                             ProteinPTMLocalization = NA),
+                  hmdf)
 
-      row_to_remove <- which(apply(hmdf, 1, function(row) "filler" %in% row))
-      hmdf <- hmdf[-row_to_remove,]
+    hmdf <- hmdf %>%
+      dplyr::arrange("ProteinPTMLocalization") %>%
+      dplyr::select(!"ProteinPTMLocalization") %>%
+      dplyr::summarise(.by = c("Alias", "GlycanIdentifier"),
+                       Intensity = log(sum(.data$Intensity, na.rm = TRUE), base = 2)) %>%
+      tidyr::pivot_wider(names_from = "Alias", values_from = "Intensity")
 
-      mtrx <- data.matrix(hmdf[,2:ncol(hmdf)])
-      rownames(mtrx) <- hmdf$GlycanIdentifier
-      mtrx <- mtrx[,levels_mtrx, drop = FALSE]
+    row_to_remove <- which(apply(hmdf, 1, function(row) "filler" %in% row))
+    hmdf <- hmdf[-row_to_remove,]
 
-      mtrx[is.infinite(mtrx)] <- 0
-      mtrx[is.na(mtrx)] <- 0
+    mtrx <- data.matrix(hmdf[,2:ncol(hmdf)])
+    rownames(mtrx) <- hmdf$GlycanIdentifier
+    mtrx <- mtrx[,levels_mtrx, drop = FALSE]
 
-      row_indices <- rowSums(mtrx != 0) > 0
-      mtrx <- mtrx[row_indices, , drop = FALSE]
+    mtrx[is.infinite(mtrx)] <- 0
+    mtrx[is.na(mtrx)] <- 0
 
-      #Get the color scheme
-      valuesInMtrx <- sort(unique(as.vector(mtrx)))
-      valuesInMtrx <- valuesInMtrx[valuesInMtrx != 0]
+    row_indices <- rowSums(mtrx != 0) > 0
+    mtrx <- mtrx[row_indices, , drop = FALSE]
 
-      if(sum(valuesInMtrx != 0) > 1){
-        lowestVal <- floor(valuesInMtrx[1])
-        secondLowestVal <- valuesInMtrx[2]
-        highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
+    #Get the color scheme
+    valuesInMtrx <- sort(unique(as.vector(mtrx)))
+    valuesInMtrx <- valuesInMtrx[valuesInMtrx != 0]
 
-        col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
-                                       c("grey99","grey99", "#4575B4", "#FEE08B", "#D73027"))
-        #c("#D3D3D3","#D3D3D3", "#4575B4", "#74C476", "#D73027"))
+    if(sum(valuesInMtrx != 0) > 1){
+      lowestVal <- floor(valuesInMtrx[1])
+      secondLowestVal <- valuesInMtrx[2]
+      highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
 
-
-      }else if(length(valuesInMtrx) == 0){
-        col_fun = circlize::colorRamp2(c(-1, 1), c("darkgrey", "darkgrey"))
-      }else{
-        lowestVal <- valuesInMtrx[1]
-        secondLowestVal <- valuesInMtrx[2]
-
-        col_fun = circlize::colorRamp2(c(lowestVal, secondLowestVal), c("darkgrey", "red"))
-        col_fun(seq(-3, 3))
-      }
-
-      #Get the right split
-      splitVec <- sapply(rownames(mtrx), function(x) strsplit(x, "-")[[1]][1])
+      col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
+                                     c(heatmapColors[1], heatmapColors))
 
       #Get the legend right
       lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = "log2 Intensity", direction = "horizontal",
-                                   at = seq(lowestVal, highestVal, length.out= 4))
+                                   at = round(seq(lowestVal, highestVal, length.out= 4), 2))
+    }else if(length(valuesInMtrx) == 0){
+      col_fun = circlize::colorRamp2(c(-1, 1), c(heatmapColors[1], heatmapColors[1]))
+    }else{
+      col_fun <- circlize::colorRamp2(c(valuesInMtrx[1]-0.01, valuesInMtrx[1]), c(heatmapColors[1], heatmapColors[4]))
+      #col_fun(seq(low, high, length.out = 5))
 
-      p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(ComplexHeatmap::Heatmap(mtrx, cluster_columns = FALSE, cluster_rows = TRUE,
-                                                                             rect_gp = grid::gpar(col = "black", lwd = lineWidth),
-                                                                             column_title = protein,
-                                                                             col = col_fun,
-                                                                             show_heatmap_legend = FALSE,
-                                                                             row_split = splitVec,
-                                                                             cluster_row_slices = TRUE,
-                                                                             row_names_gp = grid::gpar(fontsize = rowFontSize),
-                                                                             show_row_names = showRowNames),
-                                                     heatmap_legend_list = lgd, heatmap_legend_side = "top"))
+      lgd <- ComplexHeatmap::Legend(
+        col_fun = col_fun,
+        title = "log2 Intensity",
+        direction = "horizontal",
+        at = round(seq(valuesInMtrx[1]-0.01, valuesInMtrx, length.out = 2), 2)
+      )
+    }
 
-      return(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))
+    #Get the right split
+    splitVec <- sapply(rownames(mtrx), function(x) strsplit(x, "-")[[1]][1])
 
-  }else{message("No glyco on this protein: ", protein)}
+    p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(ComplexHeatmap::Heatmap(mtrx, cluster_columns = FALSE, cluster_rows = TRUE,
+                                                                           rect_gp = grid::gpar(col = "black", lwd = lineWidth),
+                                                                           column_title = plotTitle,
+                                                                           col = col_fun,
+                                                                           show_heatmap_legend = FALSE,
+                                                                           row_split = splitVec,
+                                                                           cluster_row_slices = TRUE,
+                                                                           row_names_gp = grid::gpar(fontsize = rowFontSize),
+                                                                           show_row_names = showRowNames),
+                                                   heatmap_legend_list = lgd, heatmap_legend_side = "top"))
+
+    return(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))
 
 }

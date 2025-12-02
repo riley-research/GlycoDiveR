@@ -1,10 +1,22 @@
 #' PlotSiteGlycanComposition
 #'
-#' @param input your formatted data
-#' @param protein The protein you wish to plot, corresponding to the UniprotIDs
-#' column of your dataframe
-#' @param whichAlias a vector of aliases you want to include, corresponding
-#' to the aliases in your annotation input
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
+#' @param whichAlias A vector of aliases you want to include, corresponding
+#' to the aliases in your annotation input.
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
+#' @param domainColors The colors used for labeling the different domains.
+#' @param nodeColors The colors used for labeling the glycosites on the protein.
 #' @param horizontalPoints specify the point size. Larger number is smaller points.
 #' @param yCorrection move the points closer or further away. smaller values is
 #' less spacing between the points
@@ -16,21 +28,24 @@
 #' @returns A plot showing glyco site
 #' @export
 #'
-#' @examples \dontrun{PlotSiteGlycanComposition(input = mydata, protein = "P01042",
+#' @examples \dontrun{
+#' PlotSiteGlycanComposition(input = mydata, whichProtein = "P01042",
 #' whichAlias = c("firstSample", "secondSample"))
 #' }
-PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
-                                      horizontalPoints = 50, yCorrection = 0.25,
-                                      yNudge = 1, boxSpacing = 0.05, silent = FALSE){
-
+PlotSiteGlycanComposition <- function(input, whichProtein, exactProteinMatch = TRUE,
+                                      whichPeptide = NULL, whichAlias = NULL,
+                                      domainColors = c("#00394c", "#91b5c5", "#a9a9a9", "#22031F", "#433E0E"),
+                                      nodeColors = c("#27b56e", "white"), horizontalPoints = 50,
+                                      yCorrection = 0.25, yNudge = 1, boxSpacing = 0.05, silent = FALSE){
   set.seed(1)
 
   input <- FilterForCutoffs(input, silent)
+  input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
-    dplyr::filter(.data$GlycanType != "NonGlyco") %>%
-    dplyr::filter(.data$UniprotIDs == protein)
+    dplyr::filter(.data$GlycanType != "NonGlyco")
 
   if(!is.null(whichAlias)){
     df <- df %>%
@@ -39,14 +54,13 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
 
   if(nrow(df) == 0){
     if(!silent){
-      return(fmessage("No glycosylation found on the protein"))
+      return(fmessage("No data is left after filtering."))
     }else{
       return()
     }
-
   }
 
-  plotTitle <- paste0(protein, " - ", df[df$UniprotIDs == protein, "Genes"][[1]][1])
+  plotTitle <- paste0(df$UniprotIDs[1], ";", df$Genes[1])
 
   df_sum <- df %>%
     dplyr::distinct(.data$ModificationID, .data$TotalGlycanComposition, .keep_all = TRUE) %>%
@@ -70,7 +84,7 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
 
   #Set colors####
   unique_domains <- unique(linePlot_df$Domain)
-  colors <- stats::setNames(c("#00394c", "#91b5c5", "#a9a9a9", "#22031F", "#433E0E" )[1:length(unique_domains)], unique_domains)
+  colors <- stats::setNames(domainColors[1:length(unique_domains)], unique_domains)
   linePlot_df <- linePlot_df %>%
     dplyr::mutate(color = colors[.data$Domain])
 
@@ -156,14 +170,9 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
   }
 
   #Get the point colors based on the glycan composition####
+  joindf <- .modEnv$GlycanColors %>% dplyr::rename("glycanColor" = "color")
   point_df <- point_df %>%
-    dplyr::mutate(glycanColor = dplyr::case_when(.data$GlycanType == "Complex/Hybrid" ~ "#00394a",
-                                                 .data$GlycanType == "Sialyl+Fucose" ~ "#ff7f2a",
-                                                 .data$GlycanType == "Sialyl" ~ "#2475b5",
-                                                 .data$GlycanType == "Fucose" ~ "#aaaaaa",
-                                                 .data$GlycanType == "High Mannose" ~ "#28b36d",
-                                                 .data$GlycanType == "Truncated" ~ "#D0A5C0",
-                                                 .data$GlycanType == "Paucimannose" ~ "#8B1E3F"))
+    dplyr::left_join(joindf, by = "GlycanType")
 
   #Where do we want the boxes####
   rect_df <- point_df %>%
@@ -201,23 +210,23 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
   #Now plot the actual plot####
   p <- ggplot2::ggplot() +
     ggplot2::geom_line(data = line_df, ggplot2::aes(x = .data$xCords, y = .data$yCords, group = .data$ModificationID),
-                       color = "#27b56e", linewidth = 0.65, show.legend = FALSE) +
+                       color = nodeColors[1], linewidth = 0.65, show.legend = FALSE) +
     ggplot2::geom_rect(data = rect_df, ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
                                                     ymin = .data$ymin, ymax = .data$ymax),
-                       fill = "white", color = "#27b56e", linewidth = 0.65, show.legend = FALSE)+
+                       fill = nodeColors[2], color = nodeColors[1], linewidth = 0.65, show.legend = FALSE)+
     ggplot2::geom_segment(data = linePlot_df, mapping = ggplot2::aes(x = .data$FirstAA, xend = .data$LastAA,
                                                    y = maxY + 1, yend = maxY + 1, linewidth = .data$size,
                                                    ), color = linePlot_df$color, linewidth = linePlot_df$size,
                           show.legend = FALSE) +
-    ggrepel::geom_text_repel(data = text_df, ggplot2::aes(x = .data$centerOfAA, y = maxY + 1.2, label = .data$Domain),
+    ggrepel::geom_text_repel(data = text_df, ggplot2::aes(x = .data$centerOfAA, y = maxY + 1.3, label = .data$Domain),
                              direction = "x", show.legend = FALSE, color = text_df$color,
                              , max.overlaps = Inf, segment.color = NA, verbose = FALSE) +
     ggplot2::geom_point(data = labeldf, ggplot2::aes(x=.data$ProteinPTMLocalization, y = maxY + 1),
-                        fill = "#27b56e", color = "white", size = 9, shape = 21, show.legend = FALSE) +
+                        fill = nodeColors[1], color = nodeColors[2], size = 9, shape = 21, show.legend = FALSE) +
     ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                            y = maxY + 1, label = .data$ModificationID),
                               max.overlaps = Inf, nudge_y = 0.4, label.size = NA, fill = NA,
-                              color = "#27b56e", show.legend = FALSE, verbose = FALSE) +
+                              color = nodeColors[1], show.legend = FALSE, verbose = FALSE) +
     ggplot2::geom_point(data = point_df, ggplot2::aes(x = .data$x_corrected, y = .data$y_corrected,
                                                       color = .data$GlycanType),
                         size = 3, show.legend = TRUE) +
@@ -230,6 +239,5 @@ PlotSiteGlycanComposition <- function(input, protein, whichAlias = NULL,
     ggplot2::theme_void() +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
 
-    print(p)
-
+    return(p)
 }

@@ -2,34 +2,46 @@
 % Please edit documentation in R/PlotUpSet.R
 \name{PlotUpSet}
 \alias{PlotUpSet}
-\title{Plot UpSet plots to find identification overlaps}
+\title{PlotUpSet}
 \usage{
 PlotUpSet(
   input,
   grouping = "condition",
-  whichAlias = NULL,
   type = "glyco",
   level = "peptide",
+  whichAlias = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
   nintersects = 40,
-  whichPeptide = NA,
+  whichPeptide = NULL,
   silent = FALSE
 )
 }
 \arguments{
-\item{input}{Formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{grouping}{choose between "condition", "biologicalReps", and
-"technicalReps"}
+\item{grouping}{Choose between "condition", "biologicalReps", and
+"technicalReps".}
 
-\item{whichAlias}{provide a vector of Aliases to only select these aliases
-for plotting}
+\item{type}{Choose between "glyco" or "all" to include only glycopeptides/proteins
+or all peptides/proteins.}
 
-\item{type}{choose between "glyco" or "all" to include only glycopeptides/proteins
-or all peptides/proteins}
+\item{level}{Choose "peptide" or "protein".}
 
-\item{level}{choose "peptide" or "protein"}
+\item{whichAlias}{Provide a vector of Aliases to only select these aliases
+for plotting.}
 
-\item{nintersects}{The maximum number of intersects shown}
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
+
+\item{nintersects}{The maximum number of intersects shown.}
 
 \item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
@@ -42,7 +54,7 @@ directly usable, also after filtering using the FilterComparison function.}
 An UpSet plot
 }
 \description{
-Plot UpSet plots to find identification overlaps
+Plot UpSet plots to find identification overlaps.
 }
 \examples{
 \dontrun{

@@ -15,31 +15,33 @@ PlotComparisonVolcano(
 )
 }
 \arguments{
-\item{input}{formatted comparison dataframe (e.g. using GlycoDiveR's
+\item{input}{Formatted comparison dataframe (e.g. using GlycoDiveR's
 ImportMSstatsComparison function)}
 
-\item{whichComparison}{which comparison as in the Label column}
+\item{whichComparison}{Which comparison as in the Label column.}
 
-\item{statisticalCutoff}{what statistical cutoff (default = 0.05)}
+\item{statisticalCutoff}{What statistical cutoff.}
 
-\item{log2FCCutoff}{what log2 fold-change cutoff (default = 1)}
+\item{log2FCCutoff}{What log2 fold-change cutoff).}
 
-\item{statistic}{choose "adjpvalue" or "pvalue"}
+\item{statistic}{Choose "adjpvalue" or "pvalue".}
 
-\item{whichLabel}{what to label in the plot.
+\item{whichLabel}{What to label in the plot.
 choose "significant", "none", or supply a vector with the points to label.
 For example c("HPT-149", "SPA3K-N271"). These are internally generated using
 the comparison dataframe: paste(Proteins, ModificationID, sep = "-")}
 
-\item{maxOverlaps}{the maximum number of overlapping labels in the volcanoplot}
+\item{maxOverlaps}{The maximum number of overlapping labels in the volcanoplot}
 }
 \value{
 A volcanoplot
 }
 \description{
-PlotComparisonVolcano
+A volcano plot showing Log2 transformed intensity values and either
+p values or FDR values.
 }
 \examples{
-\dontrun{PlotComparisonVolcano(comparison, whichComparison = "Sal-PBS",
+\dontrun{
+PlotComparisonVolcano(comparison, whichComparison = "Sal-PBS",
 statistic = "pvalue", statisticalCutoff = 0.01)}
 }

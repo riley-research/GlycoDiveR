@@ -8,10 +8,10 @@ ImportpGlyco(
   path,
   annotation,
   fastaPath,
-  peptideScoreCutoff,
-  glycanScoreCutoff,
+  peptideScoreCutoff = 0.01,
+  glycanScoreCutoff = 0.01,
   normalization = "median",
-  scrape = FALSE
+  scrape = TRUE
 )
 }
 \arguments{

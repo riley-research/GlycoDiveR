@@ -2,12 +2,12 @@ PlotGlycoProteinGlycanNetworkComparison <- function(input, left, right, type = "
                                           edgeWidth = 1.5, verticeSize = c(5,3),
                                           whichAlias = NULL, highlight = "all",
                                           whichPeptide = NA){
-  if(!is.na(condition)){
-    input$PTMTable <- input$PTMTable[input$PTMTable[["Alias"]] %in% c(condition1,condition2) ]
+  if(!is.na("condition")){
+    input$PTMTable <- input$PTMTable[input$PTMTable[["Alias"]] %in% c("condition1","condition2") ]
 
     if(nrow(input$PTMTable) == 0){
-      stop("Just tried selecting the following condition: ", condition1, " and ",
-           condition2, ".\nNo rows are left after filtering.")
+      stop("Just tried selecting the following condition: ", "condition1", " and ",
+           "condition2", ".\nNo rows are left after filtering.")
     }
   }
 
@@ -59,9 +59,6 @@ PlotGlycoProteinGlycanNetworkComparison <- function(input, left, right, type = "
 
   dfgly <- dfgly %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)
-
-  View(dfglt)
-
 
 
 }

@@ -8,31 +8,46 @@ PlotPSMsVsTime(
   input,
   type = "all",
   binWidth = 5,
-  whichAlias = NULL,
   gradientLength = NA,
-  whichPeptide = NA,
+  plotColors = c("#bdbdbd", "#1b9e77"),
+  whichAlias = NULL,
+  whichPeptide = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
   silent = FALSE
 )
 }
 \arguments{
-\item{input}{your formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
 \item{type}{Choose between "allGlyco", "both", "glyco", "combined", "all", or
 supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Complex/Hybrid",
-"Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose")}
+"Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose").}
 
-\item{binWidth}{the bin width used}
-
-\item{whichAlias}{provide a vector of Aliases to only select these aliases
-for plotting}
+\item{binWidth}{the bin width used.}
 
 \item{gradientLength}{Define the LC gradient length. If no length is supplied
-the maximum PSM retention time is used}
+the maximum PSM retention time is used.}
+
+\item{plotColors}{Define the colors of the non-glyco types. Default = c("#bdbdbd", "#1b9e77").}
+
+\item{whichAlias}{Provide a vector of Aliases to only select these aliases
+for plotting.}
 
 \item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
+
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
 
 \item{silent}{silence printed information (default = FALSE)}
 }
@@ -40,10 +55,13 @@ directly usable, also after filtering using the FilterComparison function.}
 a lineplot
 }
 \description{
-PlotPSMsVsTime
+Visualize the number of (glyco)PSMs versus the retention time using a lineplot.
 }
 \examples{
-\dontrun{PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
+\dontrun{
+PlotPSMsVsTime(mydata)
+
+PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
 binWidth = 1, gradientLength = NA)
 }
 }

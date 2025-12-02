@@ -18,7 +18,7 @@ test_that("PlotGlycanCompositionPie: grouping = condition", {
 
 test_that("PlotGlycanCompositionPie: protein = unique(mydata$PSMTable$UniprotIDs)[1:100]", {
   skip_if_not(exists("mydata"), "User data not loaded")
-  p <- PlotGlycanCompositionPie(mydata, protein = unique(mydata$PSMTable$UniprotIDs)[1:200],
+  p <- PlotGlycanCompositionPie(mydata, whichProtein = unique(mydata$PSMTable$UniprotIDs)[1:200],
                                 grouping = "condition", silent = TRUE)
   expect_s3_class(p, "gg")
 })

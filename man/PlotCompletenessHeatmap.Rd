@@ -6,39 +6,57 @@
 \usage{
 PlotCompletenessHeatmap(
   input,
-  grouping = "peptide",
   peptideType = "glyco",
-  exportDataTo = FALSE,
+  plotColors = c("lightgrey", "darkgreen"),
   whichAlias = NULL,
-  whichPeptide = NA,
+  whichPeptide = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
+  exportDataTo = FALSE,
   silent = FALSE
 )
 }
 \arguments{
-\item{input}{Formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{grouping}{peptide or glyco}
+\item{peptideType}{Choose "glyco" to only view glycopeptide and "other" to  also
+include non-modified peptides.}
 
-\item{peptideType}{glyco or other}
+\item{plotColors}{The colors used for the heatmap. The default is c("lightgrey", "darkgreen").}
 
-\item{exportDataTo}{provide path to a folder to export the heatmap as a csv file}
-
-\item{whichAlias}{provide a vector of Aliases to only select these aliases
-for plotting}
+\item{whichAlias}{Provide a vector of Aliases to only select these aliases
+for plotting, e.g. whichAlias = c("Alias1", "Alias2").}
 
 \item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
 
-\item{silent}{silence printed information (default = TRUE)}
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
+
+\item{exportDataTo}{If a system folder is provided, a CSV file will be exported
+to that folder containing the data presented in the heatmap.}
+
+\item{silent}{silence printed information (default = FALSE)}
 }
 \value{
 Grouped heatmap
 }
 \description{
-Plot Completeness Heatmap
+Plot a heatmap showing the identified and missed (glyco)peptides. Each row
+represents one unique glycopeptide.
 }
 \examples{
-\dontrun{PlotCompletenessHeatmap(mydata)}
+\dontrun{
+PlotCompletenessHeatmap(mydata)
+PlotCompletenessHeatmap(mydata, peptideType = "other", silent = FALSE)
+}
 }

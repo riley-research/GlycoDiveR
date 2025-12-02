@@ -1,45 +1,73 @@
 #' Plot Completeness Heatmap
 #'
-#' @param input Formatted data
-#' @param grouping peptide or glyco
-#' @param peptideType glyco or other
-#' @param exportDataTo provide path to a folder to export the heatmap as a csv file
-#' @param whichAlias provide a vector of Aliases to only select these aliases
-#' for plotting
+#' Plot a heatmap showing the identified and missed (glyco)peptides. Each row
+#' represents one unique glycopeptide.
+#'
+#' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param peptideType Choose "glyco" to only view glycopeptide and "other" to  also
+#' include non-modified peptides.
+#' @param plotColors The colors used for the heatmap. The default is c("lightgrey", "darkgreen").
+#' @param exportDataTo If a system folder is provided, a CSV file will be exported
+#' to that folder containing the data presented in the heatmap.
+#' @param whichAlias Provide a vector of Aliases to only select these aliases
+#' for plotting, e.g. whichAlias = c("Alias1", "Alias2").
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param silent silence printed information (default = TRUE)
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
+#' @param silent silence printed information (default = FALSE)
 #'
 #' @returns Grouped heatmap
 #' @export
 #'
-#' @examples \dontrun{PlotCompletenessHeatmap(mydata)}
-PlotCompletenessHeatmap <- function(input, grouping = "peptide",
-                                    peptideType  = "glyco", exportDataTo = FALSE,
-                                    whichAlias = NULL, whichPeptide = NA, silent = FALSE){
+#' @examples \dontrun{
+#' PlotCompletenessHeatmap(mydata)
+#' PlotCompletenessHeatmap(mydata, peptideType = "other", silent = FALSE)
+#' }
+PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
+                                    plotColors = c("lightgrey", "darkgreen"),
+                                    whichAlias = NULL, whichPeptide = NULL,
+                                    whichProtein = NULL, exactProteinMatch = TRUE,
+                                    exportDataTo = FALSE, silent = FALSE){
+
   input <- FilterForCutoffs(input, silent)
+  input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- input$PSMTable %>%
     dplyr::filter(!is.na(.data$Intensity))
 
-  if(grouping == "peptide"){
-    df <- GetMeanTechReps(input$PSMTable)
-  }else{
-    df <- GetMeanTechReps(input$PSMTable)
-  }
+  df <- GetMeanTechReps(input$PSMTable)
 
-  df$GlycanType <- sapply(df$GlycanType, function(x) gsub(", |NonGlyco|Unmodified", "", x))
+  df <- df %>%
+    dplyr::mutate(
+      GlycanType = gsub(", NonGlyco|NonGlyco, | NonGlyco|, Unmodified| Unmodified, |Unmodified", "", .data$GlycanType),
+      GlycanType = ifelse(grepl(", ", .data$GlycanType), "Multi", .data$GlycanType),
+      GlycanType = ifelse(.data$GlycanType == "", "NonGlyco", .data$GlycanType))
 
   if(peptideType == "glyco"){
     df <- df %>%
-      dplyr::filter(.data$GlycanType != "")
+      dplyr::filter(.data$GlycanType != "" & .data$GlycanType != "NonGlyco")
   }
 
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
+  }
+
+  if(nrow(df) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
+    }
   }
 
   df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
@@ -59,13 +87,14 @@ PlotCompletenessHeatmap <- function(input, grouping = "peptide",
   }
 
   #Get heatmap annotation, color, and legend
-  colH <- stats::setNames(colorScheme[1:length(unique(df$GlycanType))], unique(df$GlycanType))
+  colH <- stats::setNames(c(.modEnv$GlycanColors$color, "grey85"),
+                          c(.modEnv$GlycanColors$GlycanType, "NonGlyco"))
 
   row_ha = ComplexHeatmap::rowAnnotation(Glycan = df$GlycanType, show_legend = FALSE,
                                          col = list(Glycan = colH))
 
-  col_fun <- c("0" = "lightgrey",
-               "1" = "darkgreen")
+  col_fun <- c("0" = plotColors[1],
+               "1" = plotColors[2])
 
   lgd <- ComplexHeatmap::Legend(at = c("0", "1"),
     labels = c("Missing", "Identified"),

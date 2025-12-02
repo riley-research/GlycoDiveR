@@ -27,7 +27,7 @@
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 1)}
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                         deltaModCutoff = 1, scrape = FALSE, removeReverse = TRUE){
+                         deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)

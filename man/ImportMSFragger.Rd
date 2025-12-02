@@ -10,7 +10,7 @@ ImportMSFragger(
   fastaPath,
   peptideScoreCutoff = 0,
   glycanScoreCutoff = 0.01,
-  scrape = FALSE,
+  scrape = TRUE,
   normalization = "median",
   convertFPModCodeToMass = TRUE,
   filterForNoNSequon = FALSE,

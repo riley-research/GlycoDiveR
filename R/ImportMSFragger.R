@@ -34,7 +34,7 @@
 #' glycanScoreCutoff = 0.05,
 #' scrape = FALSE)}
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
-                            glycanScoreCutoff = 0.01, scrape = FALSE, normalization = "median",
+                            glycanScoreCutoff = 0.01, scrape = TRUE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
                             confidenceLevel = FALSE){
   unfiltereddf <- data.frame()

@@ -11,7 +11,7 @@ ImportByonic(
   peptideScoreCutoff,
   glycanScoreCutoff,
   deltaModCutoff = 1,
-  scrape = FALSE,
+  scrape = TRUE,
   removeReverse = TRUE
 )
 }

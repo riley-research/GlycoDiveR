@@ -6,7 +6,10 @@
 \usage{
 PlotPTMQuantification(
   input,
-  protein,
+  whichProtein = NULL,
+  plotColors = c("#00394c", "#27b56e", "white"),
+  heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315"),
+  exactProteinMatch = TRUE,
   whichAlias = NULL,
   lineWidth = 2,
   rowFontSize = 12,
@@ -15,9 +18,24 @@ PlotPTMQuantification(
 )
 }
 \arguments{
-\item{input}{Formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{protein}{What protein to quantify the PTM for}
+\item{whichProtein}{Filter what protein to plot (make sure to only provide one).
+These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
+This can either be a dataframe with a UniprotIDs column, or a vector with the
+UniprotID you want to keep.}
+
+\item{plotColors}{Defines the colors of the barplot.
+Default: plotColors = c("#00394c", "#27b56e", "white").}
+
+\item{heatmapColors}{Defines the colors of the heatmap.
+Default: heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315").}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
@@ -35,8 +53,12 @@ to remove the line}
 The PTM quantification for a specific protein
 }
 \description{
-PlotPTMQuantification
+Visualize the glycan quantification of a single protein using a heatmap.
 }
 \examples{
-\dontrun{PlotPTMQuantification(mydata, "P07361")}
+\dontrun{
+PlotPTMQuantification(mydata, whichProtein = "P07361")
+
+PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
+                      showRowNames = FALSE, lineWidth = 0)}
 }

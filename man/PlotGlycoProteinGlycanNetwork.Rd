@@ -6,39 +6,45 @@
 \usage{
 PlotGlycoProteinGlycanNetwork(
   input,
-  condition = NA,
-  type = "N",
   edgeWidth = 1.5,
   verticeSize = c(5, 3),
   whichAlias = NULL,
   highlight = "all",
-  whichPeptide = NA,
+  whichPeptide = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
   silent = FALSE
 )
 }
 \arguments{
-\item{input}{Formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{condition}{What condition to plot as listed in the annotation dataframe}
+\item{edgeWidth}{Defines the linewidth of the edges.}
 
-\item{type}{Glycan type "N"}
+\item{verticeSize}{Defines the size of the glycan and protein nodes,
+verticeSize = c(3,5) means a glycan node size of 3 and a protein node size of 5.}
 
-\item{edgeWidth}{defines the linewidth of the edges}
+\item{whichAlias}{Provide a vector of Aliases to only select these aliases
+for plotting.}
 
-\item{verticeSize}{defines the size of the glycan and protein
-nodes c(3,5) means a glycan node size of 3 and a protein node size of 5}
-
-\item{whichAlias}{provide a vector of Aliases to only select these aliases
-for plotting}
-
-\item{highlight}{specify what glycan category to highlight, or use "all" to highlight all}
+\item{highlight}{Specify what glycan category to highlight, or use "all" to highlight all.}
 
 \item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
 with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
 
-\item{silent}{silence printed information (default = TRUE)}
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
+
+\item{silent}{silence printed information (default = FALSE).}
 }
 \value{
 A glycoprotein to glycan network
@@ -54,7 +60,7 @@ PlotGlycoProteinGlycanNetwork(mydata)
 
 PlotGlycoProteinGlycanNetwork(
   mydata,
-  condition = "DB_treated",
+  highlight = c("Sialyl", "Truncated"),
   edgeWidth = 3,
   verticeSize = c(3, 4)
 )

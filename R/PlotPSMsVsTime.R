@@ -1,38 +1,61 @@
 #' PlotPSMsVsTime
 #'
-#' @param input your formatted data
+#' Visualize the number of (glyco)PSMs versus the retention time using a lineplot.
+#'
+#' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param type Choose between "allGlyco", "both", "glyco", "combined", "all", or
 #' supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Complex/Hybrid",
-#' "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose")
-#' @param binWidth the bin width used
-#' @param whichAlias  provide a vector of Aliases to only select these aliases
-#' for plotting
+#' "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose").
+#' @param binWidth the bin width used.
+#' @param whichAlias  Provide a vector of Aliases to only select these aliases
+#' for plotting.
 #' @param gradientLength Define the LC gradient length. If no length is supplied
-#' the maximum PSM retention time is used
+#' the maximum PSM retention time is used.
+#' @param plotColors Define the colors of the non-glyco types. Default = c("#bdbdbd", "#1b9e77").
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
 #' @param silent silence printed information (default = FALSE)
 #'
 #' @returns a lineplot
 #' @export
 #'
-#' @examples \dontrun{PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
+#' @examples \dontrun{
+#' PlotPSMsVsTime(mydata)
+#'
+#' PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
 #' binWidth = 1, gradientLength = NA)
 #' }
-PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
-                           gradientLength = NA, whichPeptide = NA, silent = FALSE){
-  glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
-                "Fucose", "Truncated", "High Mannose", "Paucimannose",
-                "OGlycan")
+PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, gradientLength = NA,
+                           plotColors = c("#bdbdbd", "#1b9e77"), whichAlias = NULL,
+                           whichPeptide = NULL, whichProtein = NULL,
+                           exactProteinMatch = TRUE, silent = FALSE){
+  glycoPSMTypes <- .modEnv$GlycanColors$GlycanType
 
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
+  input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%
       dplyr::filter(.data$Alias %in% whichAlias)
+  }
+
+  if(nrow(input$PSMTable) == 0){
+    if(!silent){
+      return(fmessage("No data is left after filtering."))
+    }else{
+      return()
+    }
   }
 
   df <- input$PSMTable %>%
@@ -48,7 +71,8 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
                                              grepl("High Mannose", .data$GlycanType) ~ "High Mannose",
                                              grepl("Paucimannose", .data$GlycanType) ~ "Paucimannose",
                                              grepl("OGlycan", .data$GlycanType) ~ "OGlycan",
-                                             TRUE ~ "ERROR"))
+                                             grepl("NonCanonicalGlyco", .data$GlycanType) ~ "NonCanonicalGlyco",
+                                             TRUE ~ "Other"))
 
   if (length(type) == 1 && identical(type, "allGlyco")) {
     df <- df %>%
@@ -114,26 +138,14 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, whichAlias = NULL,
   df$bin <- as.numeric(as.character(droplevels(df$bin)))
 
   #Get the colors right####
-  glycan_colors <- c(
-    "OGlycan" = "#e6ab02",
-    "Complex/Hybrid" = "#1b9e77",
-    "Sialyl+Fucose"  = "#d95f02",
-    "Sialyl"         = "#7570b3",
-    "Fucose"         = "#e7298a",
-    "High Mannose"   = "#66a61e",
-    "Truncated"      = "#a6761d",
-    "Paucimannose"   = "#666666",
-    "nonGlyco"       = "#bdbdbd",
-    "glycoPSMs" = "#1b9e77",
-    "Glyco" = "#1b9e77",
-    "PSMs" = "#1b9e77"
-  )
+  colH <- stats::setNames(c(.modEnv$GlycanColors$color, plotColors[1], rep(plotColors[2], 3)),
+                          c(.modEnv$GlycanColors$GlycanType, "nonGlyco", "glycoPSMs", "Glyco", "PSMs"))
 
   #Plot###
   ggplot2::ggplot(df, ggplot2::aes(x = .data$bin, y = .data$count,
                                    linetype = .data$Alias, color = .data$PSMType)) +
     ggplot2::geom_line() +
     ggplot2::labs(x = "Time (min)", y = "Number of PSMs") +
-    ggplot2::scale_color_manual(values = glycan_colors)
+    ggplot2::scale_color_manual(values = colH)
 
 }

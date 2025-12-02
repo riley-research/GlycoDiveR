@@ -6,8 +6,12 @@
 \usage{
 PlotSiteGlycanComposition(
   input,
-  protein,
+  whichProtein,
+  exactProteinMatch = TRUE,
+  whichPeptide = NULL,
   whichAlias = NULL,
+  domainColors = c("#00394c", "#91b5c5", "#a9a9a9", "#22031F", "#433E0E"),
+  nodeColors = c("#27b56e", "white"),
   horizontalPoints = 50,
   yCorrection = 0.25,
   yNudge = 1,
@@ -16,13 +20,29 @@ PlotSiteGlycanComposition(
 )
 }
 \arguments{
-\item{input}{your formatted data}
+\item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{protein}{The protein you wish to plot, corresponding to the UniprotIDs
-column of your dataframe}
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
 
-\item{whichAlias}{a vector of aliases you want to include, corresponding
-to the aliases in your annotation input}
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
+
+\item{whichAlias}{A vector of aliases you want to include, corresponding
+to the aliases in your annotation input.}
+
+\item{domainColors}{The colors used for labeling the different domains.}
+
+\item{nodeColors}{The colors used for labeling the glycosites on the protein.}
 
 \item{horizontalPoints}{specify the point size. Larger number is smaller points.}
 
@@ -43,7 +63,8 @@ A plot showing glyco site
 PlotSiteGlycanComposition
 }
 \examples{
-\dontrun{PlotSiteGlycanComposition(input = mydata, protein = "P01042",
+\dontrun{
+PlotSiteGlycanComposition(input = mydata, whichProtein = "P01042",
 whichAlias = c("firstSample", "secondSample"))
 }
 }
