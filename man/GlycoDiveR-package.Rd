@@ -6,10 +6,15 @@
 \alias{GlycoDiveR-package}
 \title{GlycoDiveR: Visualization of glycoproteomic data.}
 \description{
-GlycoDiveR generates graphics of (quantitative) glycoproteomics datasets directly from search engine output files. It currently supports FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the data into a generic GlycoDiveR format that incorporates key metadata along with UniProt-derived metadata. The important file is compatible with all GlycoDiveR graphics.
+GlycoDiveR generates graphics from (quantitative) glycoproteomics datasets directly from search engine output files. It currently supports FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the data into a generic GlycoDiveR format that incorporates key metadata along with UniProt-derived metadata. The GlycoDiveR formatted input is directly compatible with all GlycoDiveR graphics.
 }
 \author{
 \strong{Maintainer}: Tim S Veth \email{tveth@uw.edu}
+
+Authors:
+\itemize{
+  \item Nicholas M Riley \email{nmriley@uw.edu}
+}
 
 }
 \keyword{internal}

@@ -158,12 +158,15 @@ GetMeanTechReps <- function(df){
 
     return(df)
   }else{
-    df <- df %>%
-      dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
-                            "Condition", "BioReplicate"),
-                    Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
-      dplyr::distinct(.data$ModifiedPeptide, .data$Condition, .data$BioReplicate,
-                      .keep_all = TRUE)
+     df <- df %>%
+       dplyr::mutate(.by = c("Condition", "BioReplicate"),
+                     Alias = .data$Alias[1],
+                     TechReplicate = TechReplicate[1]) %>%
+       dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
+                             "Condition", "BioReplicate"),
+                     Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
+       dplyr::distinct(.data$ModifiedPeptide, .data$Condition, .data$BioReplicate,
+                       .keep_all = TRUE)
     return(df)
   }
 

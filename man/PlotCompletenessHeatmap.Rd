@@ -8,6 +8,7 @@ PlotCompletenessHeatmap(
   input,
   peptideType = "glyco",
   plotColors = c("lightgrey", "darkgreen"),
+  collapseTechReps = FALSE,
   whichAlias = NULL,
   whichPeptide = NULL,
   whichProtein = NULL,
@@ -23,6 +24,8 @@ PlotCompletenessHeatmap(
 include non-modified peptides.}
 
 \item{plotColors}{The colors used for the heatmap. The default is c("lightgrey", "darkgreen").}
+
+\item{collapseTechReps}{Do you want to collapse the technical replicates.}
 
 \item{whichAlias}{Provide a vector of Aliases to only select these aliases
 for plotting, e.g. whichAlias = c("Alias1", "Alias2").}

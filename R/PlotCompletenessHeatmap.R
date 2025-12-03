@@ -7,6 +7,7 @@
 #' @param peptideType Choose "glyco" to only view glycopeptide and "other" to  also
 #' include non-modified peptides.
 #' @param plotColors The colors used for the heatmap. The default is c("lightgrey", "darkgreen").
+#' @param collapseTechReps Do you want to collapse the technical replicates.
 #' @param exportDataTo If a system folder is provided, a CSV file will be exported
 #' to that folder containing the data presented in the heatmap.
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
@@ -34,6 +35,7 @@
 #' }
 PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
                                     plotColors = c("lightgrey", "darkgreen"),
+                                    collapseTechReps = FALSE,
                                     whichAlias = NULL, whichPeptide = NULL,
                                     whichProtein = NULL, exactProteinMatch = TRUE,
                                     exportDataTo = FALSE, silent = FALSE){
@@ -44,7 +46,11 @@ PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
   input$PSMTable <- input$PSMTable %>%
     dplyr::filter(!is.na(.data$Intensity))
 
-  df <- GetMeanTechReps(input$PSMTable)
+  if(collapseTechReps){
+    df <- GetMeanTechReps(input$PSMTable)
+  }else{
+    df <- input$PSMTable
+  }
 
   df <- df %>%
     dplyr::mutate(
