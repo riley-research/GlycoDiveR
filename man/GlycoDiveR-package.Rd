@@ -4,12 +4,12 @@
 \name{GlycoDiveR-package}
 \alias{GlycoDiveR}
 \alias{GlycoDiveR-package}
-\title{GlycoDiveR: What the Package Does (One Line, Title Case)}
+\title{GlycoDiveR: Visualization of glycoproteomic data.}
 \description{
-What the package does (one paragraph).
+GlycoDiveR generates graphics of (quantitative) glycoproteomics datasets directly from search engine output files. It currently supports FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the data into a generic GlycoDiveR format that incorporates key metadata along with UniProt-derived metadata. The important file is compatible with all GlycoDiveR graphics.
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com}
+\strong{Maintainer}: Tim S Veth \email{tveth@uw.edu}
 
 }
 \keyword{internal}

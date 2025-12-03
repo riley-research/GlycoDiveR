@@ -1,9 +1,15 @@
 Package: GlycoDiveR
-Title: What the Package Does (One Line, Title Case)
+Title: Visualization of glycoproteomic data. 
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: c(
+    person("Tim S", "Veth", , "tveth@uw.edu", role = c("aut", "cre")),
+    person("Nicholas M", "Riley", , "nmriley@uw.edu", role = c("aut")))
+Description: GlycoDiveR generates graphics from (quantitative) glycoproteomics 
+    datasets directly from search engine output files. It currently supports 
+    FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the
+    data into a generic GlycoDiveR format that incorporates key metadata along 
+    with UniProt-derived metadata. The GlycoDiveR formatted input is directly 
+    compatible with all GlycoDiveR graphics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

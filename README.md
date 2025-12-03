@@ -1,13 +1,18 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# GlycoDiveR
+# Welcome to GlycoDiveR
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-The goal of GlycoDiveR is to …
+GlycoDiveR generates graphics from (quantitative) glycoproteomics
+datasets directly from search engine output files. It currently supports
+FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts
+the data into a generic GlycoDiveR format that incorporates key metadata
+along with UniProt-derived metadata. The GlycoDiveR formatted input is
+directly compatible with all GlycoDiveR graphics.
 
 ## Installation
 
@@ -15,25 +20,28 @@ You can install the development version of GlycoDiveR from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("riley-research/GlycoDiveR")
+devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
 ```
 
-## Example
+## How to get started
 
-This is a basic example which shows you how to solve a common problem:
+The Wiki tab on GitHub is a good starting point for learning how to use
+GlycoDiveR. You can also use the links below to navigate to the
+different sections.
 
-``` r
-## basic example code
-```
+- [A basic example how to use
+  GlycoDiveR](https://github.com/riley-research/GlycoDiveR)
+- [How to import search engine
+  outputs](https://github.com/riley-research/GlycoDiveR)
+- [Manage databases to manage modifications, glycans, glycan colors, or
+  the general color
+  scheme](https://github.com/riley-research/GlycoDiveR)
+- [GlycoDiveR’s reference
+  manual](https://github.com/riley-research/GlycoDiveR)
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+## Troubleshooting, tips, and ideas
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+For any troubleshooting, tips, and ideas please refer to the Issues tab
+on Github or contact <tveth@uw.edu>.
 
-You can also embed plots, for example:
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+<!-- You'll still need to render README.Rmd regularly to keep README.md up-to-date. devtools::build_readme() is handy for this. -->
