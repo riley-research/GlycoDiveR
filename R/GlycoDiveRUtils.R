@@ -1013,7 +1013,7 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
     dplyr::mutate(ModifiedPeptide = gsub("\\[57\\.0214\\]|\\[57\\.0215\\]", "", .data$ModifiedPeptide),
                   dplyr::across(all_of(uniqueRundf$colName), as.numeric)) %>%
     tidyr::pivot_longer(cols = dplyr::any_of(uniqueRundf$colName), names_to = "colName", values_to = "Intensity") %>%
-    dplyr::filter(!is.na(.data$Intensity))%>%
+    dplyr::filter(!is.na(.data$Intensity)) %>%
     dplyr::left_join(uniqueRundf, by = "colName") %>%
     dplyr::select(-"colName")
 
