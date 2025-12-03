@@ -988,11 +988,12 @@ GetPeptideLocInProtein <- function(uniprotID, pep, fastaFile){
 
 UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   uniqueRundf <- data.frame(Run = unique(rawdata$Run))
+  names(quantdata) <- sub("^X", "", names(quantdata))
 
   if(normalization == "FP_Normalized"){
-    uniqueRundf$colName <- paste("X", uniqueRundf$Run, ".Intensity", sep = "")
+    uniqueRundf$colName <- paste(uniqueRundf$Run, ".Intensity", sep = "")
   }else if(normalization == "FP_MaxLFQ"){
-    uniqueRundf$colName <- paste("X", uniqueRundf$Run, ".MaxLFQ.Intensity", sep = "")
+    uniqueRundf$colName <- paste(uniqueRundf$Run, ".MaxLFQ.Intensity", sep = "")
   }else{
     stop("The normalization was not recognized: ", normalization)
   }
@@ -1009,7 +1010,8 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   quantdata <- quantdata %>%
     dplyr::select("ModifiedPeptide" = "Modified.Sequence",
                   dplyr::any_of(uniqueRundf$colName)) %>%
-    dplyr::mutate(ModifiedPeptide = gsub("\\[57\\.0214\\]|\\[57\\.0215\\]", "", .data$ModifiedPeptide)) %>%
+    dplyr::mutate(ModifiedPeptide = gsub("\\[57\\.0214\\]|\\[57\\.0215\\]", "", .data$ModifiedPeptide),
+                  dplyr::across(all_of(uniqueRundf$colName), as.numeric)) %>%
     tidyr::pivot_longer(cols = dplyr::any_of(uniqueRundf$colName), names_to = "colName", values_to = "Intensity") %>%
     dplyr::filter(!is.na(.data$Intensity))%>%
     dplyr::left_join(uniqueRundf, by = "colName") %>%
