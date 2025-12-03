@@ -1,0 +1,13 @@
+Run,Condition,Alias,BioReplicate,TechReplicate
+NP0_1_i1,NP0,NP0_1_i1,1,1
+NP0_1_i2,NP0,NP0_1_i2,1,2
+NP0_3_i1,NP0,NP0_3_i1,2,1
+NP0_3_i2,NP0,NP0_3_i2,2,2
+NPA_1_i1,NPA,NPA_1_i1,1,1
+NPA_1_i2,NPA,NPA_1_i2,1,2
+NPA_3_i1,NPA,NPA_3_i1,2,1
+NPA_3_i2,NPA,NPA_3_i2,2,2
+NPB_1_i1,NPB,NPB_1_i1,1,1
+NPB_1_i2,NPB,NPB_1_i2,1,2
+NPB_3_i1,NPB,NPB_3_i1,2,1
+NPB_3_i2,NPB,NPB_3_i2,2,2
