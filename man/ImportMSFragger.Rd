@@ -24,9 +24,11 @@ ImportMSFragger(
 
 \item{fastaPath}{Path to FASTA file}
 
-\item{peptideScoreCutoff}{Peptide score cutoff}
+\item{peptideScoreCutoff}{Peptide score cutoff, which is the Hyperscore
+column in the search engine output file.}
 
-\item{glycanScoreCutoff}{Glycan score cutoff}
+\item{glycanScoreCutoff}{Glycan score cutoff, which is the Glycan Q Value
+column in the search engine output file.}
 
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
@@ -55,7 +57,12 @@ confidenceLevel = c("Level1", "Level1b")}
 Formatted GlycoDiveR data file.
 }
 \description{
-ImportMSFragger
+This imports search results output by MSFragger/Fragpipe. It will work for
+N-glycopeptide searches and O-glycopeptides searches with or without
+OPair. During import, this function will look for all the psm.tsv files in the
+specified folder and all the subfolders. It will also use the
+combined_modified_peptide.tsv if you choose to use FragPipe computed
+normalized intensities.
 }
 \examples{
 \dontrun{ImportMSFragger(path = "Z:/Folder",
