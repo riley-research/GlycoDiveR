@@ -21,7 +21,7 @@
 #' @examples \dontrun{
 #' PlotGlycositeIdsPerRun(mydata, whichProtein = "P17047")}
 PlotGlycositeIdsPerRun <- function(input, whichProtein = NULL, exactProteinMatch = TRUE,
-                                   whichAlias = NULL, colorVec = c("#6dc381", "pink", "#6761A8"),
+                                   whichAlias = NULL, colorVec = c("#00394c", "#27b56e", "white"),
                                    silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
@@ -77,7 +77,8 @@ PlotGlycositeIdsPerRun <- function(input, whichProtein = NULL, exactProteinMatch
                                                       y = yVal, label = .data$ModificationID), label.size = NA) +
     ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                            y = yVal, label = .data$ModificationID),
-                              max.overlaps = Inf, nudge_y = 0.4, label.size = NA, fill = NA) +
+                              max.overlaps = Inf, nudge_y = 0.4, label.size = NA, fill = NA,
+                              color=colorVec[2]) +
     ggplot2::theme_void() +
     ggplot2::scale_y_continuous(breaks = unique(foundMods$y), labels = unique(foundMods$Alias)) +
     ggplot2::theme(axis.text.y = ggplot2::element_text())
