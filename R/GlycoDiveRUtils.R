@@ -988,7 +988,6 @@ GetPeptideLocInProtein <- function(uniprotID, pep, fastaFile){
 
 UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   uniqueRundf <- data.frame(Run = unique(rawdata$Run))
-  names(quantdata) <- sub("^X", "", names(quantdata))
 
   if(normalization == "FP_Normalized"){
     uniqueRundf$colName <- paste(uniqueRundf$Run, ".Intensity", sep = "")
@@ -998,8 +997,16 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
     stop("The normalization was not recognized: ", normalization)
   }
 
-  if(any(!uniqueRundf$colName %in% names(quantdata))){
-    notfound <- uniqueRundf$Run[!uniqueRundf$colName %in% names(quantdata)]
+  expected <- uniqueRundf$colName
+  have_exact  <- expected %in% names(quantdata)
+  have_noX    <- expected %in% sub("^X", "", names(quantdata))
+
+  if (all(have_exact)) {
+
+  } else if (all(have_noX)) {
+    names(quantdata) <- sub("^X", "", names(quantdata))
+  } else {
+    notfound <- uniqueRundf$Run[!have_exact]
 
     warning(
       "Did not find the following runs in combined_peptide.tsv:\n",
