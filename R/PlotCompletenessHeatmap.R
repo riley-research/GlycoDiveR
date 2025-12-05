@@ -115,7 +115,7 @@ PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
                                row_split = df$GlycanType, use_raster = FALSE,
                                cluster_row_slices = TRUE, border = TRUE,
                                col = col_fun, show_heatmap_legend = FALSE,
-                               column_split = colCluster)
+                               column_split = colCluster, row_title_rot = 0)
 
   return(ComplexHeatmap::draw(ht, annotation_legend_list = list(lgd)))
 }
