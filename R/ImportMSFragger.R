@@ -1,10 +1,19 @@
 #' ImportMSFragger
 #'
+#' This imports search results output by MSFragger/Fragpipe. It will work for
+#' N-glycopeptide searches and O-glycopeptides searches with or without
+#' OPair. During import, this function will look for all the psm.tsv files in the
+#' specified folder and all the subfolders. It will also use the
+#' combined_modified_peptide.tsv if you choose to use FragPipe computed
+#' normalized intensities.
+#'
 #' @param path Path to search engine output folder
 #' @param annotation Path to annotation file
 #' @param fastaPath Path to FASTA file
-#' @param peptideScoreCutoff Peptide score cutoff
-#' @param glycanScoreCutoff Glycan score cutoff
+#' @param peptideScoreCutoff Peptide score cutoff, which is the Hyperscore
+#' column in the search engine output file.
+#' @param glycanScoreCutoff Glycan score cutoff, which is the Glycan Q Value
+#' column in the search engine output file.
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param normalization The (glyco)peptide normalization used.
 #' Choose between "median" (default), FP_Normalized, FP_MaxLFQ, or none.
