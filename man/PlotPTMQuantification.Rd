@@ -47,7 +47,7 @@ to remove the line}
 
 \item{showRowNames}{set to TRUE or FALSE}
 
-\item{silent}{silence printed information (default = TRUE)}
+\item{silent}{silence printed information}
 }
 \value{
 The PTM quantification for a specific protein

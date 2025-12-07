@@ -110,7 +110,7 @@ PlotGlycositeIdsPerRun <- function(input, whichProtein = NULL, exactProteinMatch
     ggplot2::geom_point(data = foundMods, mapping = ggplot2::aes(x=.data$ProteinPTMLocalization, y = .data$y, fill = .data$color),
                         shape = 22, size = 5, na.rm = TRUE, color = "black") +
     ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,
-                                                      y = yVal, label = .data$ModificationID), label.size = NA) +
+                                                      y = yVal, label = .data$ModificationID), linewidth = NA) +
     ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                            y = yVal, label = .data$ModificationID),
                               max.overlaps = Inf, nudge_y = 0.4, label.size = NA, fill = NA,

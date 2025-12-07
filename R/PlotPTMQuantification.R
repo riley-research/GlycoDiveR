@@ -22,7 +22,7 @@
 #' to remove the line
 #' @param rowFontSize font size for the row labels
 #' @param showRowNames set to TRUE or FALSE
-#' @param silent silence printed information (default = TRUE)
+#' @param silent silence printed information
 #'
 #' @returns The PTM quantification for a specific protein
 #' @export
@@ -81,7 +81,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#B
                         fill = plotColors[2], color = plotColors[3], size = 8, shape = 21) +
     ggplot2::geom_label(data = labeldf2, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                       y = 1, label = .data$ModificationID),
-                        label.size = NA) +
+                        linewidth = NA) +
     ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                            y = 1, label = .data$ModificationID),
                               max.overlaps = Inf, nudge_y = 0.01, label.size = NA, fill = NA,
