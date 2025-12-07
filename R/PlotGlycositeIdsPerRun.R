@@ -48,7 +48,8 @@ PlotGlycositeIdsPerRun <- function(input, whichProtein = NULL, exactProteinMatch
 
   #Generate lineplot with PTM annotation
   labeldf <- dplyr::distinct(df[c("ProteinPTMLocalization", "ModificationID")])
-  labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
+  labeldf2 <- data.frame(ProteinPTMLocalization = c(1 - (df$ProteinLength[1] * 0.03),
+                                                    df$ProteinLength[1] + (df$ProteinLength[1] * 0.05)),
                          "ModificationID" = c(1, df$ProteinLength[1]))
 
   #If filter, use only the filtered levels, otherwise use all runs
