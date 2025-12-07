@@ -14,6 +14,14 @@
 #' happen if you upload abundance values using Perseus or MSstats.
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param whichProtein Filter what proteins to plot. These are the IDs as presented
+#' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+#' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
+#' @param exactProteinMatch This is only relevant if you select for proteins using
+#' the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+#' must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+#' it will select non-exact matches. For example, "P61224" will only match to
+#' "P61224,P62834" when set to FALSE.
 #' @param silent silence printed information (default = FALSE)
 #'
 #' @returns The percentage of missing data.
@@ -21,10 +29,13 @@
 #'
 #' @examples \dontrun{ComputeMissingness(mydata, type = "glyco")}
 ComputeMissingness <- function(input, type = "glyco", removeAllNA = TRUE,
-                               whichPeptide = NA,
-                                    whichAlias = NULL, silent = FALSE){
+                               whichPeptide = NULL, whichAlias = NULL,
+                               whichProtein = NULL, exactProteinMatch = TRUE,
+                               silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   df <- FilterForPeptides(input$PSMTable, whichPeptide)
+  df <- FilterForProteins(df, whichProtein, exactProteinMatch)
+
   if(removeAllNA){
     df <- df %>%
       dplyr::filter(!is.na(.data$Intensity))
@@ -36,22 +47,23 @@ ComputeMissingness <- function(input, type = "glyco", removeAllNA = TRUE,
 
   if(type == "glyco"){
     glycoPSMTypes <- c("Sialyl", "Complex/Hybrid", "Sialyl+Fucose",
-                       "Fucose", "Truncated", "High Mannose", "Paucimannose",
-                       "OGlycan")
+                       "Fucose", "Truncated", "Oligomannose", "Paucimannose",
+                       "OGlycan", "Phosphomannose", "NonCanonicalGlyco")
     df <- df %>%
       dplyr::mutate(PSMType = dplyr::case_when(stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) > 1 &
                                                  stringr::str_count(.data$GlycanType, "Sialyl") == 2 &
                                                  grepl("Sialyl+Fucose", .data$GlycanType) == 1 ~ "Multi",
                                                stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) == 0 ~ "nonGlyco",
+                                               grepl("Phospho", .data$GlycanType) ~ "Phosphomannose",
                                                grepl("Sialyl", .data$GlycanType) ~ "Sialyl",
                                                grepl("Complex/Hybrid", .data$GlycanType) ~ "Complex/Hybrid",
                                                grepl("Sialyl+Fucose", .data$GlycanType) ~ "Sialyl+Fucose",
                                                grepl("Fucose", .data$GlycanType) ~ "Fucose",
                                                grepl("Truncated", .data$GlycanType) ~ "Truncated",
-                                               grepl("High Mannose", .data$GlycanType) ~ "High Mannose",
+                                               grepl("High Mannose", .data$GlycanType) ~ "Oligomannose",
                                                grepl("Paucimannose", .data$GlycanType) ~ "Paucimannose",
                                                grepl("OGlycan", .data$GlycanType) ~ "OGlycan",
-                                               TRUE ~ "ERROR")) %>%
+                                               TRUE ~ "NonCanonicalGlyco")) %>%
       dplyr::filter(.data$PSMType != "nonGlyco")
   }
 

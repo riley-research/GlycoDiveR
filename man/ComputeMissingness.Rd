@@ -8,8 +8,10 @@ ComputeMissingness(
   input,
   type = "glyco",
   removeAllNA = TRUE,
-  whichPeptide = NA,
+  whichPeptide = NULL,
   whichAlias = NULL,
+  whichProtein = NULL,
+  exactProteinMatch = TRUE,
   silent = FALSE
 )
 }
@@ -28,6 +30,16 @@ directly usable, also after filtering using the FilterComparison function.}
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
+in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
+with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.}
+
+\item{exactProteinMatch}{This is only relevant if you select for proteins using
+the whichProtein argument. When set to TRUE (default), your supplied UniprotIDs
+must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
+it will select non-exact matches. For example, "P61224" will only match to
+"P61224,P62834" when set to FALSE.}
 
 \item{silent}{silence printed information (default = FALSE)}
 }
