@@ -175,7 +175,7 @@ vector with the UniprotIDs you want to keep.
 
 This flexible format makes it easy to create and visualize focused subsets of your data.
 
-## GlycoDiveR plots
+## GlycoDiveR general plots
 
 Each GlycoDiveR plot has numerous arguments to customize various aspects of the
 visualization. Please take the time to look at these arguments for the plots
@@ -332,6 +332,32 @@ A volcano plot.
 PlotComparisonVolcano(myComparison, whichComparison = c("NPA-NPB"),
                       statistic = "adjpvalue", statisticalCutoff = 0.05)
 ```
+
+## Compuation functions
+
+GlycoDiveR has in-built functions to compute data statistics.
+
+### ComputeMissingess
+
+This function calculates the percentage of missing quantitative values on the glycopeptide
+level, either for all peptides, or for glycopeptides only. This will consider onsider
+peptides with an intensity of 0 as a missing quantitative value.
+
+```{r, message = FALSE}
+ComputeMissingness(exampleData, type = "all")
+
+ComputeMissingness(exampleData, type = "glyco")
+```
+
+### ComputeNumberOfGlycoforms
+
+This computes the potential number of glycoforms based on the identified 
+glycans. It will also include the unmodified site for each glycosite. 
+
+```{r, message = FALSE}
+ComputeNumberOfGlycoforms(exampleData, whichProtein = "P00734,C9JV37,E9PIT3")
+```
+
 
 ## Saving plots
 
