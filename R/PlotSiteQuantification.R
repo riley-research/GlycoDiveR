@@ -94,14 +94,21 @@ PlotSiteQuantification <- function(input, whichProtein, site, whichPeptide = NUL
     ggplot2::geom_bar(data = dfsum, ggplot2::aes(x = .data$TotalGlycanComposition,
                                                  y = .data$mean, fill = .data$Condition),
                       stat = "identity", color = "black") +
-    ggplot2::geom_errorbar(data = dfsum, ggplot2::aes(x = .data$TotalGlycanComposition,
-                                                      ymin = .data$mean, ymax = .data$mean+.data$sd)) +
-    ggplot2::geom_point(data = df, ggplot2::aes(x = .data$TotalGlycanComposition, y = .data$Intensity)) +
+    ggplot2::geom_errorbar(data = dfsum,
+                           ggplot2::aes(x = .data$TotalGlycanComposition,
+                                        ymin = .data$mean-.data$sd,
+                                        ymax = .data$mean+.data$sd),
+                           width = 0.2) +
+    ggplot2::geom_point(data = df, ggplot2::aes(x = .data$TotalGlycanComposition, y = .data$Intensity), size = 2) +
     ggplot2::labs(x = "", y = "Intensity (a.u.)") +
     ggplot2::guides(fill="none") +
     ggplot2::facet_wrap(~.data$Condition) +
     ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0, max(df$Intensity)*1.05)) +
-    ggplot2::scale_fill_manual(values = .modEnv$colorScheme)
+    ggplot2::scale_fill_manual(values = .modEnv$colorScheme)  +
+    ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(hjust = 2),
+                   strip.background = ggplot2::element_blank(),
+                   strip.text = ggplot2::element_text(face="bold", size = 12))
 
   return(p)
 }

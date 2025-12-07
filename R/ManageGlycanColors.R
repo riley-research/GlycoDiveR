@@ -21,7 +21,25 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
   action <- match.arg(action)
 
   prepare_edit <- function(edit) {
-    if(!is.data.frame(edit)) {
+    if(edit == "glycan_light"){
+      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
+                                "Fucose", "Oligomannose", "Truncated",
+                                "Paucimannose", "Phosphomannose", "OGlycan",
+                                "NonCanonicalGlyco", "Multi"),
+                 color = c("#A1CAE8", "#FFE8A2", "#CC82C3",
+                           "#FFA1A1", "#A0E2BE", "#686963",
+                           "#0072BC", "#EE8866", "#BF5A6B",
+                           "#FABC3C", "#664C43"))
+    }else if(edit == "glycan_dark"){
+      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
+                                       "Fucose", "Oligomannose", "Truncated",
+                                       "Paucimannose", "Phosphomannose", "OGlycan",
+                                       "NonCanonicalGlyco", "Multi"),
+                        color = c("#0072BC", "#FFD400", "#A54399",
+                                  "#ED1C24", "#00A651", "#686963",
+                                  "#01548A", "#F47920", "#F69EA1",
+                                  "#FABC3C", "#664C43"))
+    }else if(!is.data.frame(edit)) {
       edit <- utils::read.csv(edit)
     }
     edit %>%

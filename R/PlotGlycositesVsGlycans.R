@@ -6,6 +6,7 @@
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
+#' @param pointSize The size of the points.
 #' @param labelGlycositeCutoff The minimal number of glycosites found to label
 #' a protein (default = 0)
 #' @param labelGlycanCutoff The minimal number of glycans found to label a protein
@@ -35,11 +36,11 @@
 #' PlotGlycositesVsGlycans(mydata)
 #'
 #' PlotGlycositesVsGlycans(mydata, plotColor = "black", alpha = 0.1, maxOverlaps = Inf)}
-PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
+PlotGlycositesVsGlycans <- function(input, whichAlias = NULL, pointSize = 3,
                                     labelGlycositeCutoff = 0, labelGlycanCutoff = 0,
                                     maxOverlaps = 10, whichPeptide = NULL,
                                     whichProtein = NULL, exactProteinMatch = TRUE,
-                                    plotColor = "#6761A8", alpha = 0.5,
+                                    plotColor = c("#BAA5CC", "#32006e"), alpha = 0.5,
                                     silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
@@ -72,12 +73,14 @@ PlotGlycositesVsGlycans <- function(input, whichAlias = NULL,
   df <- df %>%
     ggplot2::ggplot(mapping = ggplot2::aes(x=.data$numberOfGlycosites, y =.data$count)) +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "grey50", linetype = "dashed") +
-    ggplot2::geom_point(color = plotColor, alpha = alpha) +
+    ggplot2::geom_point(fill = plotColor[1], color = plotColor[2], shape = 21, alpha = alpha,
+                        size = pointSize) +
     suppressWarnings(ggrepel::geom_label_repel(ggplot2::aes(label = .data$label), max.overlaps = maxOverlaps,
                               fill = NA, label.size = NA)) +
     ggplot2::annotate("text", x= 0.95 * max(df$numberOfGlycosites), y= 1.1 * max(df$numberOfGlycosites),
                       label= "y=x", color = "grey30") +
-    ggplot2::labs(x = "Number of glycosites", y = "Number of glycans")
+    ggplot2::labs(x = "Number of glycosites", y = "Number of glycans") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
 
   return(df)
 }

@@ -10,12 +10,12 @@ PlotSiteGlycanComposition(
   exactProteinMatch = TRUE,
   whichPeptide = NULL,
   whichAlias = NULL,
-  domainColors = c("#00394c", "#91b5c5", "#a9a9a9", "#22031F", "#433E0E"),
-  nodeColors = c("#27b56e", "white"),
+  domainColors = c("#BAA5CC", "#44AA99", "#a9a9a9", "#22031F", "#433E0E"),
+  nodeColors = c("#32006e", "white"),
   horizontalPoints = 50,
   yCorrection = 0.25,
   yNudge = 1,
-  boxSpacing = 0.05,
+  boxSpacing = 0.075,
   silent = FALSE
 )
 }

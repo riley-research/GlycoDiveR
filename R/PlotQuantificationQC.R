@@ -46,33 +46,41 @@ PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification =
 
   if(whichQuantification == "corrected"){
     p <- ggplot2::ggplot(df, ggplot2::aes(x=.data$Alias,y=log(.data$Intensity,2), fill = .data$Condition))+
-      ggplot2::geom_boxplot() +
-      ggplot2::labs(x = NULL, y = "Intensity (log2)") +
-      ggplot2::scale_fill_manual(values = .modEnv$colorScheme)
+      ggplot2::geom_boxplot(outlier.fill = NULL, outlier.color = "grey25", outlier.shape = 21) +
+      ggplot2::labs(x = NULL, y = "Intensity (log2)", title = "Normalized intensity") +
+      ggplot2::scale_fill_manual(values = .modEnv$colorScheme) +
+      ggplot2::theme(plot.title = ggplot2::element_text(size = 12, face = "bold", hjust=0.5))
   }else if(whichQuantification == "raw"){
     p <- ggplot2::ggplot(df, ggplot2::aes(x=.data$Alias,y=log(.data$RawIntensity,2), fill = .data$Condition))+
-      ggplot2::geom_boxplot() +
-      ggplot2::labs(x = NULL, y = "Intensity (log2)") +
-      ggplot2::scale_fill_manual(values = .modEnv$colorScheme)
+      ggplot2::geom_boxplot(outlier.fill = NULL, outlier.color = "grey25", outlier.shape = 21) +
+      ggplot2::labs(x = NULL, y = "Intensity (log2)", title = "Raw intensity") +
+      ggplot2::scale_fill_manual(values = .modEnv$colorScheme) +
+      ggplot2::theme(plot.title = ggplot2::element_text(size = 12, face = "bold", hjust=0.5))
   }else if(whichQuantification == "both"){
     p <- df %>%
       tidyr::pivot_longer(cols = c("Intensity", "RawIntensity"),
                           names_to = "QuantificationType", values_to = "Quantification") %>%
+      dplyr::mutate(QuantificationType = ifelse(.data$QuantificationType == "Intensity", "Normalized intensity", "Raw intensity")) %>%
       ggplot2::ggplot(df, mapping = ggplot2::aes(x=.data$Alias,y=log(.data$Quantification,2), fill = .data$Condition))+
-      ggplot2::geom_boxplot() +
+      ggplot2::geom_boxplot(outlier.fill = NULL, outlier.color = "grey25", outlier.shape = 21) +
       ggplot2::labs(x = NULL, y = "Intensity (log2)") +
       ggplot2::scale_fill_manual(values = .modEnv$colorScheme) +
-      ggplot2::facet_wrap(~.data$QuantificationType)
+      ggplot2::facet_wrap(~.data$QuantificationType) +
+      ggplot2::theme(strip.background = ggplot2::element_blank(),
+                     strip.text = ggplot2::element_text(face="bold", size = 12))
   }else{
     fmessage("Did not recognize whichQuantification parameter. Defaulting to 'both'")
     p <- df %>%
       tidyr::pivot_longer(cols = c("Intensity", "RawIntensity"),
                           names_to = "QuantificationType", values_to = "Quantification") %>%
+      dplyr::mutate(QuantificationType = ifelse(.data$QuantificationType == "Intensity", "Normalized intensity", "Raw intensity")) %>%
       ggplot2::ggplot(df, mapping = ggplot2::aes(x=.data$Alias,y=log(.data$Quantification,2), fill = .data$Condition))+
-      ggplot2::geom_boxplot() +
+      ggplot2::geom_boxplot(outlier.fill = NULL, outlier.color = "grey25", outlier.shape = 21) +
       ggplot2::labs(x = NULL, y = "Intensity (log2)") +
       ggplot2::scale_fill_manual(values = .modEnv$colorScheme) +
-      ggplot2::facet_wrap(~.data$QuantificationType)
+      ggplot2::facet_wrap(~.data$QuantificationType) +
+      ggplot2::theme(strip.background = ggplot2::element_blank(),
+                     strip.text = ggplot2::element_text(face="bold", size = 12))
   }
 
   return(p)

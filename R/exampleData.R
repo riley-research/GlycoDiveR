@@ -1,0 +1,19 @@
+#' Example dataset for GlycoDiveR
+#'
+#' A small example dataset used in package examples and testing.
+#'
+#' @format A GlycoDiver dataset (list) with 10 items:
+#' \describe{
+#'   \item{PSMTable}{The PSM table (data frame)}
+#'   \item{rawPSMTable}{The raw PSM table (data frame)}
+#'   \item{PTMTable}{The PTM table (data frame)}
+#'   \item{annotation}{The annotation file (data frame)}
+#'   \item{searchEngine}{The search engine (character)}
+#'   \item{peptideScoreCutoff}{Score cutoff (numeric)}
+#'   \item{glycanScoreCutoff}{Score cutoff (numeric)}
+#'   \item{filterForNoNSequon}{Score cutoff (numeric)}
+#'   \item{confidenceLevels}{Score cutoff (numeric)}
+#'   \item{deltaModCutoff}{Score cutoff (numeric)}
+#' }
+#' @source Generated for package examples
+"exampleData"

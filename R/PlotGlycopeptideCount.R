@@ -64,7 +64,9 @@ PlotGlycopeptideCount <- function(input, grouping = "condition", whichAlias = NU
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
       ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.05)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme))
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme)) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 2))
 
     return(p)
   }else if(grouping == "biologicalReps"){
@@ -92,8 +94,11 @@ PlotGlycopeptideCount <- function(input, grouping = "condition", whichAlias = NU
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.10)) +
-      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme))
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$PSMCount),
+                          size = 2) +
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme)) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 2))
 
     return(p)
   }else if(grouping == "condition"){
@@ -120,8 +125,11 @@ PlotGlycopeptideCount <- function(input, grouping = "condition", whichAlias = NU
                                                             ymax = .data$mean+.data$sd), width = 0.2) +
       ggplot2::labs(x = "", y = "Unique glycopeptides (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, max(tempdf$PSMCount) * 1.10)) +
-      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme))
+      ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$Condition, y = .data$PSMCount),
+                          size = 2) +
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme)) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 2))
 
     return(p)
   }else{

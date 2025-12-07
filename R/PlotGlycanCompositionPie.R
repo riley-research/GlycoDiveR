@@ -63,7 +63,7 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
                        GlycanCount = dplyr::n()) %>%
       tidyr::complete(.data$Run, .data$Alias, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
-      ggplot2::geom_bar(stat="identity", width=1, color= "black") +
+      ggplot2::geom_bar(stat="identity", width=1, linewidth=1.25, color= "white") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Alias, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
@@ -80,7 +80,7 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
       tidyr::complete(.data$Condition, .data$BioReplicate, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
-      ggplot2::geom_bar(stat="identity", width=1, color= "black") +
+      ggplot2::geom_bar(stat="identity", width=1, linewidth=1.25, color= "white") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$x, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
@@ -94,7 +94,7 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
                        GlycanCount = dplyr::n()) %>%
       tidyr::complete(.data$Condition, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
-      ggplot2::geom_bar(stat="identity", width=1, color= "black") +
+      ggplot2::geom_bar(stat="identity", width=1, linewidth=1.25, color= "white") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Condition, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +

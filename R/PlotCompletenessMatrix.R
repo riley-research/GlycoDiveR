@@ -1,15 +1,15 @@
-#' Plot Completeness Heatmap
+#' Plot Completeness Matrix
 #'
-#' Plot a heatmap showing the identified and missed (glyco)peptides. Each row
+#' Plot a matrix showing the identified and missed (glyco)peptides. Each row
 #' represents one unique glycopeptide.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param peptideType Choose "glyco" to only view glycopeptide and "other" to  also
 #' include non-modified peptides.
-#' @param plotColors The colors used for the heatmap. The default is c("lightgrey", "darkgreen").
+#' @param plotColors The colors used for the matrix The default is c("lightgrey", "darkgreen").
 #' @param collapseTechReps Do you want to collapse the technical replicates.
 #' @param exportDataTo If a system folder is provided, a CSV file will be exported
-#' to that folder containing the data presented in the heatmap.
+#' to that folder containing the data presented in the matrix
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
 #' for plotting, e.g. whichAlias = c("Alias1", "Alias2").
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
@@ -26,15 +26,15 @@
 #' "P61224,P62834" when set to FALSE.
 #' @param silent silence printed information (default = FALSE)
 #'
-#' @returns Grouped heatmap
+#' @returns A matrix.
 #' @export
 #'
 #' @examples \dontrun{
-#' PlotCompletenessHeatmap(mydata)
-#' PlotCompletenessHeatmap(mydata, peptideType = "other", silent = FALSE)
+#' PlotCompletenessMatrix(mydata)
+#' PlotCompletenessMatrix(mydata, peptideType = "other", silent = FALSE)
 #' }
-PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
-                                    plotColors = c("lightgrey", "darkgreen"),
+PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
+                                    plotColors = c("grey90", "#44AA99"),
                                     collapseTechReps = FALSE,
                                     whichAlias = NULL, whichPeptide = NULL,
                                     whichProtein = NULL, exactProteinMatch = TRUE,
@@ -93,7 +93,7 @@ PlotCompletenessHeatmap <- function(input, peptideType  = "glyco",
   }
 
   #Get heatmap annotation, color, and legend
-  colH <- stats::setNames(c(.modEnv$GlycanColors$color, "grey85"),
+  colH <- stats::setNames(c(.modEnv$GlycanColors$color, "#BBBBBB"),
                           c(.modEnv$GlycanColors$GlycanType, "NonGlyco"))
 
   row_ha = ComplexHeatmap::rowAnnotation(Glycan = df$GlycanType, show_legend = FALSE,

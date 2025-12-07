@@ -9,6 +9,7 @@ PlotUpSet(
   grouping = "condition",
   type = "glyco",
   level = "peptide",
+  plotColor = "#32006e",
   whichAlias = NULL,
   whichProtein = NULL,
   exactProteinMatch = TRUE,
@@ -27,6 +28,8 @@ PlotUpSet(
 or all peptides/proteins.}
 
 \item{level}{Choose "peptide" or "protein".}
+
+\item{plotColor}{The color of the bars.}
 
 \item{whichAlias}{Provide a vector of Aliases to only select these aliases
 for plotting.}

@@ -7,8 +7,8 @@
 PlotPTMQuantification(
   input,
   whichProtein = NULL,
-  plotColors = c("#00394c", "#27b56e", "white"),
-  heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315"),
+  plotColors = c("#BAA5CC", "#32006e", "white"),
+  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
   exactProteinMatch = TRUE,
   whichAlias = NULL,
   lineWidth = 2,

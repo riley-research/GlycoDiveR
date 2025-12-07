@@ -10,6 +10,7 @@
 #' @param type Choose between "glyco" or "all" to include only glycopeptides/proteins
 #' or all peptides/proteins.
 #' @param level Choose "peptide" or "protein".
+#' @param plotColor The color of the bars.
 #' @param nintersects The maximum number of intersects shown.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
@@ -34,7 +35,7 @@
 #'  type = "glyco", level = "protein", nintersects = 40)
 #' }
 PlotUpSet <- function(input, grouping = "condition", type = "glyco",
-                      level = "peptide", whichAlias = NULL,
+                      level = "peptide", plotColor = "#32006e", whichAlias = NULL,
                       whichProtein = NULL, exactProteinMatch = TRUE,
                       nintersects = 40, whichPeptide = NULL, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
@@ -89,7 +90,8 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme,
-                       nintersects = nintersects)
+                       nintersects = nintersects, main.bar.color = plotColor,
+                       matrix.color = plotColor, text.scale = 1.5)
 
     return(p)
   }else if(grouping == "biologicalReps"){
@@ -128,7 +130,8 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme,
-                       nintersects = nintersects)
+                       nintersects = nintersects, main.bar.color = plotColor,
+                       matrix.color = plotColor, text.scale = 1.5)
 
     return(p)
   }else if(grouping == "condition"){
@@ -160,7 +163,8 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
     p <- suppressMessages(UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
                        sets.bar.color = colorCode$colorScheme,
-                       nintersects = nintersects))
+                       nintersects = nintersects, main.bar.color = plotColor,
+                       matrix.color = plotColor, text.scale = 1.5))
 
     return(p)
   }else{

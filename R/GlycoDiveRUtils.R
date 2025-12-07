@@ -110,10 +110,11 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
           grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
           grepl("A|G", glycanComp) ~ "Sialyl",
           grepl("F", glycanComp) ~ "Fucose",
+          grepl("Phospho", glycanComp) ~ "Phosphomannose",
           !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count == 2 & hex_count == 3 ~ "Paucimannose",
           (!is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 2) |
             ( !is.na(hexNAc_count) & !is.na(hex_count) & hex_count < 3) ~ "Truncated",
-          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 3 ~ "High Mannose",
+          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 3 ~ "Oligomannose",
           TRUE ~ "Complex/Hybrid"
         )
         modType <- append(modType, glycanCat)
@@ -161,7 +162,7 @@ GetMeanTechReps <- function(df){
      df <- df %>%
        dplyr::mutate(.by = c("Condition", "BioReplicate"),
                      Alias = .data$Alias[1],
-                     TechReplicate = TechReplicate[1]) %>%
+                     TechReplicate = .data$TechReplicate[1]) %>%
        dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
                              "Condition", "BioReplicate"),
                      Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
@@ -1018,7 +1019,7 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
     dplyr::select("ModifiedPeptide" = "Modified.Sequence",
                   dplyr::any_of(uniqueRundf$colName)) %>%
     dplyr::mutate(ModifiedPeptide = gsub("\\[57\\.0214\\]|\\[57\\.0215\\]", "", .data$ModifiedPeptide),
-                  dplyr::across(all_of(uniqueRundf$colName), as.numeric)) %>%
+                  dplyr::across(tidyselect::all_of(uniqueRundf$colName), as.numeric)) %>%
     tidyr::pivot_longer(cols = dplyr::any_of(uniqueRundf$colName), names_to = "colName", values_to = "Intensity") %>%
     dplyr::filter(!is.na(.data$Intensity)) %>%
     dplyr::left_join(uniqueRundf, by = "colName") %>%
@@ -1067,18 +1068,28 @@ Databases <- function(){
   )
 
   GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
-                                           "Fucose", "High Mannose", "Truncated",
-                                           "Paucimannose", "OGlycan", "NonCanonicalGlyco",
-                                           "Multi"),
-                            color = c("#00394a", "#ff7f2a", "#2475b5", "#aaaaaa", "#28b36d",
-                                      "#D0A5C0", "#8B1E3F", "#f2d46f", "#6a4c8b",
-                                      "#1ABC9C"))
+                                           "Fucose", "Oligomannose", "Truncated",
+                                           "Paucimannose", "Phosphomannose", "OGlycan",
+                                           "NonCanonicalGlyco", "Multi"),
+                            color = c("#A1CAE8", "#FFE8A2", "#CC82C3",
+                                      "#FFA1A1", "#A0E2BE", "#686963",
+                                      "#0072BC", "#EE8866", "#BF5A6B",
+                                      "#FABC3C", "#664C43"))
 
-  colorScheme <- c(
-    "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
-    "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
-    "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
+  original <- c(
+    "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
+    "#ffaabb", "#cc6677", "#882255", "#32006e"
   )
+  # n_new <- 12
+  # interp_fun <- colorRampPalette(original)
+  # extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
+  # colorScheme <- c(original, extra)
+
+  # colorScheme <- c(
+  #   "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
+  #   "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
+  #   "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
+  # )
 
   #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }

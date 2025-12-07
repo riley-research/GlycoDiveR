@@ -63,10 +63,12 @@ PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NULL,
     dplyr::mutate(prop = .data$Count / sum(.data$Count) * 100) %>%
     dplyr::mutate(ypos = cumsum(.data$prop) - 0.5 * .data$prop)
 
+  nColNeeded <- length(unique(as.character(df$GlycansPerSite)))
+
   p <- ggplot2::ggplot(df, ggplot2::aes(x="", y=.data$Count, fill=.data$GlycansPerSite)) +
-    ggplot2::geom_bar(stat="identity", width=1, color= "black") +
+    ggplot2::geom_bar(stat="identity", linewidth=1.25, color= "white") +
     ggplot2::coord_polar("y", start=0) +
-    ggplot2::scale_fill_manual(values = .modEnv$colorScheme, guide = ggplot2::guide_legend(reverse = TRUE)) +
+    ggplot2::scale_fill_manual(values = .modEnv$colorScheme[nColNeeded:1], guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::geom_text(ggplot2::aes(label = .data$Count),
                        position = ggplot2::position_stack(vjust = 0.5)) +
     ggplot2::labs(fill = "Glycans\nper site") +

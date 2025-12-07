@@ -60,7 +60,9 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
       ggplot2::labs(x = "", y = "PSM (count)") +
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme))
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 2))
 
     return(p)
   }
@@ -107,8 +109,10 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$corrected_count, shape = .data$Glycan)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme)) +
-      ggplot2::scale_shape_manual(values = c(15, 17))
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
+      ggplot2::scale_shape_manual(values = c(15, 17)) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 1))
 
     return(p)
   }
@@ -153,8 +157,10 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::scale_y_continuous(expand = if (minVal < 0) ggplot2::expansion(0.01, 0) else c(0, 0),
                                   limits = if (minVal < 0) c(NA, maxVal * 1.05) else c(0, maxVal * 1.05)) +
       ggplot2::geom_point(data = tempdf, ggplot2::aes(x=.data$x, y = .data$corrected_count, shape = .data$Glycan)) +
-      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme)) +
-      ggplot2::scale_shape_manual(values = c(15, 17))
+      ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
+      ggplot2::scale_shape_manual(values = c(15, 17)) +
+      ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_text(hjust = 1))
 
     return(p)
   }

@@ -32,8 +32,8 @@
 #'
 #' PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
 #'                       showRowNames = FALSE, lineWidth = 0)}
-PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#00394c", "#27b56e", "white"),
-                                  heatmapColors = c("white", "#27b56e", "#fdd835", "#d84315"),
+PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#BAA5CC", "#32006e", "white"),
+                                  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
                                   exactProteinMatch = TRUE, whichAlias = NULL, lineWidth = 2,
                                   rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
@@ -153,8 +153,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#0
         col_fun = col_fun,
         title = "log2 Intensity",
         direction = "horizontal",
-        at = round(seq(valuesInMtrx[1]-0.01, valuesInMtrx, length.out = 2), 2)
-      )
+        at = round(seq(valuesInMtrx[1]-0.01, valuesInMtrx, length.out = 2), 2))
     }
 
     #Get the right split
@@ -168,7 +167,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#0
                                                                            row_split = splitVec,
                                                                            cluster_row_slices = TRUE,
                                                                            row_names_gp = grid::gpar(fontsize = rowFontSize),
-                                                                           show_row_names = showRowNames),
+                                                                           show_row_names = showRowNames, row_title_rot = 0),
                                                    heatmap_legend_list = lgd, heatmap_legend_side = "top"))
 
     return(patchwork::wrap_plots(p1, p2) + patchwork::plot_layout(heights = c(1, 8)))

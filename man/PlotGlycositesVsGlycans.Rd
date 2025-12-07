@@ -7,13 +7,14 @@
 PlotGlycositesVsGlycans(
   input,
   whichAlias = NULL,
+  pointSize = 3,
   labelGlycositeCutoff = 0,
   labelGlycanCutoff = 0,
   maxOverlaps = 10,
   whichPeptide = NULL,
   whichProtein = NULL,
   exactProteinMatch = TRUE,
-  plotColor = "#6761A8",
+  plotColor = c("#BAA5CC", "#32006e"),
   alpha = 0.5,
   silent = FALSE
 )
@@ -23,6 +24,8 @@ PlotGlycositesVsGlycans(
 
 \item{whichAlias}{provide a vector of Aliases to only select these aliases
 for plotting}
+
+\item{pointSize}{The size of the points.}
 
 \item{labelGlycositeCutoff}{The minimal number of glycosites found to label
 a protein (default = 0)}

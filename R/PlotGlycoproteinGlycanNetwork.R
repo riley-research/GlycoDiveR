@@ -129,7 +129,13 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
                   length.out = nprot)
   }
 
-  dfprot$x <- 0  # all proteins in a vertical column
+  negX <- circle_coords[,"x"][circle_coords[,"x"] < 0]
+  posX <- circle_coords[,"x"][circle_coords[,"x"] > 0]
+
+  negX <- negX[which.max(negX)]
+  posX <- posX[which.min(posX)]
+
+  dfprot$x <- mean(c(negX, posX))
   dfprot$y <- prot_y
 
   circle_coords <- data.matrix(data.frame(x = x_coords, y = y_coords))

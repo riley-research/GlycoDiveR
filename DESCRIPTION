@@ -1,15 +1,15 @@
 Package: GlycoDiveR
-Title: Visualization of glycoproteomic data. 
+Title: Visualization of glycoproteomic data
 Version: 0.0.0.9000
 Authors@R: c(
     person("Tim S", "Veth", , "tveth@uw.edu", role = c("aut", "cre")),
     person("Nicholas M", "Riley", , "nmriley@uw.edu", role = c("aut")))
-Description: GlycoDiveR generates graphics from (quantitative) glycoproteomics 
-    datasets directly from search engine output files. It currently supports 
-    FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the
-    data into a generic GlycoDiveR format that incorporates key metadata along 
-    with UniProt-derived metadata. The GlycoDiveR formatted input is directly 
-    compatible with all GlycoDiveR graphics.
+Description: GlycoDiveR generates graphics from quantitative glycoproteomics datasets
+    directly from search engine output files. It currently supports FragPipe, Byonic,
+    pGlyco, Perseus, and MSstats output files. The package converts the data into a
+    generic GlycoDiveR format that incorporates key experimental metadata along with
+    UniProt-derived metadata. The GlycoDiveR formatted input is directly compatible with
+    all GlycoDiveR graphics functions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -35,10 +35,16 @@ Imports:
     purrr,
     tidyselect,
     readxl,
-    httr
+    httr,
+    scales,
+    ggnewscale
 Depends: 
     R (>= 4.1.0)
 Suggests: 
-    testthat (>= 3.0.0)
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    devtools
 Config/testthat/edition: 3
 LazyData: true
+VignetteBuilder: knitr

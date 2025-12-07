@@ -13,6 +13,7 @@
 #' choose "significant", "none", or supply a vector with the points to label.
 #' For example c("HPT-149", "SPA3K-N271"). These are internally generated using
 #' the comparison dataframe: paste(Proteins, ModificationID, sep = "-")
+#' @param plotColors The colors used in the plot.
 #' @param maxOverlaps The maximum number of overlapping labels in the volcanoplot
 #'
 #' @returns A volcanoplot
@@ -24,7 +25,7 @@
 PlotComparisonVolcano <- function(input, whichComparison,
                                   statisticalCutoff = 0.05, log2FCCutoff = 1,
                                   statistic = "adjpvalue", whichLabel = "significant",
-                                  maxOverlaps = 10){
+                                  plotColors = c("#88CCEE", "#BBBBBB", "#882255"), maxOverlaps = 10){
 
   if(statistic == "pvalue"){
     df <- input %>%
@@ -43,13 +44,13 @@ PlotComparisonVolcano <- function(input, whichComparison,
 
   df <- df %>%
     dplyr::filter(.data$Label == whichComparison & !is.na(.data$statistic)) %>%
-    dplyr::mutate(col = dplyr::case_when(.data$statistic < statisticalCutoff & .data$log2FC < -log2FCCutoff ~ .modEnv$colorScheme[1],
-                                         .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ .modEnv$colorScheme[2],
-                                         TRUE ~ "black"))
+    dplyr::mutate(col = dplyr::case_when(.data$statistic < statisticalCutoff & .data$log2FC < -log2FCCutoff ~ plotColors[1],
+                                         .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ plotColors[3],
+                                         TRUE ~ plotColors[2]))
 
   if(identical(whichLabel, "significant")){
     df <- df %>%
-      dplyr::mutate(plotLabel = ifelse(.data$col != "black",
+      dplyr::mutate(plotLabel = ifelse(.data$col != plotColors[2],
                                        paste(.data$Proteins, .data$ModificationID, sep = "-"),
                                        NA_character_))
   }else if(identical(whichLabel, "none")){
@@ -63,7 +64,7 @@ PlotComparisonVolcano <- function(input, whichComparison,
   }
 
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$log2FC, y = -log(.data$statistic, 10))) +
-    ggplot2::geom_point(color = df$col, alpha = 0.8) +
+    ggplot2::geom_point(color = df$col, alpha = 0.8, size = 3) +
     ggplot2::geom_hline(yintercept = -log(statisticalCutoff, 10), linetype="dashed", color="grey60") +
     ggplot2::geom_vline(xintercept = c(-log2FCCutoff, log2FCCutoff), linetype="dashed", color="grey60") +
     suppressWarnings(ggrepel::geom_label_repel(ggplot2::aes(label = .data$plotLabel), fill = NA,

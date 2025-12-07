@@ -34,9 +34,9 @@
 #' }
 PlotSiteGlycanComposition <- function(input, whichProtein, exactProteinMatch = TRUE,
                                       whichPeptide = NULL, whichAlias = NULL,
-                                      domainColors = c("#00394c", "#91b5c5", "#a9a9a9", "#22031F", "#433E0E"),
-                                      nodeColors = c("#27b56e", "white"), horizontalPoints = 50,
-                                      yCorrection = 0.25, yNudge = 1, boxSpacing = 0.05, silent = FALSE){
+                                      domainColors = c("#BAA5CC", "#44AA99", "#a9a9a9", "#22031F", "#433E0E"),
+                                      nodeColors = c("#32006e", "white"), horizontalPoints = 50,
+                                      yCorrection = 0.25, yNudge = 1, boxSpacing = 0.075, silent = FALSE){
   set.seed(1)
 
   input <- FilterForCutoffs(input, silent)
@@ -76,9 +76,10 @@ PlotSiteGlycanComposition <- function(input, whichProtein, exactProteinMatch = T
                   LastAA = as.integer(sub(".*-(.*)\\)", "\\1", .data$Domains))) %>%
     dplyr::select("Domain", "FirstAA", "LastAA") %>%
     dplyr::bind_rows(data.frame(Domain = "Peptide", FirstAA = 1, LastAA = df_sum$ProteinLength[1])) %>%
-    dplyr::mutate(size = ifelse(.data$Domain == "Peptide", 5, 7),
+    dplyr::mutate(size = ifelse(.data$Domain == "Peptide", 5, 6),
                   centerOfAA = (.data$FirstAA + .data$LastAA) / 2) %>%
-    dplyr::arrange(dplyr::desc(.data$Domain == "Peptide"))
+    dplyr::arrange(dplyr::desc(.data$Domain == "Peptide")) %>%
+    dplyr::mutate(Domain = gsub("domain", "", .data$Domain))
 
   linePlot_df <- linePlot_df[stats::complete.cases(linePlot_df),]
 
@@ -175,12 +176,17 @@ PlotSiteGlycanComposition <- function(input, whichProtein, exactProteinMatch = T
     dplyr::left_join(joindf, by = "GlycanType")
 
   #Where do we want the boxes####
+  if(max(point_df$colCount) < 3){
+    multiplier = 2
+  }else{
+    multiplier = 1
+  }
   rect_df <- point_df %>%
     dplyr::mutate(.by = "ModificationID",
-                  xmin = min(.data$x_corrected, na.rm = TRUE) - boxSpacing * df_sum$ProteinLength[1] * 0.25,
-                  xmax = max(.data$x_corrected, na.rm = TRUE) + boxSpacing * df_sum$ProteinLength[1] * 0.25,
-                  ymin = min(.data$y_corrected, na.rm = TRUE) - boxSpacing * maxY,
-                  ymax = max(.data$y_corrected, na.rm = TRUE) + boxSpacing * maxY) %>%
+                  xmin = min(.data$x_corrected, na.rm = TRUE) - boxSpacing * multiplier * df_sum$ProteinLength[1] * 0.25,
+                  xmax = max(.data$x_corrected, na.rm = TRUE) + boxSpacing * multiplier * df_sum$ProteinLength[1] * 0.25,
+                  ymin = min(.data$y_corrected, na.rm = TRUE) - boxSpacing * multiplier * maxY,
+                  ymax = max(.data$y_corrected, na.rm = TRUE) + boxSpacing * multiplier * maxY) %>%
     dplyr::distinct(.data$xmin, .data$xmax, .data$ymin, .data$ymax)
 
   #Lines to the boxes####
@@ -216,13 +222,16 @@ PlotSiteGlycanComposition <- function(input, whichProtein, exactProteinMatch = T
                        fill = nodeColors[2], color = nodeColors[1], linewidth = 0.65, show.legend = FALSE)+
     ggplot2::geom_segment(data = linePlot_df, mapping = ggplot2::aes(x = .data$FirstAA, xend = .data$LastAA,
                                                    y = maxY + 1, yend = maxY + 1, linewidth = .data$size,
-                                                   ), color = linePlot_df$color, linewidth = linePlot_df$size,
-                          show.legend = FALSE) +
-    ggrepel::geom_text_repel(data = text_df, ggplot2::aes(x = .data$centerOfAA, y = maxY + 1.3, label = .data$Domain),
-                             direction = "x", show.legend = FALSE, color = text_df$color,
-                             , max.overlaps = Inf, segment.color = NA, verbose = FALSE) +
+                                                   color = .data$color), linewidth = linePlot_df$size) +
+    ggplot2::scale_color_identity(
+      guide = ggplot2::guide_legend(
+        override.aes = list(size = 3, linetype = 1, shape = NA, linewidth = 3)),
+      name = "Protein Domain",
+      labels = stats::setNames(linePlot_df$Domain, linePlot_df$color)
+    ) +
+    ggnewscale::new_scale_color() +
     ggplot2::geom_point(data = labeldf, ggplot2::aes(x=.data$ProteinPTMLocalization, y = maxY + 1),
-                        fill = nodeColors[1], color = nodeColors[2], size = 9, shape = 21, show.legend = FALSE) +
+                        fill = nodeColors[1], color = nodeColors[2], size = 6, shape = 21, show.legend = FALSE) +
     ggrepel::geom_label_repel(data = labeldf, ggplot2::aes(x =.data$ProteinPTMLocalization,
                                                            y = maxY + 1, label = .data$ModificationID),
                               max.overlaps = Inf, nudge_y = 0.4, label.size = NA, fill = NA,

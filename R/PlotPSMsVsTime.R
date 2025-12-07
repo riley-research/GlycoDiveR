@@ -7,6 +7,7 @@
 #' supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Complex/Hybrid",
 #' "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose").
 #' @param binWidth the bin width used.
+#' @param lineWidth The width of the lines.
 #' @param whichAlias  Provide a vector of Aliases to only select these aliases
 #' for plotting.
 #' @param gradientLength Define the LC gradient length. If no length is supplied
@@ -35,9 +36,9 @@
 #' PlotPSMsVsTime(mydata, type = "allGlyco", whichAlias = c("NP0-1-r1"),
 #' binWidth = 1, gradientLength = NA)
 #' }
-PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, gradientLength = NA,
-                           plotColors = c("#bdbdbd", "#1b9e77"), whichAlias = NULL,
-                           whichPeptide = NULL, whichProtein = NULL,
+PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, lineWidth = 1,
+                           gradientLength = NA, plotColors = c("#bdbdbd", "#1b9e77"),
+                           whichAlias = NULL, whichPeptide = NULL, whichProtein = NULL,
                            exactProteinMatch = TRUE, silent = FALSE){
   glycoPSMTypes <- .modEnv$GlycanColors$GlycanType
 
@@ -142,10 +143,12 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, gradientLength = N
                           c(.modEnv$GlycanColors$GlycanType, "nonGlyco", "glycoPSMs", "Glyco", "PSMs"))
 
   #Plot###
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$bin, y = .data$count,
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$bin, y = .data$count,
                                    linetype = .data$Alias, color = .data$PSMType)) +
-    ggplot2::geom_line() +
+    ggplot2::geom_line(linewidth = lineWidth) +
     ggplot2::labs(x = "Time (min)", y = "Number of PSMs") +
-    ggplot2::scale_color_manual(values = colH)
+    ggplot2::scale_color_manual(values = colH) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
 
+  return(p)
 }

@@ -8,6 +8,7 @@ PlotPSMsVsTime(
   input,
   type = "all",
   binWidth = 5,
+  lineWidth = 1,
   gradientLength = NA,
   plotColors = c("#bdbdbd", "#1b9e77"),
   whichAlias = NULL,
@@ -25,6 +26,8 @@ supply a vector of glycan types, such as c("Multi", "nonGlyco", "Sialyl", "Compl
 "Sialyl+Fucose", "Fucose", "Truncated", "High Mannose", "Paucimannose").}
 
 \item{binWidth}{the bin width used.}
+
+\item{lineWidth}{The width of the lines.}
 
 \item{gradientLength}{Define the LC gradient length. If no length is supplied
 the maximum PSM retention time is used.}

@@ -11,6 +11,7 @@ PlotComparisonVolcano(
   log2FCCutoff = 1,
   statistic = "adjpvalue",
   whichLabel = "significant",
+  plotColors = c("#88CCEE", "#BBBBBB", "#882255"),
   maxOverlaps = 10
 )
 }
@@ -30,6 +31,8 @@ ImportMSstatsComparison function)}
 choose "significant", "none", or supply a vector with the points to label.
 For example c("HPT-149", "SPA3K-N271"). These are internally generated using
 the comparison dataframe: paste(Proteins, ModificationID, sep = "-")}
+
+\item{plotColors}{The colors used in the plot.}
 
 \item{maxOverlaps}{The maximum number of overlapping labels in the volcanoplot}
 }

@@ -9,7 +9,8 @@ PlotGlycositeIdsPerRun(
   whichProtein = NULL,
   exactProteinMatch = TRUE,
   whichAlias = NULL,
-  colorVec = c("#6dc381", "pink", "#6761A8"),
+  colorVec = c("#BAA5CC", "#32006e", "white"),
+  plotGradient = c("white", "#44AA99"),
   silent = FALSE
 )
 }
@@ -29,6 +30,8 @@ it will select non-exact matches. For example, "P61224" will only match to
 \item{whichAlias}{provide a vector of Aliases to only select these aliases}
 
 \item{colorVec}{The color scheme used in the plot. Default = c("#6dc381", "pink", "#6761A8")}
+
+\item{plotGradient}{The fill gradient of the points.}
 
 \item{silent}{silence printed information (default = FALSE).}
 }
