@@ -272,10 +272,21 @@ PlotSiteQuantification(exampleData, whichProtein = "P12259,A0A0A0MRJ7", site = "
 
 ### PlotGlycanCompositionPie
 
-The glycan composition of a single protein.
+The glycan composition of a single protein or a list of protein.
 
 ```{r, message = FALSE, fig.width=6, fig.height=4}
 PlotGlycanCompositionPie(exampleData, whichProtein = "P12259,A0A0A0MRJ7")
+```
+
+#### PlotGlycanCompositionBar
+
+The glycan composition of a single protein or a list of protein.
+
+```{r, message = FALSE, fig.width=6, fig.height=4}
+PlotGlycanCompositionBar(exampleData, whichProtein = "P12259,A0A0A0MRJ7",
+                         grouping = "condition")
+
+PlotGlycanCompositionBar(exampleData, grouping = "biologicalReps")
 ```
 
 ### PlotGlycansPerSite
@@ -333,9 +344,9 @@ PlotComparisonVolcano(myComparison, whichComparison = c("NPA-NPB"),
                       statistic = "adjpvalue", statisticalCutoff = 0.05)
 ```
 
-## Compuation functions
+## GlycoDiveR computation functions
 
-GlycoDiveR has in-built functions to compute data statistics.
+GlycoDiveR has in-built functions to compute different types of data statistics.
 
 ### ComputeMissingess
 
