@@ -39,8 +39,14 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
 
-  df <- GetMeanTechReps(input$PTMTable) %>%
-    dplyr::filter(.data$GlycanType != "NonGlyco")
+  if(grouping != "technicalReps"){
+    df <- GetMeanTechReps(input$PTMTable) %>%
+      dplyr::filter(.data$GlycanType != "NonGlyco")
+  }else{
+    df <- input$PTMTable %>%
+      dplyr::filter(.data$GlycanType != "NonGlyco")
+  }
+
 
   if(!is.null(whichAlias)){
     df <- df %>%
