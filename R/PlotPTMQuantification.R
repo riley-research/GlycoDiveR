@@ -7,6 +7,7 @@
 #' These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
 #' This can either be a dataframe with a UniprotIDs column, or a vector with the
 #' UniprotID you want to keep.
+#' @param normalization "none".
 #' @param plotColors Defines the colors of the barplot.
 #' Default: plotColors = c("#00394c", "#27b56e", "white").
 #' @param heatmapColors Defines the colors of the heatmap.
@@ -32,7 +33,8 @@
 #'
 #' PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
 #'                       showRowNames = FALSE, lineWidth = 0)}
-PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#BAA5CC", "#32006e", "white"),
+PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "none",
+                                  plotColors = c("#BAA5CC", "#32006e", "white"),
                                   heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
                                   exactProteinMatch = TRUE, whichAlias = NULL, lineWidth = 2,
                                   rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
@@ -128,6 +130,20 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#B
     row_indices <- rowSums(mtrx != 0) > 0
     mtrx <- mtrx[row_indices, , drop = FALSE]
 
+    if(normalization == "ZScore"){
+      mtrx <- t(apply(mtrx, 1, function(row) {
+        nz <- row != 0
+        m  <- mean(row[nz])
+        s  <- stats::sd(row[nz])
+        row[nz] <- (row[nz] - m) / s
+        row
+      }))
+      mtrx[is.na(mtrx)] <- 0
+      legendTitle <- "Z-score normalized\nintensity"
+    }else{
+      legendTitle <- "log2 Intensity"
+    }
+
     #Get the color scheme
     valuesInMtrx <- sort(unique(as.vector(mtrx)))
     valuesInMtrx <- valuesInMtrx[valuesInMtrx != 0]
@@ -141,7 +157,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, plotColors = c("#B
                                      c(heatmapColors[1], heatmapColors))
 
       #Get the legend right
-      lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = "log2 Intensity", direction = "horizontal",
+      lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = legendTitle, direction = "horizontal",
                                    at = round(seq(lowestVal, highestVal, length.out= 4), 2))
     }else if(length(valuesInMtrx) == 0){
       col_fun = circlize::colorRamp2(c(-1, 1), c(heatmapColors[1], heatmapColors[1]))
