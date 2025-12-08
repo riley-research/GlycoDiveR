@@ -33,11 +33,8 @@ if (!requireNamespace("GlycoDiveR", quietly = TRUE)) {
 }
 ```
 
-```{r, message=FALSE, warning=FALSE, eval = FALSE}
+```{r, message=FALSE, warning=FALSE, eval = TRUE}
 library(GlycoDiveR)
-```
-```{r, echo=FALSE, message=FALSE}
-devtools::load_all()
 ```
 
 To follow this vignette, you can use the raw data uploaded on GlycoDiver's Github,
@@ -324,7 +321,8 @@ N-glycan sites.
 ```{r, message = FALSE, fig.width=7, fig.height=6}
 PlotGlycoProteinGlycanNetwork(exampleData)
 
-PlotGlycoProteinGlycanNetwork(exampleData, highlight = "Sialyl+Fucose")
+PlotGlycoProteinGlycanNetwork(exampleData, highlight = "Sialofucosylated",
+                              verticeSize = c(6,7), edgeWidth = 2.5)
 ```
 
 ### PlotGlycositesVsGlycans
