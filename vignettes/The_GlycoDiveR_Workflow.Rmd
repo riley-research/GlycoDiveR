@@ -247,7 +247,7 @@ PlotGlycositeIdsPerRun(exampleData, whichProtein = "P00748")
 An Upset plot to showcase overlap in glycopeptide, glycoprotein, peptide, or
 protein overlap.
 
-```{r, message = FALSE, fig.width=6, fig.height=4}
+```{r, message = FALSE, warning = FALSE, fig.width=6, fig.height=4}
 PlotUpSet(exampleData, type = "glyco", level = "protein")
 ```
 
