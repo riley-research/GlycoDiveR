@@ -1,3 +1,13 @@
+#' ImportPerseusAbundances
+#'
+#' @param input
+#' @param PerseusPath
+#' @param cleanCCarbamidomethylation
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 ImportPerseusAbundances <- function(input, PerseusPath, cleanCCarbamidomethylation = TRUE){
   columnNames <- names(utils::read.delim(PerseusPath))
 
