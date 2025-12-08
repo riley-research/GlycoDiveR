@@ -1,13 +1,15 @@
 #' ImportPerseusAbundances
 #'
-#' @param input
-#' @param PerseusPath
-#' @param cleanCCarbamidomethylation
+#' @param input GD data
+#' @param PerseusPath path
+#' @param cleanCCarbamidomethylation yes
 #'
-#' @returns
+#' @returns Dataframe
 #' @export
 #'
-#' @examples
+#' @examples \dontrun{
+#' ImportPerseusAbundances(mydata, PerseusPath = "C:/topath")
+#' }
 ImportPerseusAbundances <- function(input, PerseusPath, cleanCCarbamidomethylation = TRUE){
   columnNames <- names(utils::read.delim(PerseusPath))
 
