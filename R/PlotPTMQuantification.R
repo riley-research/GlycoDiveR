@@ -7,6 +7,10 @@
 #' These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
 #' This can either be a dataframe with a UniprotIDs column, or a vector with the
 #' UniprotID you want to keep.
+#' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
+#' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+#' that you want to keep. Inputted data with the comparison importer functions is
+#' directly usable, also after filtering using the FilterComparison function.
 #' @param normalization "none".
 #' @param plotColors Defines the colors of the barplot.
 #' Default: plotColors = c("#00394c", "#27b56e", "white").
@@ -33,13 +37,14 @@
 #'
 #' PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
 #'                       showRowNames = FALSE, lineWidth = 0)}
-PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "none",
-                                  plotColors = c("#BAA5CC", "#32006e", "white"),
+PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NULL, normalization = "none",
+                                  collapseTechReps = FALSE, plotColors = c("#BAA5CC", "#32006e", "white"),
                                   heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
                                   exactProteinMatch = TRUE, whichAlias = NULL, lineWidth = 2,
                                   rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%
@@ -73,7 +78,8 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "n
   #Generate lineplot with PTM annotation
   labeldf <- dplyr::distinct(df[c("ProteinPTMLocalization", "ModificationID")])
 
-  labeldf2 <- data.frame(ProteinPTMLocalization = c(1, df$ProteinLength[1]),
+  labeldf2 <- data.frame(ProteinPTMLocalization = c(1 - (df$ProteinLength[1] * 0.03),
+                                                    df$ProteinLength[1] + (df$ProteinLength[1] * 0.05)),
                          "ModificationID" = c(1, df$ProteinLength[1]))
 
   p1 <- ggplot2::ggplot(df) +
@@ -92,14 +98,25 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "n
     ggplot2::theme(plot.margin = ggplot2::margin(b = 10)) +
     ggplot2::coord_cartesian(clip = "off")
 
-    dfQuant <- GetMeanTechReps(df)
+    if(collapseTechReps){
+      dfQuant <- GetMeanTechReps(df)
+      dfQuant$Alias <- droplevels(dfQuant$Alias)
 
-    #Get levels right
-    if(!is.null(whichAlias)){
-      levels_mtrx <- levels(input$PTMTable$Alias)
-      levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+      if(!is.null(whichAlias)){
+        levels_mtrx <- levels(input$PTMTable$Alias)
+        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+      }else{
+        levels_mtrx <- levels(dfQuant$Alias)
+      }
     }else{
-      levels_mtrx <- levels(input$PTMTable$Alias)
+      dfQuant <- df
+
+      if(!is.null(whichAlias)){
+        levels_mtrx <- levels(input$PTMTable$Alias)
+        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+      }else{
+        levels_mtrx <- levels(input$PTMTable$Alias)
+      }
     }
 
     hmdf <- dfQuant[c("Alias", "GlycanIdentifier", "Intensity", "ProteinPTMLocalization")]
@@ -138,17 +155,20 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "n
         row[nz] <- (row[nz] - m) / s
         row
       }))
-      mtrx[is.na(mtrx)] <- 0
       legendTitle <- "Z-score normalized\nintensity"
+      notFoundVal <- min(mtrx, na.rm = TRUE) - 100
+      mtrx[is.na(mtrx)] <- notFoundVal
+      mtrx[mtrx == 0] <- notFoundVal
     }else{
       legendTitle <- "log2 Intensity"
+      notFoundVal <- 0
     }
 
     #Get the color scheme
     valuesInMtrx <- sort(unique(as.vector(mtrx)))
-    valuesInMtrx <- valuesInMtrx[valuesInMtrx != 0]
+    valuesInMtrx <- valuesInMtrx[valuesInMtrx != notFoundVal]
 
-    if(sum(valuesInMtrx != 0) > 1){
+    if(sum(valuesInMtrx != notFoundVal) > 1){
       lowestVal <- floor(valuesInMtrx[1])
       secondLowestVal <- valuesInMtrx[2]
       highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
@@ -159,7 +179,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, normalization = "n
       #Get the legend right
       lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = legendTitle, direction = "horizontal",
                                    at = round(seq(lowestVal, highestVal, length.out= 4), 2))
-    }else if(length(valuesInMtrx) == 0){
+    }else if(length(valuesInMtrx) == notFoundVal){
       col_fun = circlize::colorRamp2(c(-1, 1), c(heatmapColors[1], heatmapColors[1]))
     }else{
       col_fun <- circlize::colorRamp2(c(valuesInMtrx[1]-0.01, valuesInMtrx[1]), c(heatmapColors[1], heatmapColors[4]))

@@ -151,6 +151,9 @@ GetMeanTechReps <- function(df){
   if("ModificationID" %in% names(df)){
     #Take median of technical reps together
     df <- df %>%
+      dplyr::mutate(.by = c("Condition", "BioReplicate"),
+                    Alias = .data$Alias[1],
+                    TechReplicate = .data$TechReplicate[1]) %>%
       dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
                             "Condition", "BioReplicate"),
                     Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
