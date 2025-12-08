@@ -22,8 +22,8 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
 
   prepare_edit <- function(edit) {
     if(edit == "glycan_light"){
-      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
-                                "Fucose", "Oligomannose", "Truncated",
+      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
+                                "Fucosylated", "Oligomannose", "Truncated",
                                 "Paucimannose", "Phosphomannose", "OGlycan",
                                 "NonCanonicalGlyco", "Multi"),
                  color = c("#A1CAE8", "#FFE8A2", "#CC82C3",
@@ -31,8 +31,8 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
                            "#0072BC", "#EE8866", "#BF5A6B",
                            "#FABC3C", "#664C43"))
     }else if(edit == "glycan_dark"){
-      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
-                                       "Fucose", "Oligomannose", "Truncated",
+      edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
+                                       "Fucosylated", "Oligomannose", "Truncated",
                                        "Paucimannose", "Phosphomannose", "OGlycan",
                                        "NonCanonicalGlyco", "Multi"),
                         color = c("#0072BC", "#FFD400", "#A54399",

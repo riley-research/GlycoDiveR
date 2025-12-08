@@ -107,9 +107,9 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
         hex_count <- suppressWarnings(as.numeric(sub(".*H\\(([0-9]+)\\).*", "\\1", glycanComp)))
 
         glycanCat <- dplyr::case_when(
-          grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialyl+Fucose",
-          grepl("A|G", glycanComp) ~ "Sialyl",
-          grepl("F", glycanComp) ~ "Fucose",
+          grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialofucosylated",
+          grepl("A|G", glycanComp) ~ "Sialylated",
+          grepl("F", glycanComp) ~ "Fucosylated",
           grepl("Phospho", glycanComp) ~ "Phosphomannose",
           !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count == 2 & hex_count == 3 ~ "Paucimannose",
           (!is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 2) |
@@ -1051,6 +1051,27 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   return(rawdata)
 }
 
+GetPSMGlycanCategory <- function(GType){
+  glycoPSMTypes <- .modEnv$GlycanColors$GlycanType
+
+  tempdf <- data.frame(GType = GType) %>%
+    dplyr::mutate(PSMType = dplyr::case_when(stringr::str_count(.data$GType, paste(glycoPSMTypes, collapse = "|")) > 1 ~ "Multi",
+                                             stringr::str_count(.data$GType, paste(glycoPSMTypes, collapse = "|")) == 0 ~ "nonGlyco",
+                                             grepl("Sialofucosylated", .data$GType) ~ "Sialofucosylated",
+                                             grepl("Phospho", .data$GType) ~ "Phosphomannose",
+                                             grepl("Sialylated", .data$GType) ~ "Sialylated",
+                                             grepl("Complex/Hybrid", .data$GType) ~ "Complex/Hybrid",
+                                             grepl("Fucosylated", .data$GType) ~ "Fucosylated",
+                                             grepl("Truncated", .data$GType) ~ "Truncated",
+                                             grepl("Oligomannose", .data$GType) ~ "Oligomannose",
+                                             grepl("Paucimannose", .data$GType) ~ "Paucimannose",
+                                             grepl("OGlycan", .data$GType) ~ "OGlycan",
+                                             grepl("NonCanonicalGlyco", .data$GType) ~ "NonCanonicalGlyco",
+                                             TRUE ~ "Other"))
+
+  return(tempdf$PSMType)
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
@@ -1067,8 +1088,8 @@ Databases <- function(){
     ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215")
   )
 
-  GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialyl+Fucose", "Sialyl",
-                                           "Fucose", "Oligomannose", "Truncated",
+  GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
+                                           "Fucosylated", "Oligomannose", "Truncated",
                                            "Paucimannose", "Phosphomannose", "OGlycan",
                                            "NonCanonicalGlyco", "Multi"),
                             color = c("#A1CAE8", "#FFE8A2", "#CC82C3",
@@ -1076,20 +1097,14 @@ Databases <- function(){
                                       "#0072BC", "#EE8866", "#BF5A6B",
                                       "#FABC3C", "#664C43"))
 
-  original <- c(
-    "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
-    "#ffaabb", "#cc6677", "#882255", "#32006e"
-  )
-  # n_new <- 12
-  # interp_fun <- colorRampPalette(original)
-  # extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
-  # colorScheme <- c(original, extra)
-
-  # colorScheme <- c(
-  #   "#BAA5CC", "#9ADCEE", "#BAD97C", "#EEAED0", "#FAD821", "#94D8C3", "#F7B8D2", "#A7C7E7",
-  #   "#FFE87C", "#C0E4D0", "#A1A9F2", "#C1D87F", "#E3B7E2", "#B1D3C2", "#F9A9B6", "#D1D2E3",
-  #   "#A4EFA1", "#D9D07A", "#98C9C7", "#F4D1A1"
+  # original <- c(
+  #   "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
+  #   "#ffaabb", "#cc6677", "#882255", "#32006e"
   # )
+  #  n_new <- 12
+  #  interp_fun <- colorRampPalette(original)
+  #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
+  #  colorScheme <- c(original, extra)
 
-  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+  usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }

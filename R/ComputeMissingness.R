@@ -50,20 +50,7 @@ ComputeMissingness <- function(input, type = "glyco", removeAllNA = TRUE,
                        "Fucose", "Truncated", "Oligomannose", "Paucimannose",
                        "OGlycan", "Phosphomannose", "NonCanonicalGlyco")
     df <- df %>%
-      dplyr::mutate(PSMType = dplyr::case_when(stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) > 1 &
-                                                 stringr::str_count(.data$GlycanType, "Sialyl") == 2 &
-                                                 grepl("Sialyl+Fucose", .data$GlycanType) == 1 ~ "Multi",
-                                               stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) == 0 ~ "nonGlyco",
-                                               grepl("Phospho", .data$GlycanType) ~ "Phosphomannose",
-                                               grepl("Sialyl", .data$GlycanType) ~ "Sialyl",
-                                               grepl("Complex/Hybrid", .data$GlycanType) ~ "Complex/Hybrid",
-                                               grepl("Sialyl+Fucose", .data$GlycanType) ~ "Sialyl+Fucose",
-                                               grepl("Fucose", .data$GlycanType) ~ "Fucose",
-                                               grepl("Truncated", .data$GlycanType) ~ "Truncated",
-                                               grepl("High Mannose", .data$GlycanType) ~ "Oligomannose",
-                                               grepl("Paucimannose", .data$GlycanType) ~ "Paucimannose",
-                                               grepl("OGlycan", .data$GlycanType) ~ "OGlycan",
-                                               TRUE ~ "NonCanonicalGlyco")) %>%
+      dplyr::mutate(PSMType = GetPSMGlycanCategory(.data$GlycanType)) %>%
       dplyr::filter(.data$PSMType != "nonGlyco")
   }
 

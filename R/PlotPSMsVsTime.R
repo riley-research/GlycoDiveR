@@ -40,8 +40,6 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, lineWidth = 1,
                            gradientLength = NA, plotColors = c("#bdbdbd", "#1b9e77"),
                            whichAlias = NULL, whichPeptide = NULL, whichProtein = NULL,
                            exactProteinMatch = TRUE, silent = FALSE){
-  glycoPSMTypes <- .modEnv$GlycanColors$GlycanType
-
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
@@ -60,21 +58,7 @@ PlotPSMsVsTime <- function(input, type = "all", binWidth = 5, lineWidth = 1,
   }
 
   df <- input$PSMTable %>%
-    dplyr::mutate(PSMType = dplyr::case_when(stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) > 1 &
-                                               stringr::str_count(.data$GlycanType, "Sialyl") == 2 &
-                                               grepl("Sialyl+Fucose", .data$GlycanType) == 1 ~ "Multi",
-                                             stringr::str_count(.data$GlycanType, paste(glycoPSMTypes, collapse = "|")) == 0 ~ "nonGlyco",
-                                             grepl("Phospho", .data$GlycanType) ~ "Phosphomannose",
-                                             grepl("Sialyl", .data$GlycanType) ~ "Sialyl",
-                                             grepl("Complex/Hybrid", .data$GlycanType) ~ "Complex/Hybrid",
-                                             grepl("Sialyl+Fucose", .data$GlycanType) ~ "Sialyl+Fucose",
-                                             grepl("Fucose", .data$GlycanType) ~ "Fucose",
-                                             grepl("Truncated", .data$GlycanType) ~ "Truncated",
-                                             grepl("High Mannose", .data$GlycanType) ~ "Oligomannose",
-                                             grepl("Paucimannose", .data$GlycanType) ~ "Paucimannose",
-                                             grepl("OGlycan", .data$GlycanType) ~ "OGlycan",
-                                             grepl("NonCanonicalGlyco", .data$GlycanType) ~ "NonCanonicalGlyco",
-                                             TRUE ~ "Other"))
+    dplyr::mutate(PSMType = GetPSMGlycanCategory(.data$GlycanType))
 
   if (length(type) == 1 && identical(type, "allGlyco")) {
     df <- df %>%
