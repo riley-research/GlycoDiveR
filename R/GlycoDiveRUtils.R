@@ -1106,5 +1106,5 @@ Databases <- function(){
   #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
   #  colorScheme <- c(original, extra)
 
-  usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }
