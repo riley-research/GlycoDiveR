@@ -11,7 +11,8 @@
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
-#' @param normalization "none".
+#' @param normalization "none" or "ZScore".
+#' @param collapseTechReps Collapse the technical replicates.
 #' @param plotColors Defines the colors of the barplot.
 #' Default: plotColors = c("#00394c", "#27b56e", "white").
 #' @param heatmapColors Defines the colors of the heatmap.
@@ -100,13 +101,18 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
 
     if(collapseTechReps){
       dfQuant <- GetMeanTechReps(df)
-      dfQuant$Alias <- droplevels(dfQuant$Alias)
 
       if(!is.null(whichAlias)){
         levels_mtrx <- levels(input$PTMTable$Alias)
         levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
       }else{
-        levels_mtrx <- levels(dfQuant$Alias)
+        levels_df <- input$PSMTable %>%
+          dplyr::filter(.by = c("Condition", "BioReplicate"),
+                        .data$TechReplicate == min(.data$TechReplicate, na.rm = TRUE))
+
+        levels_df$Alias <- droplevels(levels_df$Alias)
+
+        levels_mtrx <- levels(levels_df$Alias)
       }
     }else{
       dfQuant <- df
