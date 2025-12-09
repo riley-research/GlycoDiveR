@@ -7,8 +7,20 @@
 ImportPerseusAbundances(input, PerseusPath, cleanCCarbamidomethylation = TRUE)
 }
 \arguments{
-\item{cleanCCarbamidomethylation}{}
+\item{input}{GD data}
+
+\item{PerseusPath}{path}
+
+\item{cleanCCarbamidomethylation}{yes}
+}
+\value{
+Dataframe
 }
 \description{
 ImportPerseusAbundances
+}
+\examples{
+\dontrun{
+ImportPerseusAbundances(mydata, PerseusPath = "C:/topath")
+}
 }
