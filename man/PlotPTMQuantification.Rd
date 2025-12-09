@@ -7,6 +7,9 @@
 PlotPTMQuantification(
   input,
   whichProtein = NULL,
+  whichPeptide = NULL,
+  normalization = "none",
+  collapseTechReps = FALSE,
   plotColors = c("#BAA5CC", "#32006e", "white"),
   heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
   exactProteinMatch = TRUE,
@@ -24,6 +27,15 @@ PlotPTMQuantification(
 These should be the IDs as presented in the UniprotIDs column in your GlycoDiveR data.
 This can either be a dataframe with a UniprotIDs column, or a vector with the
 UniprotID you want to keep.}
+
+\item{whichPeptide}{Filter what peptides to plot. This can either be a dataframe
+with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
+that you want to keep. Inputted data with the comparison importer functions is
+directly usable, also after filtering using the FilterComparison function.}
+
+\item{normalization}{"none" or "ZScore".}
+
+\item{collapseTechReps}{Collapse the technical replicates.}
 
 \item{plotColors}{Defines the colors of the barplot.
 Default: plotColors = c("#00394c", "#27b56e", "white").}
