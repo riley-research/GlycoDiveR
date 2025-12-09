@@ -148,12 +148,14 @@ GetMeanTechReps <- function(df){
                     .data$Condition, .data$BioReplicate, .data$TechReplicate,
                     .keep_all = TRUE)
 
+  if(nrow(df) < 1){return(df)}
+
   if("ModificationID" %in% names(df)){
     #Take median of technical reps together
     df <- df %>%
       dplyr::mutate(.by = c("Condition", "BioReplicate"),
-                    Alias = .data$Alias[1],
-                    TechReplicate = .data$TechReplicate[1]) %>%
+                    Alias = min(as.character(.data$Alias), na.rm = TRUE) |> factor(),
+                    TechReplicate = min(.data$TechReplicate, na.rm = TRUE)) %>%
       dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
                             "Condition", "BioReplicate"),
                     Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
@@ -164,8 +166,8 @@ GetMeanTechReps <- function(df){
   }else{
      df <- df %>%
        dplyr::mutate(.by = c("Condition", "BioReplicate"),
-                     Alias = .data$Alias[1],
-                     TechReplicate = .data$TechReplicate[1]) %>%
+                     Alias = min(as.character(.data$Alias), na.rm = TRUE) |> factor(),
+                     TechReplicate = min(.data$TechReplicate, na.rm = TRUE)) %>%
        dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
                              "Condition", "BioReplicate"),
                      Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
