@@ -31,6 +31,7 @@ PlotGlycansPerSite <- function(input, whichAlias = NULL, whichPeptide = NULL,
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  input$PTMTable <- input$PTMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   df <- GetMeanTechReps(input$PTMTable)
 

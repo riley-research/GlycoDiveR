@@ -47,6 +47,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  input$PTMTable <- input$PTMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco")

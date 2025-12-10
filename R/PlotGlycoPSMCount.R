@@ -34,6 +34,7 @@ PlotGlycoPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
+  input$PSMTable <- input$PSMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   input$PSMTable$Glycan <- sapply(input$PSMTable$TotalGlycanComposition, function(x) ifelse(!is.na(x) & x != "", "Glycosylated", "nonGlycosylated"))
 

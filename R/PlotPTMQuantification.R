@@ -46,6 +46,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
+  input$PTMTable <- input$PTMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   df <- input$PTMTable %>%
     dplyr::filter(!grepl("C\\(57.0215|M\\(15.9949", .data$AssignedModifications)) %>%

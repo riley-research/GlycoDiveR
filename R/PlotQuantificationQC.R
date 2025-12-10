@@ -31,6 +31,7 @@ PlotQuantificationQC <- function(input, whichAlias = NULL, whichQuantification =
                                  exactProteinMatch = TRUE, silent = FALSE){
   df <- FilterForPeptides(input$PSMTable, whichPeptide)
   df <- FilterForProteins(df, whichProtein, exactProteinMatch)
+  df <- df %>% dplyr::filter(!is.na(.data$Intensity))
 
   if(!is.null(whichAlias)){
     df <- df %>%

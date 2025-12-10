@@ -33,6 +33,7 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
+  input$PSMTable <- input$PSMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   if(!is.null(whichAlias)){
     input$PSMTable <- input$PSMTable %>%

@@ -45,6 +45,7 @@ PlotGlycositesVsGlycans <- function(input, whichAlias = NULL, pointSize = 3,
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  input$PTMTable <- input$PTMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   if(!is.null(whichAlias)){
     input$PTMTable <- input$PTMTable %>%
