@@ -37,6 +37,7 @@ PlotGlycanCompositionBar <- function(input, grouping = "condition", scales = "fi
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein,exactProteinMatch)
+  input$PTMTable <- input$PTMTable %>% dplyr::filter(!is.na(.data$Intensity))
 
   if(grouping != "technicalReps"){
     df <- GetMeanTechReps(input$PTMTable) %>%

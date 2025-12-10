@@ -1,7 +1,7 @@
 #' ImportMSstatsComparison
 #'
 #' This imports the MSstats comparison results. It needs the following columns to
-#' work fully: Protein, proteinName, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
+#' work fully: Protein, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
 #'
 #' @param path The filepath to the MSstats output file.
 #' @param cleanCCarbamidomethylation Removes \\[57.0215\\] from the MSstats
@@ -26,8 +26,8 @@ ImportMSstatsComparison <- function(path, cleanCCarbamidomethylation = TRUE){
   }else{stop("The column Protein was not found in the input dataframe.")}
 
   #Proteins####
-  if("proteinName" %in% existingCols){
-    comparison_df$Proteins <- as.character(MSstats_raw$proteinName)
+  if("Protein" %in% existingCols){
+    comparison_df$Proteins <- as.character(ID <- gsub("_.*", "", sub("^([^|]*\\|){2}", "", MSstats_raw$Protein)))
     fmessage("Successfully imported Protein column.")
   }else{warning("The column Protein was not found in the input dataframe.")}
 
