@@ -154,7 +154,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   if("Intensity" %in% existingCols) {
     filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(unfiltereddf$Intensity))
     fmessage("Successfully imported RawIntensity column.")}
-  else{filtereddf <- cbind(filtereddf, RawIntensity = as.numeric(NA))
+  else{filtereddf <- cbind(filtereddf, RawIntensity = 0)
   warning("Intensity column not found. Filled with NA.")}
 
   #Intensity####
