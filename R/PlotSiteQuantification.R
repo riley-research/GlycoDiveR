@@ -107,7 +107,7 @@ PlotSiteQuantification <- function(input, whichProtein, site, whichPeptide = NUL
     ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0, max(df$Intensity)*1.05)) +
     ggplot2::scale_fill_manual(values = .modEnv$colorScheme)  +
     ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
-                   axis.text.x = ggplot2::element_text(hjust = 2),
+                   axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 1)),
                    strip.background = ggplot2::element_blank(),
                    strip.text = ggplot2::element_text(face="bold", size = 12))
 

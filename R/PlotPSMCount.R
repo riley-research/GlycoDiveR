@@ -63,7 +63,7 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::scale_y_continuous(expand=c(0,0), limits = c(0, NA)) +
       ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
       ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
-                     axis.text.x = ggplot2::element_text(hjust = 2))
+                     axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 1)))
 
     return(p)
   }
@@ -113,7 +113,7 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
       ggplot2::scale_shape_manual(values = c(15, 17)) +
       ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
-                     axis.text.x = ggplot2::element_text(hjust = 1))
+                     axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 1)))
 
     return(p)
   }
@@ -161,7 +161,7 @@ PlotPSMCount <- function(input, grouping = "condition", whichAlias = NULL,
       ggplot2::scale_fill_manual(values = c(.modEnv$colorScheme[2:1])) +
       ggplot2::scale_shape_manual(values = c(15, 17)) +
       ggplot2::theme(axis.ticks.x= ggplot2::element_blank(),
-                     axis.text.x = ggplot2::element_text(hjust = 1))
+                     axis.text.x = ggplot2::element_text(margin = ggplot2::margin(t = 1)))
 
     return(p)
   }
