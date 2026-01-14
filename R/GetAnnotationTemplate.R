@@ -40,6 +40,38 @@ GetAnnotationTemplate <- function(path, tool){
     }else{
       utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
       fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
+  }else if(tool == "MSFraggerTMT"){
+    fileList <- list.files(path, recursive = TRUE)
+    fileList <- fileList[grepl("psm.tsv", fileList)]
+    unfiltereddf <- data.frame()
+
+    if(length(fileList) == 0){stop("No files found.")}
+    for(file in fileList){
+      print(paste0(path, "/", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE) %>%
+        dplyr::select(!dplyr::starts_with(c("Resolution.", "SNR."))) %>%
+         tidyr::pivot_longer(cols = dplyr::starts_with("Intensity."),
+                             names_to = "RunTMT",
+                             values_to = "Intensity_pivotted")
+
+      unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable) %>%
+        dplyr::mutate(RunTMT = gsub("Intensity\\.", "", .data$RunTMT))
+    }
+    unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
+    unfiltereddf$Run <- paste(unfiltereddf$Run, unfiltereddf$RunTMT, sep ="-")
+
+    tempdf <- data.frame(Run = unique(unfiltereddf$Run),
+                         Condition = NA,
+                         Alias = NA,
+                         BioReplicate = NA,
+                         TechReplicate = NA)
+
+    if(grepl("/$", path)){
+      utils::write.csv(tempdf, paste0(path,"annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"annotation.csv")))
+    }else{
+      utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
   }else if(tool == "Byonic"){
     fileList <- list.files(path, recursive = TRUE)
     fileList <- fileList[grepl("Byonic.xlsx", fileList)]
