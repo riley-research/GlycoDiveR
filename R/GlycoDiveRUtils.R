@@ -35,8 +35,24 @@ PSMToPTMTable <- function(PSMTable){
 
   tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
 
-  tempdf$TotalGlycanComposition <- CleanGlycanComp(tempdf$AssignedModifications,
-                                                   tempdf$TotalGlycanComposition)
+  unique_mods <- tempdf %>%
+    dplyr::distinct(.data$AssignedModifications, .data$TotalGlycanComposition)
+
+  unique_mods <- unique_mods %>%
+    dplyr::mutate(
+      TotalGlycanCompositionCorrect = mapply(
+        CleanGlycanComp,
+        AssModVec = .data$AssignedModifications,
+        TotGlycoVec = .data$TotalGlycanComposition
+      ) %>% as.character()
+    )
+
+  tempdf <- tempdf %>%
+    dplyr::left_join(unique_mods, by = c("AssignedModifications", "TotalGlycanComposition")) %>%
+    dplyr::select(-"TotalGlycanComposition", "TotalGlycanComposition" = "TotalGlycanCompositionCorrect")
+
+  # tempdf$TotalGlycanComposition <- CleanGlycanComp(tempdf$AssignedModifications,
+  #                                                  tempdf$TotalGlycanComposition)
 
   tempdf <- tempdf %>%
     dplyr::mutate(
@@ -45,8 +61,25 @@ PSMToPTMTable <- function(PSMTable){
       ModificationSite = stringr::str_extract(.data$AssignedModifications, "[A-Za-z](?=\\()"),
       ModificationID = paste0(.data$ModificationSite, .data$ProteinPTMLocalization))
 
-  tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")],
-                             1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  unique_mods <- tempdf %>%
+    distinct(.data$AssignedModifications, .data$TotalGlycanComposition)
+
+  unique_mods <- unique_mods %>%
+    dplyr::mutate(
+      GlycanTypeCorrect = mapply(
+        GlycanComptToGlycanType,
+        mod = .data$AssignedModifications,
+        glycanComp = .data$TotalGlycanComposition
+      ) %>% as.character()
+    )
+
+  tempdf <- tempdf %>%
+    dplyr::left_join(unique_mods, by = c("AssignedModifications", "TotalGlycanComposition"))  %>%
+    dplyr::select(-"GlycanType", "GlycanType" = "GlycanTypeCorrect") %>%
+    dplyr::mutate(TotalGlycanComposition = ifelse(.data$TotalGlycanComposition == "", NA, .data$TotalGlycanComposition))
+
+  # tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")],
+  #                            1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
 
   message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
 
@@ -563,7 +596,10 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
     modCodei <- substr(ModifiedPep, splitAA, nchar(ModifiedPep))
     modCodei <- stringr::str_extract(modCodei, "^[0-9]+")
 
-    if(!any(modLookupTable$modCode == modCodei & modLookupTable$modMass == modMassi)){
+    #print(paste0(AssignedMod, "---", ModifiedPep, "---", modMassi, "---", modCodei, "---", splitAA))
+    if(!is.na(modCodei) &&
+       !any(modLookupTable$modCode == modCodei &
+            modLookupTable$modMass == modMassi, na.rm = TRUE)){
       modLookupTable <- rbind(modLookupTable, data.frame(modCode = modCodei,
                                              modMass = modMassi))
     }else{
