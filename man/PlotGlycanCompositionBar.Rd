@@ -6,6 +6,7 @@
 \usage{
 PlotGlycanCompositionBar(
   input,
+  summaryFunction = "count",
   grouping = "condition",
   scales = "fill",
   whichAlias = NULL,
@@ -17,6 +18,9 @@ PlotGlycanCompositionBar(
 }
 \arguments{
 \item{input}{Formatted data imported through a GlycoDiveR importer.}
+
+\item{summaryFunction}{Use "count" to use glycopeptide count, "intensity"
+to summarize by glycopeptide intensity.}
 
 \item{grouping}{Grouping is "technicalReps", "biologicalReps", or "condition".}
 

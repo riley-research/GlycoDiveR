@@ -28,9 +28,7 @@
 #' @export
 #'
 #' @examples \dontrun{
-#' PlotGlycanCompositionBar(mydatam scales = "stack")
-#'
-#'
+#' PlotGlycanCompositionBar(mydata, scales = "stack")
 #' }
 PlotGlycanCompositionBar <- function(input, summaryFunction = "count", grouping = "condition",
                                      scales = "fill", whichAlias = NULL, whichPeptide = NULL,
