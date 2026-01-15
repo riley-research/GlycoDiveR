@@ -4,6 +4,8 @@
 #' proteins.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param summaryFunction Use "count" to use glycopeptide count, "intensity"
+#' to summarize by glycopeptide intensity.
 #' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition".
 #' @param scales  Controls plot normalization, choose "fill" or "stack".
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
