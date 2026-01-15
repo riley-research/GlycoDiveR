@@ -33,7 +33,11 @@ PSMToPTMTable <- function(PSMTable){
     dplyr::filter(!is.na(.data$AssignedModifications) & .data$AssignedModifications != "") %>%
     tidyr::separate_rows(.data$AssignedModifications, sep = ",")
 
-  tempdf$AssignedModifications <- gsub("N-term", "1", tempdf$AssignedModifications)
+  tempdf <- tempdf %>%
+    dplyr::mutate(AssignedModifications =
+                    dplyr::if_else(grepl("N-term", .data$AssignedModifications),
+                                   paste0("1", stringr::str_extract(.data$ModifiedPeptide, "[A-Z]"), gsub("N-term", "", .data$AssignedModifications)),
+                                   .data$AssignedModifications))
 
   unique_mods <- tempdf %>%
     dplyr::distinct(.data$AssignedModifications, .data$TotalGlycanComposition)
@@ -62,7 +66,7 @@ PSMToPTMTable <- function(PSMTable){
       ModificationID = paste0(.data$ModificationSite, .data$ProteinPTMLocalization))
 
   unique_mods <- tempdf %>%
-    distinct(.data$AssignedModifications, .data$TotalGlycanComposition)
+    dplyr::distinct(.data$AssignedModifications, .data$TotalGlycanComposition)
 
   unique_mods <- unique_mods %>%
     dplyr::mutate(
@@ -1125,8 +1129,10 @@ Databases <- function(){
 
   ModificationDatabase <- data.frame(
     FullName = c("Oxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
-                 "NAcetylation", "Carbamidomethyl"),
-    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215")
+                 "NAcetylation", "Carbamidomethyl", "TMT0",
+                 "TMT2", "TMT6", "TMT10", "TMT11", "TMT16", "TMT18", "TMT35"),
+    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215", "295.18959",
+                         "225.1558", "229.1629", "229.1629", "229.1629", "304.2071", "304.2071", "304.2071")
   )
 
   GlycanColors = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
@@ -1146,6 +1152,6 @@ Databases <- function(){
   #  interp_fun <- colorRampPalette(original)
   #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
   #  colorScheme <- c(original, extra)
-
-  #usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+  #
+  # usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }
