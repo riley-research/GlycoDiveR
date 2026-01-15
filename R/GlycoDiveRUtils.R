@@ -143,6 +143,9 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
         hexNAc_count <- suppressWarnings(as.numeric(sub(".*N\\(([0-9]+)\\).*", "\\1", glycanComp)))
         hex_count <- suppressWarnings(as.numeric(sub(".*H\\(([0-9]+)\\).*", "\\1", glycanComp)))
 
+        hexNAc_count[is.na(hexNAc_count)] <- 0
+        hex_count[is.na(hex_count)] <- 0
+
         glycanCat <- dplyr::case_when(
           grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialofucosylated",
           grepl("A|G", glycanComp) ~ "Sialylated",
