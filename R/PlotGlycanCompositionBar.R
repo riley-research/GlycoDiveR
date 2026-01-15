@@ -30,8 +30,8 @@
 #'
 #'
 #' }
-PlotGlycanCompositionBar <- function(input, grouping = "condition", scales = "fill",
-                                     whichAlias = NULL, whichPeptide = NULL,
+PlotGlycanCompositionBar <- function(input, summaryFunction = "count", grouping = "condition",
+                                     scales = "fill", whichAlias = NULL, whichPeptide = NULL,
                                      whichProtein = NULL, exactProteinMatch = TRUE,
                                      silent = FALSE){
   input <- FilterForCutoffs(input, silent)
@@ -55,17 +55,28 @@ PlotGlycanCompositionBar <- function(input, grouping = "condition", scales = "fi
   if(nrow(df) == 0){return("Nothing left after filtering.")}
 
   if(scales == "fill"){
-    yAxis <- "Number of glycosites\n(Normalized to total)"
+    if(summaryFunction == "count"){yAxis <- "Number of glycosites\n(Normalized to total)"
+    }else{yAxis <- "Glycosite intensity\n(Normalized to total)"}
   }else{
-    yAxis <- "Number of glycosites"
+    if(summaryFunction == "count"){
+      yAxis <- "Number of glycosites"
+    }else{yAxis <- "Glycosite intensity"}
   }
 
   colH <- stats::setNames(.modEnv$GlycanColors$color, .modEnv$GlycanColors$GlycanType)
 
+  summary_fun <- function(x = NULL) {
+    if (summaryFunction == "count") {
+      dplyr::n()
+    } else {
+      sum(x, na.rm = TRUE)
+    }
+  }
+
   if(grouping == "technicalReps"){
     p <- df %>%
       dplyr::summarise(.by = c("Run", "Alias", "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Run, .data$Alias, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x=.data$Alias, y=.data$GlycanCount, fill=.data$GlycanType)) +
       ggplot2::geom_bar(stat="identity", position = scales, width=1, color= "black") +
@@ -81,7 +92,7 @@ PlotGlycanCompositionBar <- function(input, grouping = "condition", scales = "fi
     p <- df %>%
       dplyr::summarise(.by = c("Condition", "BioReplicate",
                                "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Condition, .data$BioReplicate, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate)) %>%
       ggplot2::ggplot(ggplot2::aes(x=.data$x, y=.data$GlycanCount, fill=.data$GlycanType)) +
@@ -97,7 +108,7 @@ PlotGlycanCompositionBar <- function(input, grouping = "condition", scales = "fi
   }else if(grouping == "condition"){
     p <- df %>%
       dplyr::summarise(.by = c("Condition", "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Condition, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x=.data$Condition, y=.data$GlycanCount, fill=.data$GlycanType)) +
       ggplot2::geom_bar(stat="identity", position = scales, width=1, color= "black") +
