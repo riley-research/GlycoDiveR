@@ -1,5 +1,5 @@
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, scrape,
-                               normalization, convertFPModCodeToMass){
+                               normalization, convertFPModCodeToMass, TMT){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
   existingCols <- unique(names(unfiltereddf))
@@ -7,6 +7,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   #Run####
   if("Spectrum.File" %in% existingCols){
     unfiltereddf$Run <- sapply(unfiltereddf$Spectrum.File, function(x) strsplit(x, "\\", fixed = T)[[1]][length(strsplit(x, "\\", fixed = T)[[1]])-1])
+    if(TMT){
+      unfiltereddf$Run <- paste(unfiltereddf$Run, unfiltereddf$RunTMT, sep ="-")
+    }
     filtereddf <- cbind(filtereddf, Run = as.character(unfiltereddf$Run))
     fmessage("Successfully imported Run column.")
   }
