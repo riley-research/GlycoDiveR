@@ -14,7 +14,8 @@ ImportMSFragger(
   normalization = "median",
   convertFPModCodeToMass = TRUE,
   filterForNoNSequon = FALSE,
-  confidenceLevel = FALSE
+  confidenceLevel = FALSE,
+  TMT = FALSE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ for OPair data (default = FALSE).}
 \item{confidenceLevel}{What OPair confidence levels to accept, options are
 Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
 confidenceLevel = c("Level1", "Level1b")}
+
+\item{TMT}{set TRUE or FALSE to select for a TMT experiment.}
 }
 \value{
 Formatted GlycoDiveR data file.

@@ -17,7 +17,7 @@ A comparison table with the MSstats comparison results
 }
 \description{
 This imports the MSstats comparison results. It needs the following columns to
-work fully: Protein, proteinName, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
+work fully: Protein, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
 }
 \examples{
 \dontrun{ImportMSstatsComparison("C:/MSstatsFile.csv")}
