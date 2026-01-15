@@ -32,6 +32,7 @@
 #' @param confidenceLevel What OPair confidence levels to accept, options are
 #' Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
 #' confidenceLevel = c("Level1", "Level1b")
+#' @param TMT set TRUE or FALSE to select for a TMT experiment.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -45,7 +46,7 @@
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             glycanScoreCutoff = 0.01, scrape = TRUE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
-                            confidenceLevel = FALSE){
+                            confidenceLevel = FALSE, TMT = FALSE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -57,13 +58,31 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
   if(length(fileList) == 0){
     stop("No files found")
   }
-  for(file in fileList){
-    fmessage(paste0("Now importing: ", file))
-    temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE)
-    unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
+
+  if(TMT){
+    for(file in fileList){
+      fmessage(paste0("Now importing: ", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE) %>%
+        dplyr::rename("InitialIntensity" = "Intensity") %>%
+        tidyr::pivot_longer(
+          cols = dplyr::matches("^(Intensity|SNR|Resolution)\\."),
+          names_to = c(".value", "RunTMT"),
+          names_sep = "\\.")
+
+      unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable) %>%
+        dplyr::mutate(RunTMT = gsub("Intensity\\.", "", .data$RunTMT))
+    }
+  }else{
+    for(file in fileList){
+      fmessage(paste0("Now importing: ", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = "\t", check.names = TRUE, fill = TRUE)
+
+      unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
+    }
   }
 
-  if(normalization %in% c("FP_Normalized", "FP_MaxLFQ")){
+
+  if(normalization %in% c("FP_Normalized", "FP_MaxLFQ") & !TMT){
     quantPath <- list.files(path, recursive = TRUE)
     quantPath <- quantPath[grepl("combined_modified_peptide.tsv", quantPath)]
 
@@ -78,7 +97,7 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
   }
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, quantdf,
-                                   scrape, normalization, convertFPModCodeToMass)
+                                   scrape, normalization, convertFPModCodeToMass, TMT)
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
