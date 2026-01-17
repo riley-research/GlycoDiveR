@@ -52,7 +52,7 @@ must be an exact match to the UniprotIDs in the dataframe. When set to FALSE,
 it will select non-exact matches. For example, "P61224" will only match to
 "P61224,P62834" when set to FALSE.}
 
-\item{silent}{silence printed information (default = FALSE)}
+\item{silent}{silence printed information}
 }
 \value{
 a lineplot
