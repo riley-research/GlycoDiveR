@@ -55,8 +55,6 @@ proteins.
 }
 \examples{
 \dontrun{
-PlotGlycanCompositionBar(mydatam scales = "stack")
-
-
+PlotGlycanCompositionBar(mydata, scales = "stack")
 }
 }
