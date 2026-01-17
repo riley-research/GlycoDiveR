@@ -192,15 +192,19 @@ GetMeanTechReps <- function(df){
 
   if("ModificationID" %in% names(df)){
     #Take median of technical reps together
+    alias_levels <- levels(df$Alias)
+
     df <- df %>%
       dplyr::mutate(.by = c("Condition", "BioReplicate"),
                     Alias = min(as.character(.data$Alias), na.rm = TRUE) |> factor(),
                     TechReplicate = min(.data$TechReplicate, na.rm = TRUE)) %>%
+      dplyr::mutate(Alias = factor(.data$Alias, levels = alias_levels)) %>%
       dplyr::mutate(.by = c("ModifiedPeptide", "AssignedModifications",
                             "Condition", "BioReplicate"),
                     Intensity = stats::median(.data$Intensity, na.rm = TRUE)) %>%
       dplyr::distinct(.data$ModifiedPeptide, .data$Condition, .data$BioReplicate,
                       .data$ModificationID, .keep_all = TRUE)
+    df$Alias <- droplevels(df$Alias)
 
     return(df)
   }else{
