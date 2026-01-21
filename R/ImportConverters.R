@@ -2,6 +2,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
                                normalization, convertFPModCodeToMass, TMT){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
   existingCols <- unique(names(unfiltereddf))
 
   #Run####
@@ -197,6 +198,7 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
                             modification_df, scrape){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
   existingCols <- unique(names(unfiltereddf))
 
   #Run####
@@ -365,6 +367,7 @@ pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
                             modification_df, normalization, scrape){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = seq(1:nrow(unfiltereddf)))
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
   existingCols <- unique(names(unfiltereddf))
 
   #Run####
