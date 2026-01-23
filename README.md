@@ -20,6 +20,7 @@ You can install the development version of GlycoDiveR from
 [GitHub](https://github.com/) with:
 
 ``` r
+install.packages("devtools")
 devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
 ```
 
@@ -33,8 +34,7 @@ different sections.
   GlycoDiveR](https://github.com/riley-research/GlycoDiveR)
 - [How to import search engine
   outputs](https://github.com/riley-research/GlycoDiveR)
-- [Manage databases to manage modifications, glycans, glycan colors, or
-  the general color
+- [Manage modifications, glycans, glycan colors, or the general color
   scheme](https://github.com/riley-research/GlycoDiveR)
 - [GlycoDiveR’s reference
   manual](https://github.com/riley-research/GlycoDiveR)
