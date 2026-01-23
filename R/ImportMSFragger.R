@@ -101,9 +101,6 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
-  filtereddf$TotalGlycanComposition <- sapply(filtereddf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
-  PTMdf$TotalGlycanComposition <- sapply(PTMdf$TotalGlycanComposition, function(x) strsplit(x, " % ")[[1]][1])
-
   data <- list(PSMTable = filtereddf,
                rawPSMTable = unfiltereddf,
                PTMTable = PTMdf,

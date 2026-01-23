@@ -51,6 +51,8 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   if ("Total.Glycan.Composition" %in% existingCols) {
     filtereddf <- cbind(filtereddf, TotalGlycanComposition = as.character(unfiltereddf$Total.Glycan.Composition))
     filtereddf$TotalGlycanComposition <- CleanGlycanNames(filtereddf$TotalGlycanComposition)
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(TotalGlycanComposition = sub(" %.*$", "", .data$TotalGlycanComposition))
     fmessage("Successfully imported Total Glycan Composition column.")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
@@ -102,23 +104,34 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
+      fasta_index <- stats::setNames(
+        toupper(vapply(fastaFile, paste, collapse = "", FUN.VALUE = "")),
+        sub(",.*", "", names(fastaFile))
+      )
+
+      fasta_index <- fasta_index[!grepl("rev", names(fasta_index))]
+      names(fasta_index) <- trimws(sub(".*\\|([^|]+)\\|.*", "\\1", names(fasta_index)))
+
+      toadd <- filtereddf %>%
+        dplyr::distinct(.data$UniprotIDs) %>%
+        dplyr::mutate(ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
+                                                       fastaFile = fasta_index))
+
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = .data$UniprotIDs,
-                      ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
-                                                       fastaFile = fastaFile))
-    }else{warning("Fasta path does not exist.")}
+        dplyr::left_join(toadd, by = "UniprotIDs")
+    }else{stop("Fasta path does not exist.")}
   }
 
   #NumberOfNSites/NumberOfOSites####
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
-      fastaFile <- seqinr::read.fasta(file = fastaPath)
-      filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = (.data$UniprotIDs),
-                      NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
-                                                              fastaFile = fastaFile))
+       toadd <- filtereddf %>%
+         dplyr::distinct(.data$UniprotIDs) %>%
+         dplyr::mutate(NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
+                                                               fastaFile = fasta_index))
 
       filtereddf <- filtereddf %>%
+        dplyr::left_join(toadd, by = "UniprotIDs") %>%
         tidyr::separate_wider_delim(.data$NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
         dplyr::mutate(NumberOfNSites = as.numeric(.data$NumberOfNSites),
                       NumberOfOSites = as.numeric(.data$NumberOfOSites))
@@ -139,9 +152,19 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   warning("The column Retention was not found in the input dataframe.")}
 
   #GlycanType####
-  filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
+  toadd <- filtereddf %>%
+    dplyr::distinct(.data$AssignedModifications, .data$TotalGlycanComposition) %>%
+    dplyr::mutate(
+      GlycanType = purrr::pmap_chr(
+        list(
+          mod = .data$AssignedModifications,
+          glycanComp = .data$TotalGlycanComposition
+        ),
+        GlycanComptToGlycanType))
+
   filtereddf <- filtereddf %>%
-    dplyr::mutate(GlycanType = sapply(.data$GlycanType, toString))
+    dplyr::left_join(toadd, by = c("AssignedModifications", "TotalGlycanComposition"))
+
   fmessage("Successfully added GlycanType column.")
 
   if(scrape){
@@ -297,23 +320,34 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
+      fasta_index <- stats::setNames(
+        toupper(vapply(fastaFile, paste, collapse = "", FUN.VALUE = "")),
+        sub(",.*", "", names(fastaFile))
+      )
+
+      fasta_index <- fasta_index[!grepl("rev", names(fasta_index))]
+      names(fasta_index) <- trimws(sub(".*\\|([^|]+)\\|.*", "\\1", names(fasta_index)))
+
+      toadd <- filtereddf %>%
+        dplyr::distinct(.data$UniprotIDs) %>%
+        dplyr::mutate(ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
+                                                       fastaFile = fasta_index))
+
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = "UniprotIDs",
-                      ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
-                                                       fastaFile = fastaFile))
+        dplyr::left_join(toadd, by = "UniprotIDs")
     }else{warning("Fasta path does not exist.")}
   }
 
   #NumberOfNSites/NumberOfOSites####
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
-      fastaFile <- seqinr::read.fasta(file = fastaPath)
-      filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = "UniprotIDs",
-                      NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
-                                                              fastaFile = fastaFile))
+      toadd <- filtereddf %>%
+        dplyr::distinct(.data$UniprotIDs) %>%
+        dplyr::mutate(NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
+                                                              fastaFile = fasta_index))
 
       filtereddf <- filtereddf %>%
+        dplyr::left_join(toadd, by = "UniprotIDs") %>%
         tidyr::separate_wider_delim(.data$NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
         dplyr::mutate(NumberOfNSites = as.numeric(.data$NumberOfNSites),
                       NumberOfOSites = as.numeric(.data$NumberOfOSites))
@@ -467,23 +501,34 @@ pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
       fastaFile <- seqinr::read.fasta(file = fastaPath)
+      fasta_index <- stats::setNames(
+        toupper(vapply(fastaFile, paste, collapse = "", FUN.VALUE = "")),
+        sub(",.*", "", names(fastaFile))
+      )
+
+      fasta_index <- fasta_index[!grepl("rev", names(fasta_index))]
+      names(fasta_index) <- trimws(sub(".*\\|([^|]+)\\|.*", "\\1", names(fasta_index)))
+
+      toadd <- filtereddf %>%
+        dplyr::distinct(.data$UniprotIDs) %>%
+        dplyr::mutate(ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
+                                                       fastaFile = fasta_index))
+
       filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = "UniprotIDs",
-                      ProteinLength = GetProteinLength(IDVec = .data$UniprotIDs,
-                                                       fastaFile = fastaFile))
+        dplyr::left_join(toadd, by = "UniprotIDs")
     }else{stop("Fasta path does not exist.")}
   }
 
   #NumberOfNSites/NumberOfOSites####
   if("UniprotIDs" %in% names(filtereddf)){
     if(file.exists(fastaPath)){
-      fastaFile <- seqinr::read.fasta(file = fastaPath)
-      filtereddf <- filtereddf %>%
-        dplyr::mutate(.by = "UniprotIDs",
-                      NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
-                                                              fastaFile = fastaFile))
+      toadd <- filtereddf %>%
+        dplyr::distinct(.data$UniprotIDs) %>%
+        dplyr::mutate(NumberOfSites = GetGlycoSitesPerProtein(IDVec = .data$UniprotIDs,
+                                                              fastaFile = fasta_index))
 
       filtereddf <- filtereddf %>%
+        dplyr::left_join(toadd, by = "UniprotIDs") %>%
         tidyr::separate_wider_delim(.data$NumberOfSites, delim = ";", names = c("NumberOfNSites", "NumberOfOSites")) %>%
         dplyr::mutate(NumberOfNSites = as.numeric(.data$NumberOfNSites),
                       NumberOfOSites = as.numeric(.data$NumberOfOSites))

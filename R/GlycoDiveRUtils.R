@@ -21,11 +21,11 @@ CombineProtCols <- function(row){
 }
 
 GetProteinLength <- function(IDVec, fastaFile){
-  inputVector <- strsplit(IDVec[1], ",")[[1]]
-  uniprotID <- inputVector[1]
-  IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
-  protLength <- nrow(as.data.frame(IDhit[[1]]))
-  return(as.integer(protLength))
+  ids <- sub(",.*", "", IDVec)
+
+  seqs <- fastaFile[ids]
+
+  return(as.vector(nchar(seqs)))
 }
 
 PSMToPTMTable <- function(PSMTable){
@@ -121,7 +121,7 @@ CleanGlycanComp <- function(AssModVec, TotGlycoVec){
 
 GlycanComptToGlycanType <- function(mod, glycanComp){
   modType <- c()
-  allModsVec <- strsplit(mod, ",")[[1]]
+  allModsVec <- if (grepl(",", mod, fixed = TRUE)) strsplit(mod, ",")[[1]] else mod
 
   if(is.na(mod) | mod == ""){
     return("Unmodified")}
@@ -169,7 +169,7 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
       }
   }
 
-  return(as.vector(modType))
+  return(paste(modType, collapse = ", "))
 }
 
 GetPeptide <- function(pep, modpep){
@@ -328,16 +328,22 @@ FilterForCutoffs <- function(input, silent = FALSE){
 }
 
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
-  pattern_NX <- "N[^P][ST]"
-  pattern_ST <- "[ST]"
+  # pattern_NX <- "N[^P][ST]"
+  # pattern_ST <- "[ST]"
+  #
+  # uniprotID <- sub(",.*", "", IDVec[1])
+  #
+  # IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
+  # seq <- toupper(paste(IDhit[[1]], collapse = ""))
+  #
+  # count_NX <- lengths(regmatches(seq, gregexpr(pattern_NX, seq)))
+  # count_ST <- lengths(regmatches(seq, gregexpr(pattern_ST, seq)))
+  ids <- sub(",.*", "", IDVec)
 
-  uniprotID <- sub(",.*", "", IDVec[1])
+  seqs <- fastaFile[ids]
 
-  IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
-  seq <- toupper(paste(IDhit[[1]], collapse = ""))
-
-  count_NX <- lengths(regmatches(seq, gregexpr(pattern_NX, seq)))
-  count_ST <- lengths(regmatches(seq, gregexpr(pattern_ST, seq)))
+  count_NX <- stringr::str_count(seqs, "N[^P][ST]")
+  count_ST <- stringr::str_count(seqs, "[ST]")
 
   rslt <- paste0(count_NX, ";", count_ST)
   return(rslt)
@@ -579,7 +585,6 @@ medianNormalization <- function(intensityVec, globalMedian){
 FPModCodeToModMass <- function(modifiedPep, assignedMods){
   #1. Generate a dataframe with the modification codes and modification masses
   #2. Look over to rows to replace the codes with the masses
-  # C-term mods should be included too (but are not yet)
   # FPModCodeToModMass(modifiedPep = mydata$PSMTable$ModifiedPeptide, assignedMods = mydata$PSMTable$AssignedModifications)
   modLookupTable <- data.frame(modCode = as.character(),
                                modMass = as.character())
@@ -589,48 +594,60 @@ FPModCodeToModMass <- function(modifiedPep, assignedMods){
   modTable <- tempdf %>%
     dplyr::filter(!is.na(.data$assignedMods) & .data$assignedMods != "") %>%
     tidyr::separate_longer_delim(cols = assignedMods, delim = ",") %>%
-    dplyr::filter(!grepl("C\\(57\\.02", .data$assignedMods))
+    dplyr::filter(!grepl("C\\(57\\.02", .data$assignedMods)) %>%
+    dplyr::distinct()
 
-  for(i in 1:nrow(modTable)){
-    AssignedMod <- modTable[i,"assignedMods"]
-    ModifiedPep <- modTable[i,"modifiedPep"]
+  modTable$Mass <- modMass <- stringr::str_extract(modTable$assignedMods, "(?<=\\()[^)]*(?=\\))")
 
-    modMassi <- stringr::str_extract(AssignedMod, "(?<=\\()[^)]*(?=\\))")
+  is_nterm <- stringr::str_detect(modTable$assignedMods, "N-term")
 
-    if(grepl("N-term", AssignedMod)){
-      splitAA <- 3
-    }else{
-      splitAA <- as.numeric(stringr::str_extract(AssignedMod, "^[0-9]+"))
-      splitAA <- gregexpr("[A-Z]", ModifiedPep)[[1]][splitAA] + 2
-    }
+  modTable$splitIdx <- ifelse(
+    is_nterm,
+    3,
+    as.numeric(stringr::str_extract(modTable$assignedMods, "^[0-9]+"))
+  )
 
-    modCodei <- substr(ModifiedPep, splitAA, nchar(ModifiedPep))
-    modCodei <- stringr::str_extract(modCodei, "^[0-9]+")
+  letterPos <- gregexpr("[A-Z]", modTable$modifiedPep)
 
-    #print(paste0(AssignedMod, "---", ModifiedPep, "---", modMassi, "---", modCodei, "---", splitAA))
-    if(!is.na(modCodei) &&
-       !any(modLookupTable$modCode == modCodei &
-            modLookupTable$modMass == modMassi, na.rm = TRUE)){
-      modLookupTable <- rbind(modLookupTable, data.frame(modCode = modCodei,
-                                             modMass = modMassi))
-    }else{
-      next
-    }
-  }
+  modTable$splitAA <- mapply(function(posVec, idx) {
+    if (is.na(idx) || idx < 1 || idx > length(posVec)) return(NA_integer_)
+    posVec[idx] + 2
+  }, letterPos, modTable$splitIdx)
+  modTable <- modTable %>%
+    dplyr::mutate(
+      splitAA = dplyr::case_when(
+        stringr::str_detect(.data$assignedMods, "N-term") ~ 3L,
+        TRUE ~ as.integer(.data$splitAA)))
 
-  modLookupTable$modCode <- paste("[", modLookupTable$modCode, "]", sep = "")
-  modLookupTable$modMass <- paste("[", modLookupTable$modMass, "]", sep = "")
+  modTable$getString <- substr(modTable$modifiedPep, modTable$splitAA, nchar(modTable$modifiedPep))
+  modTable$modCode <- stringr::str_extract(modTable$getString, "^[0-9]+")
+
+  modTable <- modTable %>%
+    dplyr::mutate(modCode = dplyr::if_else(
+      stringr::str_detect(.data$assignedMods, "C-term"),
+      stringr::str_extract(.data$modifiedPep, "(?<=\\[)[0-9]+(?=\\][^\\[]*$)"),
+      .data$modCode)) %>%
+    dplyr::select("modMass" = "Mass", "modCode") %>%
+    dplyr::distinct(.data$modMass, .data$modCode, .keep_all = TRUE)
+
+  modTable$modCode <- paste("[", modTable$modCode, "]", sep = "")
+  modTable$modMass <- paste("[", modTable$modMass, "]", sep = "")
 
   tempdf$correctedPep <- tempdf$modifiedPep
+  modTable$modMassClean <- gsub("\\[|\\]", "", modTable$modMass)
 
-  for(i in 1:nrow(modLookupTable)){
-    modMassE <- gsub("\\[|\\]", "", modLookupTable$modMass[i])
-    tempdf <- tempdf %>%
-      dplyr::mutate(correctedPep = ifelse(grepl(modMassE, .data$assignedMods),
-                                          gsub(modLookupTable$modCode[i],
-                                               modLookupTable$modMass[i],
-                                               .data$correctedPep, fixed = TRUE),
-                                          .data$correctedPep))
+  for (k in seq_len(nrow(modTable))) {
+
+    hit <- grepl(modTable$modMassClean[k], tempdf$assignedMods)
+
+    if (any(hit)) {
+      tempdf$correctedPep[hit] <- gsub(
+        modTable$modCode[k],
+        modTable$modMass[k],
+        tempdf$correctedPep[hit],
+        fixed = TRUE
+      )
+    }
   }
 
   return(tempdf$correctedPep)
