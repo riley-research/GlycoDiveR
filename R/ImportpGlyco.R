@@ -16,6 +16,8 @@
 #' @param normalization The (glyco)peptide normalization used.
 #' Choose between "none" or "median" (default = "median").
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
+#' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
+#' confidence levels.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -27,7 +29,8 @@
 #' glycanScoreCutoff = 0.01,
 #' scrape = FALSE)}
 ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
-                         glycanScoreCutoff = 0.01, normalization = "median", scrape = TRUE){
+                         glycanScoreCutoff = 0.01, normalization = "median", scrape = TRUE,
+                         cutoffFilter = TRUE){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
   CheckAnnotation(annotationdf)
@@ -64,6 +67,15 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
 
   filtereddf <- pGlycoConverter(unfiltereddf, annotationdf, fastaPath, modification_df,
                   normalization, scrape)
+
+  if(cutoffFilter){
+    filtereddf <- FilterPSMTable(filtereddf,
+                                 peptideScoreCutoff,
+                                 glycanScoreCutoff,
+                                 filterForNoNSequon = FALSE,
+                                 confidenceLevel = FALSE,
+                                 deltaModCutoff = FALSE,
+                                 searchEngine = "pGlyco")}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

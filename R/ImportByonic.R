@@ -17,6 +17,8 @@
 #' lower limit.
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param removeReverse Remove reverse hits as noted with the ">Reverse " tag.
+#' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
+#' confidence levels.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -27,7 +29,7 @@
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 1)}
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                         deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE){
+                         deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -91,6 +93,15 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
                                 modification_df, scrape)
+
+  if(cutoffFilter){
+    filtereddf <- FilterPSMTable(filtereddf,
+                                 peptideScoreCutoff,
+                                 glycanScoreCutoff,
+                                 filterForNoNSequon = FALSE,
+                                 confidenceLevel = FALSE,
+                                 deltaModCutoff,
+                                 searchEngine = "Byonic")}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

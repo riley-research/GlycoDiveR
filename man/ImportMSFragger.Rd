@@ -15,7 +15,8 @@ ImportMSFragger(
   convertFPModCodeToMass = TRUE,
   filterForNoNSequon = FALSE,
   confidenceLevel = FALSE,
-  TMT = FALSE
+  TMT = FALSE,
+  cutoffFilter = TRUE
 )
 }
 \arguments{
@@ -55,6 +56,9 @@ Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
 confidenceLevel = c("Level1", "Level1b")}
 
 \item{TMT}{set TRUE or FALSE to select for a TMT experiment.}
+
+\item{cutoffFilter}{Filter for the glycan score, peptide score, N Sequon, and
+confidence levels.}
 }
 \value{
 Formatted GlycoDiveR data file.

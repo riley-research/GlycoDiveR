@@ -33,6 +33,8 @@
 #' Level1, Level1b, Level2, Level3 (default = FALSE). Provide like this:
 #' confidenceLevel = c("Level1", "Level1b")
 #' @param TMT set TRUE or FALSE to select for a TMT experiment.
+#' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
+#' confidence levels.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -46,7 +48,7 @@
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             glycanScoreCutoff = 0.01, scrape = TRUE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
-                            confidenceLevel = FALSE, TMT = FALSE){
+                            confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -98,6 +100,15 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, quantdf,
                                    scrape, normalization, convertFPModCodeToMass, TMT)
+
+  if(cutoffFilter){
+  filtereddf <- FilterPSMTable(filtereddf,
+                               peptideScoreCutoff,
+                               glycanScoreCutoff,
+                               filterForNoNSequon,
+                               confidenceLevel,
+                               deltaModCutoff = FALSE,
+                               searchEngine = "MSFragger")}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

@@ -12,7 +12,8 @@ ImportByonic(
   glycanScoreCutoff,
   deltaModCutoff = 1,
   scrape = TRUE,
-  removeReverse = TRUE
+  removeReverse = TRUE,
+  cutoffFilter = TRUE
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ lower limit.}
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
 \item{removeReverse}{Remove reverse hits as noted with the ">Reverse " tag.}
+
+\item{cutoffFilter}{Filter for the glycan score, peptide score, N Sequon, and
+confidence levels.}
 }
 \value{
 Formatted GlycoDiveR data file.

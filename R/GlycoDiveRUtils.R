@@ -327,6 +327,68 @@ FilterForCutoffs <- function(input, silent = FALSE){
   return(input)
 }
 
+FilterPSMTable <- function(df,
+                           peptideScoreCutoff,
+                           glycanScoreCutoff,
+                           filterForNoNSequon,
+                           confidenceLevels,
+                           deltaModCutoff,
+                           searchEngine){
+  existingColsPSMTable <- names(df)
+  preFilterPSMRows <- nrow(df)
+
+  if(searchEngine %in% c("MSFragger", "Byonic")){
+      if("PSMScore" %in% existingColsPSMTable & !identical(peptideScoreCutoff,FALSE)){
+        fmessage(paste0("Filtering for PSMScore >= ", peptideScoreCutoff))
+      }
+      if("GlycanQValue" %in% existingColsPSMTable & !identical(glycanScoreCutoff,FALSE)){
+        fmessage(paste0("Filtering for GlycanQValue <= ", glycanScoreCutoff))
+      }
+      if(filterForNoNSequon){
+        fmessage(paste0("Filtering for peptides without an N-sequon (OPair peptides only)"))
+      }
+      if(!identical(confidenceLevels,FALSE)){
+        fmessage(paste0("Filtering for peptides confidence levels (O-glycopeptides only): ", paste(confidenceLevels, collapse= ";")))
+      }
+      if(!identical(deltaModCutoff,FALSE)){
+        fmessage(paste0("Filtering for Delta Mod >= ", deltaModCutoff))
+      }
+    if("PSMScore" %in% existingColsPSMTable){
+      df <- df %>%
+        dplyr::filter(.data$PSMScore >= peptideScoreCutoff | is.na(.data$PSMScore))
+    }
+    if("GlycanQValue" %in% existingColsPSMTable){
+      df <- df %>%
+        dplyr::filter(.data$GlycanQValue <= glycanScoreCutoff | is.na(.data$GlycanQValue))
+    }
+    if("HasNSequon" %in% existingColsPSMTable && filterForNoNSequon){
+      df <- df %>%
+        dplyr::filter(!.data$HasNSequon | is.na(.data$HasNSequon))
+    }
+
+    if("ConfidenceLevel" %in% existingColsPSMTable && !identical(confidenceLevels,FALSE)){
+      df <- df %>%
+        dplyr::filter(.data$ConfidenceLevel %in% confidenceLevels | is.na(.data$HasNSequon))
+    }
+
+    if("DeltaMod" %in% existingColsPSMTable && !identical(deltaModCutoff,FALSE)){
+      df <- df %>%
+        dplyr::filter(.data$DeltaMod >= deltaModCutoff | is.na(.data$DeltaMod))
+    }
+  }else if(input$searchEngine %in% c("pGlyco")){
+
+    fmessage(paste0("Filtering for PSMScore <= ", peptideScoreCutoff, " and glycan score <= ", glycanScoreCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$PSMScore <= peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue <= glycanScoreCutoff | is.na(.data$GlycanQValue))
+  }
+
+  fmessage(paste0("Filtered PSM table: ", preFilterPSMRows, " to ", nrow(df), " rows."))
+
+  return(df)
+}
+
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
   # pattern_NX <- "N[^P][ST]"
   # pattern_ST <- "[ST]"
