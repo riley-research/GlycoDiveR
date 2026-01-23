@@ -11,7 +11,8 @@ ImportpGlyco(
   peptideScoreCutoff = 0.01,
   glycanScoreCutoff = 0.01,
   normalization = "median",
-  scrape = TRUE
+  scrape = TRUE,
+  cutoffFilter = TRUE
 )
 }
 \arguments{
@@ -33,6 +34,9 @@ upper limit.}
 Choose between "none" or "median" (default = "median").}
 
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
+
+\item{cutoffFilter}{Filter for the glycan score, peptide score, N Sequon, and
+confidence levels.}
 }
 \value{
 Formatted GlycoDiveR data file.
