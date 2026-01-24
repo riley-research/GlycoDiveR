@@ -195,8 +195,11 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
         dplyr::mutate(.by = .data$Run,
                       Intensity = medianNormalization(intensityVec = .data$Intensity,
                                                       globalMedian = globalMedian))
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(Intensity = dplyr::coalesce(Intensity, 0))
+
       fmessage("Successfully median normalized the intensities.")
-    }else if(normalization %in% c("FP_Normalized", "FP_MaxLFQ")){
+    }else if(normalization %in% c("FP_Normalized", "FP_MaxLFQ") & !TMT){
       filtereddf <- UpdateFPIntensities(filtereddf, quantdf, normalization)
       fmessage(paste0("Successfully imported Intensity column using: ", normalization))
     }else{

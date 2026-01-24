@@ -51,7 +51,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             glycanScoreCutoff = 0.01, scrape = TRUE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
                             confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE,
-                            dropNoQuant = FALSE){
+                            dropNoQuant = FALSE, minPeptideCoverage = FALSE,
+                            thresholdMode = c("group", "total")){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -114,6 +115,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                                searchEngine = "MSFragger")}
 
   if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity & Intensity != 0))}
+
+  if(!identical(minPeptideCoverage, FALSE)){filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

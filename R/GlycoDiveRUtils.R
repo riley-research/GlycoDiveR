@@ -1203,6 +1203,81 @@ GetPSMGlycanCategory <- function(GType){
   return(tempdf$PSMType)
 }
 
+FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("group", "total")){
+  uniquePeptidesStart <- length(unique(df$ModifiedPeptide))
+  thresholdMode <- match.arg(thresholdMode)
+  df_work <- GetMeanTechReps(df)
+
+  if(thresholdMode == "total"){
+    if(length(minPeptideCoverage) == 1 && is.finite(minPeptideCoverage) && minPeptideCoverage == as.numeric(minPeptideCoverage)){
+
+      maxValuesInGroup <- length(unique(df_work$Run))
+
+      if(minPeptideCoverage < 1){
+        minPeptideCoverage <- minPeptideCoverage * maxValuesInGroup}
+
+      if(minPeptideCoverage > maxValuesInGroup){
+        minPeptideCoverage <- maxValuesInGroup
+        fmessage(paste0("The minimum value for the minPeptideCoverage is larger than the largest group. New value: ", maxValuesInGroup))
+      }
+
+      tokeep <- df_work %>%
+        dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all=TRUE) %>%
+        dplyr::summarise(.by = c("ModifiedPeptide"), count = dplyr::n()) %>%
+        dplyr::filter(count >= minPeptideCoverage) %>%
+        dplyr::pull(ModifiedPeptide)
+
+      df <- df %>%
+        dplyr::filter(.data$ModifiedPeptide %in% tokeep)
+
+      fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " unique peptides."))
+      return(df)
+    }else{stop("Please provide a single numeric value for minPeptideCoverage (absolute or fraction).")}
+  }else{
+    if(length(minPeptideCoverage) == 2 &&
+       is.numeric(minPeptideCoverage) &&
+       all(is.finite(minPeptideCoverage))){
+
+      numberOfGroups <- length(unique(df_work$Condition))
+      maxValuesInGroup <- df_work %>%
+        dplyr::distinct(.data$Condition, .data$BioReplicate) %>%
+        dplyr::summarise(.by = "Condition", total = dplyr::n()) %>%
+        dplyr::pull(total) %>%
+        max()
+
+      if(minPeptideCoverage[1] < 1){
+        minPeptideCoverage[1] <- minPeptideCoverage[1] * maxValuesInGroup}
+
+      if(minPeptideCoverage[1] > maxValuesInGroup){
+        minPeptideCoverage[1] <- maxValuesInGroup
+        fmessage(paste0("The minimum value for the minPeptideCoverage is larger than the largest group. New value: ", maxValuesInGroup))
+      }
+
+      if(minPeptideCoverage[2] > numberOfGroups){
+        minPeptideCoverage[2] <- numberOfGroups
+        fmessage(paste0("The minimum number of groups for the minPeptideCoverage is more than the nr of groups. New value: ", numberOfGroups))
+      }
+
+      tokeep <- df_work %>%
+        dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all=TRUE) %>%
+        dplyr::summarise(.by = c("Condition", "ModifiedPeptide"), count = dplyr::n()) %>%
+        dplyr::filter(count >= minPeptideCoverage[1]) %>%
+        dplyr::summarise(.by = c("ModifiedPeptide"),
+                         newCount = dplyr::n()) %>%
+        dplyr::filter(newCount >= minPeptideCoverage[2]) %>%
+        dplyr::pull(ModifiedPeptide)
+
+      df <- df %>%
+        dplyr::filter(.data$ModifiedPeptide %in% tokeep)
+
+      fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " peptides."))
+      return(df)
+    }else{
+      stop("Please provide a vector containing two numeric values for filtering")
+    }
+  }
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
