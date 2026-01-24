@@ -35,6 +35,8 @@
 #' @param TMT set TRUE or FALSE to select for a TMT experiment.
 #' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
 #' confidence levels.
+#' @param dropNoQuant Remove or keep PSMs without a quantitative value or have a quant
+#' of 0.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -48,7 +50,8 @@
 ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             glycanScoreCutoff = 0.01, scrape = TRUE, normalization = "median",
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
-                            confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE){
+                            confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE,
+                            dropNoQuant = FALSE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -109,6 +112,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                                confidenceLevel,
                                deltaModCutoff = FALSE,
                                searchEngine = "MSFragger")}
+
+  if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity & Intensity != 0))}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

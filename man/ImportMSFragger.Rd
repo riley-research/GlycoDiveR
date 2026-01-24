@@ -16,7 +16,8 @@ ImportMSFragger(
   filterForNoNSequon = FALSE,
   confidenceLevel = FALSE,
   TMT = FALSE,
-  cutoffFilter = TRUE
+  cutoffFilter = TRUE,
+  dropNoQuant = FALSE
 )
 }
 \arguments{
@@ -59,6 +60,9 @@ confidenceLevel = c("Level1", "Level1b")}
 
 \item{cutoffFilter}{Filter for the glycan score, peptide score, N Sequon, and
 confidence levels.}
+
+\item{dropNoQuant}{Remove or keep PSMs without a quantitative value or have a quant
+of 0.}
 }
 \value{
 Formatted GlycoDiveR data file.
