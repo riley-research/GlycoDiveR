@@ -19,6 +19,8 @@
 #' @param removeReverse Remove reverse hits as noted with the ">Reverse " tag.
 #' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
 #' confidence levels.
+#' @param dropNoQuant Remove or keep PSMs without a quantitative value or have a quant
+#' of 0.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -29,7 +31,8 @@
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 1)}
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
-                         deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE){
+                         deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE,
+                         dropNoQuant = FALSE){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -102,6 +105,8 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
                                  confidenceLevel = FALSE,
                                  deltaModCutoff,
                                  searchEngine = "Byonic")}
+
+  if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity & Intensity != 0))}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

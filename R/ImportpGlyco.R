@@ -18,6 +18,8 @@
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param cutoffFilter Filter for the glycan score, peptide score, N Sequon, and
 #' confidence levels.
+#' @param dropNoQuant Remove or keep PSMs without a quantitative value or have a quant
+#' of 0.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -30,7 +32,7 @@
 #' scrape = FALSE)}
 ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                          glycanScoreCutoff = 0.01, normalization = "median", scrape = TRUE,
-                         cutoffFilter = TRUE){
+                         cutoffFilter = TRUE, dropNoQuant = FALSE){
   unfiltereddf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
   CheckAnnotation(annotationdf)
@@ -76,6 +78,8 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                                  confidenceLevel = FALSE,
                                  deltaModCutoff = FALSE,
                                  searchEngine = "pGlyco")}
+
+  if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity & Intensity != 0))}
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

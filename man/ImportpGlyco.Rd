@@ -12,7 +12,8 @@ ImportpGlyco(
   glycanScoreCutoff = 0.01,
   normalization = "median",
   scrape = TRUE,
-  cutoffFilter = TRUE
+  cutoffFilter = TRUE,
+  dropNoQuant = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ Choose between "none" or "median" (default = "median").}
 
 \item{cutoffFilter}{Filter for the glycan score, peptide score, N Sequon, and
 confidence levels.}
+
+\item{dropNoQuant}{Remove or keep PSMs without a quantitative value or have a quant
+of 0.}
 }
 \value{
 Formatted GlycoDiveR data file.
