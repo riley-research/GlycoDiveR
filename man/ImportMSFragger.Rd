@@ -17,7 +17,9 @@ ImportMSFragger(
   confidenceLevel = FALSE,
   TMT = FALSE,
   cutoffFilter = TRUE,
-  dropNoQuant = FALSE
+  dropNoQuant = FALSE,
+  minPeptideCoverage = FALSE,
+  thresholdMode = c("group", "total")
 )
 }
 \arguments{
@@ -63,6 +65,19 @@ confidence levels.}
 
 \item{dropNoQuant}{Remove or keep PSMs without a quantitative value or have a quant
 of 0.}
+
+\item{minPeptideCoverage}{Works together with the thresholdMode argument.
+If thresholdMode = "total", provide a single numeric value. Values between 0
+and 1 are interpreted as proportions (e.g., 0.1 = 10\%), while values ≥ 1 are
+interpreted as absolute counts (e.g., 2 = at least two peptides identified).
+If thresholdMode = "group", provide a numeric vector of length two (e.g., c(0.1, 3)).
+The first value is interpreted in the same way as for "total" (proportion or
+absolute count). The second value specifies the minimum number of groups in
+which this threshold must be met.}
+
+\item{thresholdMode}{Character string specifying the filtering mode: "total"
+applies a global threshold across all data, while "group" identifies the threshold
+within groups.}
 }
 \value{
 Formatted GlycoDiveR data file.

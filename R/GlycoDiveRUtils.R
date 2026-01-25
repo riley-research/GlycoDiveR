@@ -375,7 +375,7 @@ FilterPSMTable <- function(df,
       df <- df %>%
         dplyr::filter(.data$DeltaMod >= deltaModCutoff | is.na(.data$DeltaMod))
     }
-  }else if(input$searchEngine %in% c("pGlyco")){
+  }else if(searchEngine %in% c("pGlyco")){
 
     fmessage(paste0("Filtering for PSMScore <= ", peptideScoreCutoff, " and glycan score <= ", glycanScoreCutoff))
 
@@ -390,16 +390,6 @@ FilterPSMTable <- function(df,
 }
 
 GetGlycoSitesPerProtein <- function(IDVec, fastaFile){
-  # pattern_NX <- "N[^P][ST]"
-  # pattern_ST <- "[ST]"
-  #
-  # uniprotID <- sub(",.*", "", IDVec[1])
-  #
-  # IDhit <- fastaFile[grepl(uniprotID, names(fastaFile)) & !grepl("rev", names(fastaFile))]
-  # seq <- toupper(paste(IDhit[[1]], collapse = ""))
-  #
-  # count_NX <- lengths(regmatches(seq, gregexpr(pattern_NX, seq)))
-  # count_ST <- lengths(regmatches(seq, gregexpr(pattern_ST, seq)))
   ids <- sub(",.*", "", IDVec)
 
   seqs <- fastaFile[ids]
@@ -1224,8 +1214,8 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
       tokeep <- df_work %>%
         dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all=TRUE) %>%
         dplyr::summarise(.by = c("ModifiedPeptide"), count = dplyr::n()) %>%
-        dplyr::filter(count >= minPeptideCoverage) %>%
-        dplyr::pull(ModifiedPeptide)
+        dplyr::filter(.data$count >= minPeptideCoverage) %>%
+        dplyr::pull(.data$ModifiedPeptide)
 
       df <- df %>%
         dplyr::filter(.data$ModifiedPeptide %in% tokeep)
@@ -1242,7 +1232,7 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
       maxValuesInGroup <- df_work %>%
         dplyr::distinct(.data$Condition, .data$BioReplicate) %>%
         dplyr::summarise(.by = "Condition", total = dplyr::n()) %>%
-        dplyr::pull(total) %>%
+        dplyr::pull(.data$total) %>%
         max()
 
       if(minPeptideCoverage[1] < 1){
@@ -1261,11 +1251,11 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
       tokeep <- df_work %>%
         dplyr::distinct(.data$Run, .data$ModifiedPeptide, .keep_all=TRUE) %>%
         dplyr::summarise(.by = c("Condition", "ModifiedPeptide"), count = dplyr::n()) %>%
-        dplyr::filter(count >= minPeptideCoverage[1]) %>%
+        dplyr::filter(.data$count >= minPeptideCoverage[1]) %>%
         dplyr::summarise(.by = c("ModifiedPeptide"),
                          newCount = dplyr::n()) %>%
-        dplyr::filter(newCount >= minPeptideCoverage[2]) %>%
-        dplyr::pull(ModifiedPeptide)
+        dplyr::filter(.data$newCount >= minPeptideCoverage[2]) %>%
+        dplyr::pull(.data$ModifiedPeptide)
 
       df <- df %>%
         dplyr::filter(.data$ModifiedPeptide %in% tokeep)
