@@ -5,10 +5,14 @@ output:
     toc: true
     toc_depth: 4
     toc_float: false
+  rmarkdown::pdf_document:
+    toc: true
+    toc_depth: 4
+    latex_engine: xelatex
 vignette: >
   %\VignetteIndexEntry{Basic GlycoDiveR Workflow}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
@@ -342,6 +346,16 @@ automatically overlaps any domain information present on Uniprot.
 
 ```{r, message = FALSE, , warning = FALSE, fig.width=6, fig.height=4}
 PlotSiteGlycanComposition(exampleData, whichProtein = "P07358")
+```
+
+### PlotGlycanSubcellularLocation
+
+Visualize the Uniprot subcellular location where each dot size is scaled by
+the number of unique glycopeptides found, and the color gradient is the Z-score
+of that subcellular location.
+
+```{r, message = FALSE, , warning = FALSE, fig.width=6, fig.height=4}
+PlotGlycanSubcellularLocation(exampleData, zscoreCutoff = 1)
 ```
 
 ## GlycoDiveR comparison plots
