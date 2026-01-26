@@ -33,7 +33,7 @@
 #' PlotGlycanSubcellularLocation(mydata, summaryFunction = "intensity", zscoreCutoff = 2,
 #' type = "Fucosylated", pointSize = c(1,10))
 #' }
-PlotGlycanSubcellularLocation <- function(input, summaryFunction = "count", zscoreCutoff = 1.5,
+PlotGlycanSubcellularLocation <- function(input, summaryFunction = "count", zscoreCutoff = 0,
                                           type = "all", pointSize = c(3, 10), whichAlias = NULL,
                                           whichPeptide = NULL, whichProtein = NULL,
                                           exactProteinMatch = TRUE, silent = FALSE){
