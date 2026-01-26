@@ -60,6 +60,8 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
     unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
   }
 
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
+
   modification_df <- unfiltereddf %>%
     dplyr::select("Mod") %>%
     tidyr::separate_longer_delim(cols = "Mod", delim=";") %>%

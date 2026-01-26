@@ -74,6 +74,8 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
     fmessage("Removed >Reverse proteins")
   }
 
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
+
   #Clean the modification df
   modification_df <- modification_df %>%
     dplyr::mutate(

@@ -98,6 +98,7 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
     }
   }
 
+  unfiltereddf$ID <-   seq(1:nrow(unfiltereddf))
 
   if(normalization %in% c("FP_Normalized", "FP_MaxLFQ") & !TMT){
     quantPath <- list.files(path, recursive = TRUE)
