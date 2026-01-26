@@ -7,7 +7,7 @@
 PlotGlycanSubcellularLocation(
   input,
   summaryFunction = "count",
-  zscoreCutoff = 1.5,
+  zscoreCutoff = 0,
   type = "all",
   pointSize = c(3, 10),
   whichAlias = NULL,
