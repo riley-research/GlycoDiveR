@@ -5,10 +5,14 @@ output:
     toc: true
     toc_depth: 4
     toc_float: false
+  rmarkdown::pdf_document:
+    toc: true
+    toc_depth: 4
+    latex_engine: xelatex
 vignette: >
   %\VignetteIndexEntry{Minimal_Workflow_Example}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}

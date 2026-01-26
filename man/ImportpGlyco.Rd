@@ -46,7 +46,7 @@ of 0.}
 
 \item{minPeptideCoverage}{Works together with the thresholdMode argument.
 If thresholdMode = "total", provide a single numeric value. Values between 0
-and 1 are interpreted as proportions (e.g., 0.1 = 10\%), while values ≥ 1 are
+and 1 are interpreted as proportions (e.g., 0.1 = 10\%), while values >= 1 are
 interpreted as absolute counts (e.g., 2 = at least two peptides identified).
 If thresholdMode = "group", provide a numeric vector of length two (e.g., c(0.1, 3)).
 The first value is interpreted in the same way as for "total" (proportion or
