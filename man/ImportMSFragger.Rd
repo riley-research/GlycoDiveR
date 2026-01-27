@@ -19,7 +19,8 @@ ImportMSFragger(
   cutoffFilter = TRUE,
   dropNoQuant = FALSE,
   minPeptideCoverage = FALSE,
-  thresholdMode = c("group", "total")
+  thresholdMode = c("group", "total"),
+  useExtendedOGlycanCategories = FALSE
 )
 }
 \arguments{
@@ -78,6 +79,10 @@ which this threshold must be met.}
 \item{thresholdMode}{Character string specifying the filtering mode: "total"
 applies a global threshold across all data, while "group" identifies the threshold
 within groups.}
+
+\item{useExtendedOGlycanCategories}{set to FALSE will classify all O-glycans as OGlycan
+Set to TRUE will classify them in "Sialofucosylated", "Sialylated", "Fucosylated",
+and "OGlycan".}
 }
 \value{
 Formatted GlycoDiveR data file.
