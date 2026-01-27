@@ -37,7 +37,8 @@ Imports:
     readxl,
     httr,
     scales,
-    ggnewscale
+    ggnewscale,
+    impute
 Depends: 
     R (>= 4.1.0)
 Suggests: 
