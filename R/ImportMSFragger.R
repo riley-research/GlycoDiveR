@@ -133,7 +133,7 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                                deltaModCutoff = FALSE,
                                searchEngine = "MSFragger")}
 
-  if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity & .data$Intensity != 0))}
+  if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0)}
 
   if(!identical(minPeptideCoverage, FALSE)){filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)}
 
