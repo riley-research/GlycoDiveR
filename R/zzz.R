@@ -8,4 +8,5 @@ NULL
   .modEnv$ModificationDatabase <- ModificationDatabase
   .modEnv$colorScheme <- colorScheme
   .modEnv$GlycanColors <- GlycanColors
+  .modEnv$useExtendedOGlycanCategories <- FALSE
 }
