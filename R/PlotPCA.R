@@ -73,7 +73,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
   }
 
   if(dropNoQuant){df <- df %>% dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0)}
-  if(!identical(minPeptideCoverage, FALSE)){df <- FilterForMinPeptides(df, minPeptideCoverage, thresholdMode)}
+  if(!identical(minPeptideCoverage, FALSE)){df <- FilterForMinPeptides(df, minPeptideCoverage, thresholdMode, silent)}
 
   if(nrow(df) == 0){
     if(!silent){
@@ -123,7 +123,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
       dplyr::left_join(input$PSMTable %>% dplyr::select("Alias", "Condition") %>% dplyr::distinct(),
                        by = "Alias")
 
-    if(identical(label, FALSE)){pca_scores$Alias <- NA}
+    if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
     colH <- stats::setNames(
       .modEnv$colorScheme[1:length(unique(pca_scores$Condition))],
@@ -168,7 +168,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
       dplyr::left_join(input$PSMTable %>% dplyr::select("Alias", "Condition") %>% dplyr::distinct(),
                        by = "Alias")
 
-    if(identical(label, FALSE)){pca_scores$Alias <- NA}
+    if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
     colH <- stats::setNames(
       .modEnv$colorScheme[1:length(unique(pca_scores$Condition))],
@@ -210,7 +210,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
 
     pca_scores$Alias <- rownames(pca_scores)
 
-    if(identical(label, FALSE)){pca_scores$Alias <- NA}
+    if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
     colH <- stats::setNames(
       .modEnv$colorScheme[1:length(unique(pca_scores$Alias))],
