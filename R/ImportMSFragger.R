@@ -48,6 +48,9 @@
 #' @param thresholdMode Character string specifying the filtering mode: "total"
 #' applies a global threshold across all data, while "group" identifies the threshold
 #' within groups.
+#' @param useExtendedOGlycanCategories set to FALSE will classify all O-glycans as OGlycan
+#' Set to TRUE will classify them in "Sialofucosylated", "Sialylated", "Fucosylated",
+#' and "OGlycan".
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -63,11 +66,15 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
                             confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE,
                             dropNoQuant = FALSE, minPeptideCoverage = FALSE,
-                            thresholdMode = c("group", "total")){
+                            thresholdMode = c("group", "total"), useExtendedOGlycanCategories = FALSE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation)
   CheckAnnotation(annotationdf)
+
+  if(identical(useExtendedOGlycanCategories, TRUE)){
+    .modEnv$useExtendedOGlycanCategories <- useExtendedOGlycanCategories
+    }else{.modEnv$useExtendedOGlycanCategories <- FALSE}
 
   fileList <- list.files(path, recursive = TRUE)
   fileList <- fileList[grepl("psm.tsv", fileList)]
