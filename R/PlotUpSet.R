@@ -38,10 +38,9 @@
 #'  type = "glyco", level = "protein", nintersects = 40)
 #' }
 PlotUpSet <- function(input, grouping = "condition", type = "glyco",
-                      level = "peptide", outputType = c("plot", "data"), plotColor = "#32006e",
+                      level = "peptide", outputType = "plot", plotColor = "#32006e",
                       whichAlias = NULL, whichProtein = NULL, exactProteinMatch = TRUE,
                       nintersects = 40, whichPeptide = NULL, silent = FALSE){
-  outputType <- match.arg(outputType)
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
