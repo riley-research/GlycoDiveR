@@ -1315,6 +1315,7 @@ GetIntersections <- function(inputList, nintersects){
     as.character()
 
   returndf <- returndf %>%
+    dplyr::mutate(Intersect = as.character(.data$Intersect)) %>%
     dplyr::filter(.data$Intersect %in% tokeep)
 
   return(returndf)
