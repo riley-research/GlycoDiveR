@@ -1,7 +1,7 @@
 #' PlotPCA
 #'
 #' PCA plot based on PSM quantification. Missing values are imputed using
-#' kNN.
+#' kNN using the impute package.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param quantType "normalized" for normalized intensity values, and "nonNormalized"
