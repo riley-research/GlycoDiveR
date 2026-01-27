@@ -1203,7 +1203,7 @@ GetPSMGlycanCategory <- function(GType){
   return(tempdf$PSMType)
 }
 
-FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("group", "total")){
+FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("group", "total"), silent = FALSE){
   uniquePeptidesStart <- length(unique(df$ModifiedPeptide))
   thresholdMode <- match.arg(thresholdMode)
   df_work <- GetMeanTechReps(df)
@@ -1230,7 +1230,9 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
       df <- df %>%
         dplyr::filter(.data$ModifiedPeptide %in% tokeep)
 
-      fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " unique peptides."))
+      if(!identical(silent, TRUE)){
+        fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " unique peptides."))
+      }
       return(df)
     }else{stop("Please provide a single numeric value for minPeptideCoverage (absolute or fraction).")}
   }else{
@@ -1270,7 +1272,9 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
       df <- df %>%
         dplyr::filter(.data$ModifiedPeptide %in% tokeep)
 
-      fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " peptides."))
+      if(!identical(silent, TRUE)){
+        fmessage(paste0("Minimum found values filter from ", uniquePeptidesStart, " to ", length(unique(df$ModifiedPeptide)), " peptides."))
+      }
       return(df)
     }else{
       stop("Please provide a vector containing two numeric values for filtering")
