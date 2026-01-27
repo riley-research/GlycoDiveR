@@ -161,7 +161,17 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
       }else{
         modType <- append(modType, "UndefinedGlyco")
       }}else if((glycanComp != "" & modifiedResidue %in% c("S", "T")) | (!is.na(glycanComp) & modifiedResidue %in% c("S", "T"))){
-        modType <- append(modType, "OGlycan")
+        if(.modEnv$useExtendedOGlycanCategories){
+          glycanCat <- dplyr::case_when(
+            grepl("A|G", glycanComp) & grepl("F", glycanComp) ~ "Sialofucosylated",
+            grepl("A|G", glycanComp) ~ "Sialylated",
+            grepl("F", glycanComp) ~ "Fucosylated",
+            TRUE ~ "OGlycan"
+          )
+          modType <- append(modType, glycanCat)
+        }else{
+          modType <- append(modType, "OGlycan")
+        }
       }else if(glycanComp != "" & !is.na(glycanComp)){
         modType <- append(modType, "NonCanonicalGlyco")
       }else{
