@@ -9,7 +9,7 @@ PlotUpSet(
   grouping = "condition",
   type = "glyco",
   level = "peptide",
-  outputType = c("plot", "data"),
+  outputType = "plot",
   plotColor = "#32006e",
   whichAlias = NULL,
   whichProtein = NULL,
