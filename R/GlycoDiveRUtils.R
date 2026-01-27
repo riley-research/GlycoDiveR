@@ -1278,6 +1278,48 @@ FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("grou
   }
 }
 
+GetIntersections <- function(inputList, nintersects){
+  sets <- names(inputList)
+  allCombs <- list()
+
+  for(k in 1:length(sets)){
+    comb_k <- utils::combn(sets, k, simplify = FALSE)
+    allCombs <- c(allCombs, comb_k)
+  }
+
+  result <- list()
+
+  for(combo in allCombs){
+    in_all <- Reduce(intersect, inputList[combo])
+
+    outside_sets <- setdiff(sets, combo)
+    if(length(outside_sets) > 0){
+      not_in_others <- in_all[!in_all %in% unlist(inputList[outside_sets])]
+    } else {
+      not_in_others <- in_all
+    }
+
+    result[[paste(combo, collapse = "&")]] <- not_in_others
+  }
+
+  returndf <- utils::stack(result) %>%
+    dplyr::rename("ModifiedPeptide" = "values",
+                  "Intersect" = "ind")
+
+  tokeep <- returndf %>%
+    dplyr::summarise(.by = "Intersect",
+                     count = dplyr::n()) %>%
+    dplyr::arrange(dplyr::desc(.data$count)) %>%
+    dplyr::slice(1:nintersects) %>%
+    dplyr::pull(.data$Intersect) %>%
+    as.character()
+
+  returndf <- returndf %>%
+    dplyr::filter(.data$Intersect %in% tokeep)
+
+  return(returndf)
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
