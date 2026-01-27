@@ -75,6 +75,9 @@ PlotGlycanSubcellularLocation <- function(input, summaryFunction = "count", zsco
 
   if(nrow(df) == 0){return("Nothing left after filtering.")}
 
+  if(all(is.na(df$SubcellularLocalization) | df$SubcellularLocalization == "")){
+    return("No subcellular localization information found.")}
+
   df <- df %>%
     dplyr::filter(!is.na(.data$SubcellularLocalization) & .data$SubcellularLocalization != "") %>%
     dplyr::distinct(.data$Alias, .data$ModifiedPeptide, .keep_all = TRUE) %>%
