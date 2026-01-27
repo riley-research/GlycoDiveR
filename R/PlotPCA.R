@@ -150,7 +150,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
                                             .data$Quantification, NA_integer_)) %>%
       dplyr::arrange(dplyr::desc(.data$Quantification)) %>%
       dplyr::distinct(.data$Condition, .data$BioReplicate, .data$ModifiedPeptide, .keep_all = TRUE) %>%
-      dplyr::mutate(Alias = paste(.data$Condition, .data$BioReplicate, sep = "")) %>%
+      dplyr::mutate(Alias = paste(.data$Condition, .data$BioReplicate, sep = ";;;")) %>%
       dplyr::select(-c("Condition", "BioReplicate")) %>%
       tidyr::pivot_wider(names_from = "Alias", values_from = "Quantification")
 
@@ -165,8 +165,8 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     pca_scores$Alias <- rownames(pca_scores)
 
     pca_scores <- pca_scores %>%
-      dplyr::left_join(input$PSMTable %>% dplyr::select("Alias", "Condition") %>% dplyr::distinct(),
-                       by = "Alias")
+      dplyr::mutate(Condition = gsub(";;;.*", "", .data$Alias),
+                    Alias = gsub(";;;", "", .data$Alias))
 
     if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
@@ -209,15 +209,16 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     pca_scores <- as.data.frame(pca$x)
 
     pca_scores$Alias <- rownames(pca_scores)
+    pca_scores$Condition <- pca_scores$Alias
 
     if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
     colH <- stats::setNames(
-      .modEnv$colorScheme[1:length(unique(pca_scores$Alias))],
-      unique(pca_scores$Alias)
+      .modEnv$colorScheme[1:length(unique(pca_scores$Condition))],
+      unique(pca_scores$Condition)
     )
 
-    p <- ggplot2::ggplot(pca_scores, ggplot2::aes(x = .data$PC1, y = .data$PC2, color = .data$Alias)) +
+    p <- ggplot2::ggplot(pca_scores, ggplot2::aes(x = .data$PC1, y = .data$PC2, color = .data$Condition)) +
       ggplot2::geom_point(size = 5) +
       ggrepel::geom_label_repel(ggplot2::aes(label = .data$Alias), fill = NA, label.size = NA) +
       ggplot2::labs(
