@@ -9,6 +9,7 @@ PlotUpSet(
   grouping = "condition",
   type = "glyco",
   level = "peptide",
+  outputType = c("plot", "data"),
   plotColor = "#32006e",
   whichAlias = NULL,
   whichProtein = NULL,
@@ -28,6 +29,10 @@ PlotUpSet(
 or all peptides/proteins.}
 
 \item{level}{Choose "peptide" or "protein".}
+
+\item{outputType}{Choose "plot" to return a visualization, and "data" to return
+the underlying data as a dataframe. Uses the nintersects argument to specify how
+many intersects to return.}
 
 \item{plotColor}{The color of the bars.}
 

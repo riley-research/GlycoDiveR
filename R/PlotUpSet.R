@@ -10,6 +10,9 @@
 #' @param type Choose between "glyco" or "all" to include only glycopeptides/proteins
 #' or all peptides/proteins.
 #' @param level Choose "peptide" or "protein".
+#' @param outputType Choose "plot" to return a visualization, and "data" to return
+#' the underlying data as a dataframe. Uses the nintersects argument to specify how
+#' many intersects to return.
 #' @param plotColor The color of the bars.
 #' @param nintersects The maximum number of intersects shown.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
@@ -35,9 +38,10 @@
 #'  type = "glyco", level = "protein", nintersects = 40)
 #' }
 PlotUpSet <- function(input, grouping = "condition", type = "glyco",
-                      level = "peptide", plotColor = "#32006e", whichAlias = NULL,
-                      whichProtein = NULL, exactProteinMatch = TRUE,
+                      level = "peptide", outputType = c("plot", "data"), plotColor = "#32006e",
+                      whichAlias = NULL, whichProtein = NULL, exactProteinMatch = TRUE,
                       nintersects = 40, whichPeptide = NULL, silent = FALSE){
+  outputType <- match.arg(outputType)
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
@@ -70,6 +74,11 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
       df_list <- split(input$PSMTable$UniprotIDs, input$PSMTable$Alias)
     }else{
       stop("Check your level argument. Your input is not recognized.")
+    }
+
+    if(outputType == "data"){
+      return_df <- GetIntersections(df_list, nintersects)
+      return(return_df)
     }
 
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
@@ -111,6 +120,11 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
       stop("Check your level argument. Your input is not recognized.")
     }
 
+    if(outputType == "data"){
+      return_df <- GetIntersections(df_list, nintersects)
+      return(return_df)
+    }
+
     p <- UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
                        nsets = length(names(df_list)),
                        nintersects = nintersects)
@@ -147,6 +161,11 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
       df_list <- split(df$UniprotIDs, df$Condition)
     }else{
       stop("Check your level argument. Your input is not recognized.")
+    }
+
+    if(outputType == "data"){
+      return_df <- GetIntersections(df_list, nintersects)
+      return(return_df)
     }
 
     p <- suppressMessages(UpSetR::upset(UpSetR::fromList(df_list), order.by = "freq",
