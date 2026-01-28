@@ -30,7 +30,7 @@ GlycoDiveR generates graphics from (quantitative) glycoproteomics
 You can install the development version of GlycoDiveR from [GitHub](https://github.com/) with:
 
 ``` r
-install.packages("devtools")
+install.packages("devtools") #This line only needs to be ran once
 devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
 
 ```
@@ -40,11 +40,29 @@ devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
 The Wiki tab on GitHub is a good starting point for learning how to use GlycoDiveR.
 You can also use the links below to navigate to the different sections.
 
-- [Examples of how to use GlycoDiveR]()
-- [A basic example how to use GlycoDiveR](https://github.com/riley-research/GlycoDiveR/blob/main/inst/doc/The_GlycoDiveR_Workflow.html)
-- [How to import search engine outputs](https://github.com/riley-research/GlycoDiveR)
-- [Manage modifications, glycans, glycan colors, or the general color scheme](https://github.com/riley-research/GlycoDiveR)
-- [GlycoDiveR's reference manual](https://github.com/riley-research/GlycoDiveR/blob/main/docs/)
+- [Examples of how to use
+  GlycoDiveR](https://github.com/riley-research/GlycoDiveR/wiki/Examples-of-how-to-use-GlycoDiveR)
+
+- [How to generate and format the annotation
+  file](https://github.com/riley-research/GlycoDiveR/wiki/How-to-generate-and-format-the-annotation-file)
+
+- [How to import search engine
+  outputs](https://github.com/riley-research/GlycoDiveR/wiki/How-to-import-search-engine-outputs)
+
+- [Manage modifications, glycans, glycan colors, or the general color
+  scheme](https://github.com/riley-research/GlycoDiveR/wiki/Manage-modifications,-glycans,-glycan-colors,-or-the-general-color-scheme)
+
+- [What functions are available through
+  GlycoDiveR](https://github.com/riley-research/GlycoDiveR/wiki/What-functions-are-available-through-GlycoDiveR)
+
+- [GlycoDiveR manual and workflow
+  examples](https://github.com/riley-research/GlycoDiveR/blob/main/docs/)
+
+- [Viewing and manually editing imported
+  data](https://github.com/riley-research/GlycoDiveR/wiki/Viewing-and-manually-editing-imported-data)
+
+- [How to add additional columns to imported
+  data](https://github.com/riley-research/GlycoDiveR/wiki/How-to-add-additional-columns-to-imported-data)
 
 ## Troubleshooting, tips, and ideas
 
