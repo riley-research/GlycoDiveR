@@ -42,8 +42,9 @@ library(GlycoDiveR)
 ```
 
 To follow this vignette, you can use the raw data uploaded on GlycoDiver's Github,
-but is also pre-loaded, so you don't have to follow the first few steps. If you want
-to use the pre-loaded data run the following code:
+but is also pre-loaded, so you don't have to follow the first few steps. The raw data
+is publicly available through [Sutherland et al](https://pubs.acs.org/doi/10.1021/acs.analchem.5c05881).
+If you want to use the pre-loaded data run the following code:
 
 ```{r}
 data("exampleData")
@@ -195,6 +196,17 @@ Showcase the normalized and raw intensity values.
 
 ```{r, message = FALSE, warning = FALSE, fig.width=6, fig.height=4}
 PlotQuantificationQC(exampleData, whichQuantification = "both")
+```
+
+### PlotPCA
+
+Perform a PCA with a diverse set of options. In this case, the PCA is applied to 
+only the glycopeptides using normalized quantitative data, and kNN to impute missing values.
+
+```{r, message = FALSE, warning = FALSE, fig.width=5, fig.height=4}
+PlotPCA(exampleData, quantType = "normalized", dropNoQuant = TRUE,
+  minPeptideCoverage = 0.5, thresholdMode = "total", type = "glyco",
+  label = FALSE)
 ```
 
 ### PlotPSMCount
