@@ -30,14 +30,15 @@ The Wiki tab on GitHub is a good starting point for learning how to use
 GlycoDiveR. You can also use the links below to navigate to the
 different sections.
 
+- [Examples of how to use GlycoDiveR]()
 - [A basic example how to use
-  GlycoDiveR](https://github.com/riley-research/GlycoDiveR)
+  GlycoDiveR](https://github.com/riley-research/GlycoDiveR/blob/main/inst/doc/The_GlycoDiveR_Workflow.html)
 - [How to import search engine
   outputs](https://github.com/riley-research/GlycoDiveR)
 - [Manage modifications, glycans, glycan colors, or the general color
   scheme](https://github.com/riley-research/GlycoDiveR)
 - [GlycoDiveR’s reference
-  manual](https://github.com/riley-research/GlycoDiveR)
+  manual](https://github.com/riley-research/GlycoDiveR/blob/main/docs/)
 
 ## Troubleshooting, tips, and ideas
 
