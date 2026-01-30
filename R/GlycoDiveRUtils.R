@@ -151,7 +151,7 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
           grepl("A|G", glycanComp) ~ "Sialylated",
           grepl("F", glycanComp) ~ "Fucosylated",
           grepl("Phospho", glycanComp) ~ "Phosphomannose",
-          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count == 2 & hex_count == 3 ~ "Paucimannose",
+          !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count == 2 & hex_count == 3 ~ "Truncated",
           (!is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 2) |
             ( !is.na(hexNAc_count) & !is.na(hex_count) & hex_count < 3) ~ "Truncated",
           !is.na(hexNAc_count) & !is.na(hex_count) & hexNAc_count < 3 & hex_count > 3 ~ "Oligomannose",
