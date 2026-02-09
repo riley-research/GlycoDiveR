@@ -69,7 +69,14 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             thresholdMode = c("group", "total"), useExtendedOGlycanCategories = FALSE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
-  annotationdf <- utils::read.csv(annotation)
+  annotationdf <- utils::read.csv(annotation,
+                                  colClasses = c(
+                                    Run = "character",
+                                    Condition = "character",
+                                    Alias = "character",
+                                    BioReplicate = "integer",
+                                    TechReplicate = "integer"
+                                  ))
   CheckAnnotation(annotationdf)
 
   if(identical(useExtendedOGlycanCategories, TRUE)){
