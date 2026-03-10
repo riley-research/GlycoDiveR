@@ -12,3 +12,16 @@ test_that("PlotPCA defaults", {
                silent = TRUE)
   expect_s3_class(p, "gg")
 })
+
+test_that("PlotPCA defaults", {
+  skip_if_not(exists("mydata"), "User data not loaded")
+  p <- PlotPCA(mydata, returnType = "loadingsPlot", silent = TRUE)
+  expect_s3_class(p, "gg")
+})
+
+test_that("PlotPCA defaults", {
+  skip_if_not(exists("mydata"), "User data not loaded")
+  p <- PlotPCA(mydata, returnType = "loadingsData", silent = TRUE)
+  expect_s3_class(p, "data.frame")
+})
+

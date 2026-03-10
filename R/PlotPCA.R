@@ -19,6 +19,10 @@
 #' @param thresholdMode Character string specifying the filtering mode: "total"
 #' applies a global threshold across all data, while "group" identifies the threshold
 #' within groups.
+#' @param returnType Determines if the functions returns a PCA plot, a loadings plot,
+#' or the loadings plot data.
+#' @param loadingsPlotLabels Choose the number of points to label, based on the
+#' magnitude of each point calculated using sqrt(PC1^2 + PC2^2).
 #' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition".
 #' @param type Either "glyco" or "all".
 #' @param label TRUE for showing Alias labels, FALSE for no labels.
@@ -47,12 +51,17 @@
 #'      PlotPCA(mydata, quantType = "normalized", minPeptideCoverage = c(0.4, 2),
 #'      thresholdMode = "group", grouping = "biologicalReps", type = "all")
 #'
+#'      PlotPCA(mydata, type = "glyco", returnType = "loadingsPlot",
+#'      loadingsPlotLabels = 20)
 #' }
 PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
                     minPeptideCoverage = 0.5, thresholdMode = "total",
-                    grouping = "technicalReps", type = "glyco", label =TRUE,
-                    whichProtein = NULL, whichPeptide = NULL, exactProteinMatch = TRUE,
+                    grouping = "technicalReps", type = "glyco",
+                    returnType = c("PCA", "loadingsPlot", "loadingsData"),
+                    loadingsPlotLabels = 10, label = TRUE, whichProtein = NULL,
+                    whichPeptide = NULL, exactProteinMatch = TRUE,
                     whichAlias = NULL, silent = FALSE){
+  returnType <- match.arg(returnType)
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
   df <- FilterForPeptides(input$PSMTable, whichPeptide)
@@ -91,6 +100,11 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     }
   }
 
+  if(returnType == "loadingsPlot" | returnType == "loadingsData") {
+    dfMatch <- df %>%
+      dplyr::distinct(.data$ModifiedPeptide, .data$Genes, .data$TotalGlycanComposition)
+  }
+
   if(quantType == "normalized"){
     qt <- "Intensity"
   }else if(quantType == "nonNormalized"){
@@ -115,34 +129,36 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     mtrx <- impute::impute.knn(mtrx, rowmax = 1)$data
 
     pca <- stats::prcomp(t(mtrx), center = TRUE, scale. = TRUE)
-    pca_scores <- as.data.frame(pca$x)
 
-    pca_scores$Alias <- rownames(pca_scores)
+    if(returnType == "PCA"){
+      pca_scores <- as.data.frame(pca$x)
 
-    pca_scores <- pca_scores %>%
-      dplyr::left_join(input$PSMTable %>% dplyr::select("Alias", "Condition") %>% dplyr::distinct(),
-                       by = "Alias")
+      pca_scores$Alias <- rownames(pca_scores)
 
-    if(identical(label, FALSE)){pca_scores$Alias <- ""}
+      pca_scores <- pca_scores %>%
+        dplyr::left_join(input$PSMTable %>% dplyr::select("Alias", "Condition") %>% dplyr::distinct(),
+                         by = "Alias")
 
-    colH <- stats::setNames(
-      .modEnv$colorScheme[1:length(unique(pca_scores$Condition))],
-      unique(pca_scores$Condition)
-    )
+      if(identical(label, FALSE)){pca_scores$Alias <- ""}
 
-    p <- ggplot2::ggplot(pca_scores, ggplot2::aes(x = .data$PC1, y = .data$PC2, color = .data$Condition)) +
-      ggplot2::geom_point(size = 5) +
-      ggrepel::geom_label_repel(ggplot2::aes(label = .data$Alias), fill = NA, label.size = NA) +
-      ggplot2::labs(
-        x = paste0("PC1 (", round(100 * summary(pca)$importance[2,1], 1), "%)"),
-        y = paste0("PC2 (", round(100 * summary(pca)$importance[2,2], 1), "%)"),
-        color = NULL
-      ) +
-      ggplot2::scale_color_manual(values = colH) +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
+      colH <- stats::setNames(
+        .modEnv$colorScheme[1:length(unique(pca_scores$Condition))],
+        unique(pca_scores$Condition)
+      )
 
-    return(p)
-  }else if(grouping == "biologicalReps"){
+      p <- ggplot2::ggplot(pca_scores, ggplot2::aes(x = .data$PC1, y = .data$PC2, color = .data$Condition)) +
+        ggplot2::geom_point(size = 5) +
+        ggrepel::geom_label_repel(ggplot2::aes(label = .data$Alias), fill = NA, label.size = NA) +
+        ggplot2::labs(
+          x = paste0("PC1 (", round(100 * summary(pca)$importance[2,1], 1), "%)"),
+          y = paste0("PC2 (", round(100 * summary(pca)$importance[2,2], 1), "%)"),
+          color = NULL
+        ) +
+        ggplot2::scale_color_manual(values = colH) +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
+
+      return(p)}
+    } else if(grouping == "biologicalReps"){
     df <- df %>%
       dplyr::select("Condition", "BioReplicate", "ModifiedPeptide", "Quantification" = dplyr::all_of(qt)) %>%
       dplyr::mutate(Quantification = log(.data$Quantification,2),
@@ -160,6 +176,8 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     mtrx <- impute::impute.knn(mtrx, rowmax = 1)$data
 
     pca <- stats::prcomp(t(mtrx), center = TRUE, scale. = TRUE)
+
+    if(returnType == "PCA"){
     pca_scores <- as.data.frame(pca$x)
 
     pca_scores$Alias <- rownames(pca_scores)
@@ -186,7 +204,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
       ggplot2::scale_color_manual(values = colH) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
 
-    return(p)
+    return(p)}
   }else if(grouping == "condition"){
     df <- df %>%
       dplyr::select("Alias", "Condition", "ModifiedPeptide", "Quantification" = dplyr::all_of(qt)) %>%
@@ -206,6 +224,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     mtrx <- impute::impute.knn(mtrx, rowmax = 1)$data
 
     pca <- stats::prcomp(t(mtrx), center = TRUE, scale. = TRUE)
+    if(returnType == "PCA"){
     pca_scores <- as.data.frame(pca$x)
 
     pca_scores$Alias <- rownames(pca_scores)
@@ -229,8 +248,59 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
       ggplot2::scale_color_manual(values = colH) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5))
 
-    return(p)
+    return(p)}
   }else{
     stop("Your grouping argument was not recognized")
+  }
+
+  if (returnType == "loadingsPlot" | returnType == "loadingsData") {
+    #Get the loadings
+    loadings <- as.data.frame(pca$rotation)
+    loadings$ModifiedPeptide <- rownames(loadings)
+    loadings$magnitude <- sqrt(loadings[,1]^2 + loadings[,2]^2)
+
+    #Compute the circle
+    theta <- seq(0, 2 * pi, length.out = 200)
+
+    r <- max(loadings[c("PC1", "PC2")], na.rm = TRUE)
+
+    circle <- data.frame(x = r * cos(theta), y = r * sin(theta))
+
+    #Get the right labels
+    if(loadingsPlotLabels > 0) {
+      loadings <- loadings %>%
+        dplyr::arrange(dplyr::desc(.data$magnitude)) %>%
+        dplyr::left_join(dfMatch, dplyr::join_by("ModifiedPeptide")) %>%
+        dplyr::mutate(label = ifelse(dplyr::row_number() <= loadingsPlotLabels,
+                                     paste(.data$Genes, .data$TotalGlycanComposition, sep = "-"), ""),
+                      label = sub("-$", "", .data$label))
+    }else {
+      loadings$label <- ""
+    }
+
+    if (returnType == "loadingsData") {
+      return(loadings)
+    } else {
+      p <- ggplot2::ggplot() +
+        ggplot2::geom_path(data = circle,
+                           ggplot2::aes(x = .data$x, y = .data$y),
+                           color = "grey50") +
+        ggplot2::geom_point(data = loadings, ggplot2::aes(x = .data$PC1,
+                                                          y = .data$PC2),
+                            shape = 21,
+                            fill = .modEnv$colorScheme[1],
+                            color = "black",
+                            size = 3) +
+        ggrepel::geom_text_repel(data = loadings, ggplot2::aes(label = .data$label,
+                                                               x = .data$PC1,
+                                                               y = .data$PC2),
+                                 max.overlaps = Inf) +
+        ggplot2::labs(x = "PC1", y = "PC2") +
+        ggplot2::coord_equal() +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(
+          angle = 0, hjust = 0.5, vjust = 0.5))
+
+      return(p)
+    }
   }
 }

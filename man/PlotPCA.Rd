@@ -12,6 +12,8 @@ PlotPCA(
   thresholdMode = "total",
   grouping = "technicalReps",
   type = "glyco",
+  returnType = c("PCA", "loadingsPlot", "loadingsData"),
+  loadingsPlotLabels = 10,
   label = TRUE,
   whichProtein = NULL,
   whichPeptide = NULL,
@@ -45,6 +47,12 @@ within groups.}
 \item{grouping}{Grouping is "technicalReps", "biologicalReps", or "condition".}
 
 \item{type}{Either "glyco" or "all".}
+
+\item{returnType}{Determines if the functions returns a PCA plot, a loadings plot,
+or the loadings plot data.}
+
+\item{loadingsPlotLabels}{Choose the number of points to label, based on the
+magnitude of each point calculated using sqrt(PC1^2 + PC2^2).}
 
 \item{label}{TRUE for showing Alias labels, FALSE for no labels.}
 
@@ -82,5 +90,7 @@ kNN using the impute package.
      PlotPCA(mydata, quantType = "normalized", minPeptideCoverage = c(0.4, 2),
      thresholdMode = "group", grouping = "biologicalReps", type = "all")
 
+     PlotPCA(mydata, type = "glyco", returnType = "loadingsPlot",
+     loadingsPlotLabels = 20)
 }
 }
