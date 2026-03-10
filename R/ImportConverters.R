@@ -150,6 +150,13 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
   else {filtereddf$RetentionTime = NA
   warning("The column Retention was not found in the input dataframe.")}
 
+  #ppmError####
+  if ("Calculated.Peptide.Mass" %in% existingCols & "Delta.Mass" %in% existingCols) {
+    filtereddf$ppmError <- unfiltereddf$Delta.Mass / unfiltereddf$Calculated.Peptide.Mass * 1e6
+  } else {
+    warning("Calculated.Peptide.Mass and/or Delta.Mass not found in the data.")
+  }
+
   #GlycanType####
   toadd <- filtereddf %>%
     dplyr::distinct(.data$AssignedModifications, .data$TotalGlycanComposition) %>%
@@ -370,6 +377,13 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   }else {filtereddf$RetentionTime = NA
   warning("The column Scan Time was not found in the input dataframe.")}
 
+  #ppmError####
+  if ("Mass error\r\n(ppm)" %in% existingCols) {
+    filtereddf$ppmError <- as.numeric(unfiltereddf$`Mass error\r\n(ppm)`)
+  } else {
+    warning("Mass error\r\n(ppm) not found in the data.")
+  }
+
   #GlycanType####
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
   filtereddf <- filtereddf %>%
@@ -551,6 +565,13 @@ pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
       dplyr::mutate(RetentionTime = as.double(unfiltereddf$RT / 60))
   }else {filtereddf$RetentionTime = NA
   warning("The column Scan Time was not found in the input dataframe.")}
+
+  #ppmError####
+  if ("PPM" %in% existingCols) {
+    filtereddf$ppmError <- as.numeric(unfiltereddf$PPM)
+  } else {
+    warning("PPM not found in the data.")
+  }
 
   #GlycanType####
   filtereddf$GlycanType <- apply(filtereddf[,c("AssignedModifications", "TotalGlycanComposition")], 1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
