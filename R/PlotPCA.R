@@ -102,7 +102,10 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
 
   if(returnType == "loadingsPlot" | returnType == "loadingsData") {
     dfMatch <- df %>%
-      dplyr::distinct(.data$ModifiedPeptide, .data$Genes, .data$TotalGlycanComposition)
+      dplyr::mutate(PSMType = GetPSMGlycanCategory(.data$GlycanType),
+                    PSMType = ifelse(PSMType == "nonGlyco", "nonGlycosylated", "Glycosylated")) %>%
+      dplyr::distinct(.data$ModifiedPeptide, .data$Genes,
+                      .data$TotalGlycanComposition, .data$PSMType)
   }
 
   if(quantType == "normalized"){
@@ -281,24 +284,28 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
     if (returnType == "loadingsData") {
       return(loadings)
     } else {
+      colH <- c("Glycosylated" = .modEnv$colorScheme[1],
+                "nonGlycosylated" = .modEnv$colorScheme[2])
+
       p <- ggplot2::ggplot() +
         ggplot2::geom_path(data = circle,
                            ggplot2::aes(x = .data$x, y = .data$y),
                            color = "grey50") +
         ggplot2::geom_point(data = loadings, ggplot2::aes(x = .data$PC1,
-                                                          y = .data$PC2),
+                                                          y = .data$PC2,
+                                                          fill = .data$PSMType),
                             shape = 21,
-                            fill = .modEnv$colorScheme[1],
                             color = "black",
                             size = 3) +
         ggrepel::geom_text_repel(data = loadings, ggplot2::aes(label = .data$label,
                                                                x = .data$PC1,
                                                                y = .data$PC2),
                                  max.overlaps = Inf) +
-        ggplot2::labs(x = "PC1", y = "PC2") +
+        ggplot2::labs(x = "PC1", y = "PC2", fill = NULL) +
         ggplot2::coord_equal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(
-          angle = 0, hjust = 0.5, vjust = 0.5))
+          angle = 0, hjust = 0.5, vjust = 0.5)) +
+        ggplot2::scale_fill_manual(values = colH)
 
       return(p)
     }
