@@ -24,4 +24,3 @@ test_that("PlotPCA defaults", {
   p <- PlotPCA(mydata, returnType = "loadingsData", silent = TRUE)
   expect_s3_class(p, "data.frame")
 })
-
