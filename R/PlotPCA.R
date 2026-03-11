@@ -103,7 +103,7 @@ PlotPCA <- function(input, quantType = "normalized", dropNoQuant = TRUE,
   if(returnType == "loadingsPlot" | returnType == "loadingsData") {
     dfMatch <- df %>%
       dplyr::mutate(PSMType = GetPSMGlycanCategory(.data$GlycanType),
-                    PSMType = ifelse(PSMType == "nonGlyco", "nonGlycosylated", "Glycosylated")) %>%
+                    PSMType = ifelse(.data$PSMType == "nonGlyco", "nonGlycosylated", "Glycosylated")) %>%
       dplyr::distinct(.data$ModifiedPeptide, .data$Genes,
                       .data$TotalGlycanComposition, .data$PSMType)
   }
