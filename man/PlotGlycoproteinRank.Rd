@@ -7,7 +7,7 @@
 PlotGlycoproteinRank(
   input,
   grouping = c("all", "technicalReps", "biologicalReps", "condition"),
-  breaks = 10,
+  bins = 10,
   pointSize = 4,
   whichProtein = NULL,
   whichPeptide = NULL,
@@ -23,7 +23,7 @@ PlotGlycoproteinRank(
 \item{grouping}{Grouping is "all" "technicalReps", "biologicalReps",
 or "condition".}
 
-\item{breaks}{The number of histogram bars.}
+\item{bins}{The number of histogram bars.}
 
 \item{pointSize}{The point size in the scatter plot.}
 
@@ -62,6 +62,6 @@ The histogram shows the total intensity of all glycoproteins per bin.
 PlotGlycoproteinRank(mydata, grouping = "condition")
 
 PlotGlycoproteinRank(mydata, pointSize = 6,
-breaks = 20, histogramColor = "#FFFFFF", grouping = "condition")
+bins = 20, histogramColor = "#FFFFFF", grouping = "condition")
 }
 }

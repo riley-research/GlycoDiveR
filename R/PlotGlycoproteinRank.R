@@ -7,7 +7,7 @@
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param grouping Grouping is "all" "technicalReps", "biologicalReps",
 #' or "condition".
-#' @param breaks The number of histogram bars.
+#' @param bins The number of histogram bars.
 #' @param pointSize The point size in the scatter plot.
 #' @param whichProtein Filter what proteins to plot. These are the IDs as presented
 #' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
@@ -33,11 +33,11 @@
 #' PlotGlycoproteinRank(mydata, grouping = "condition")
 #'
 #' PlotGlycoproteinRank(mydata, pointSize = 6,
-#' breaks = 20, histogramColor = "#FFFFFF", grouping = "condition")
+#' bins = 20, histogramColor = "#FFFFFF", grouping = "condition")
 #' }
 PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
                                                      "biologicalReps", "condition"),
-                                 breaks = 10, pointSize = 4, whichProtein = NULL,
+                                 bins = 10, pointSize = 4, whichProtein = NULL,
                                  whichPeptide = NULL, exactProteinMatch = TRUE,
                                  whichAlias = NULL, histogramColor = "grey70",
                                  silent = FALSE){
@@ -91,18 +91,18 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
 
     #Get the histogram
     df_hist <- df_plot %>%
-      dplyr::mutate(Bin = cut(.data$ProteinIntensity, breaks = breaks),
+      dplyr::mutate(Bin = cut(.data$ProteinIntensity, breaks = bins),
                     Bin_Mean = purrr::map_dbl(.data$Bin, function(x) {
                       nums <-
                         as.numeric(unlist(strsplit(gsub("\\(|\\]", "", as.character(x)), ",")))
                       mean(nums)})) %>%
-      dplyr::summarise(.by = .data$Bin_Mean,
+      dplyr::summarise(.by = "Bin_Mean",
                        TotalProteinIntensity = sum(.data$ProteinIntensity))
 
     #Get the axis the same
     minY <- min(df_plot$ProteinIntensity, na.rm = TRUE)
     maxY <- max(df_plot$ProteinIntensity, na.rm = TRUE)
-    bin_width_val <- (maxY - minY) / breaks
+    bin_width_val <- (maxY - minY) / bins
     minY <- min(df_hist$Bin_Mean, na.rm = TRUE) - 0.55 * bin_width_val
     maxY <- max(df_hist$Bin_Mean, na.rm = TRUE) + 0.55 * bin_width_val
 
@@ -198,10 +198,10 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
   #Get the axis and breaks the same
   minY <- min(df_plot$ProteinIntensity, na.rm = TRUE)
   maxY <- max(df_plot$ProteinIntensity, na.rm = TRUE)
-  predefined_breaks <- seq(minY, maxY, length.out = breaks + 1)
-  bin_width_val <- (maxY - minY) / breaks
+  predefined_breaks <- seq(minY, maxY, length.out = bins + 1)
+  bin_width_val <- (maxY - minY) / bins
   minY <- mean(predefined_breaks[1:2]) - 0.55 * bin_width_val
-  maxY <- mean(predefined_breaks[breaks:breaks+1]) + 0.55 * bin_width_val
+  maxY <- mean(predefined_breaks[bins:bins+1]) + 0.55 * bin_width_val
 
   max_hist <- df_plot %>%
     dplyr::mutate(.by = "group",
