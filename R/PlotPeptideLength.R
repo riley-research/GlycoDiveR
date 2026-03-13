@@ -53,14 +53,15 @@ PlotPeptideLength <- function(input, type = "both", whichAlias = NULL,
     input$PSMTable %>%
       dplyr::distinct(.data$Alias, .data$ModifiedPeptide, .data$Glycan) %>%
       dplyr::mutate(nakedPep = gsub("[^A-Z]", "", .data$ModifiedPeptide),
-                    pepLength = nchar(.data$nakedPep, allowNA = TRUE, keepNA = TRUE)) %>%
+                    pepLength = nchar(.data$nakedPep, allowNA = TRUE, keepNA = TRUE),
+                    Glycan = factor(Glycan, levels = c("nonGlycosylated", "Glycosylated"))) %>%
       dplyr::summarise(.by = c("Glycan", "pepLength"),
                        count = dplyr::n()) %>%
       dplyr::arrange(dplyr::desc(.data$count)) %>%
       ggplot2::ggplot(ggplot2::aes(x = .data$pepLength,
                                    y = .data$count,
                                    fill = .data$Glycan)) +
-      ggplot2::geom_bar(stat = "identity", position = "identity", color = "black") +
+      ggplot2::geom_bar(stat = "identity", position = "stack", color = "black") +
       ggplot2::labs(x = "Peptide length", y = "Peptide count",
                     fill = NULL) +
       ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0,NA)) +
