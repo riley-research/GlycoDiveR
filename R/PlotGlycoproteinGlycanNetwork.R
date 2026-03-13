@@ -10,6 +10,9 @@
 #' verticeSize = c(3,5) means a glycan node size of 3 and a protein node size of 5.
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
 #' for plotting.
+#' #' @param keepAllProteins Works in concert with whichAlias. If you filter for
+#' specific aliases this determines whether to keep only the proteins found in
+#' the specific aliases or all proteins.
 #' @param highlight Specify what glycan category to highlight, or use "all" to highlight all.
 #' @param whichPeptide Filter what peptides to plot. This can either be a dataframe
 #' with a ModifiedPeptide peptide column, or a vector with the ModifiedPeptide sequences
@@ -41,9 +44,9 @@
 #' }
 PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
                                           verticeSize = c(5,3), whichAlias = NULL,
-                                          highlight = "all", whichPeptide = NULL,
-                                          whichProtein = NULL, exactProteinMatch = TRUE,
-                                          silent = FALSE){
+                                          keepAllProteins = TRUE, highlight = "all",
+                                          whichPeptide = NULL, whichProtein = NULL,
+                                          exactProteinMatch = TRUE, silent = FALSE){
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
@@ -52,7 +55,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
   df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco")
 
-  if(!is.null(whichAlias)){
+  if(!is.null(whichAlias) & !keepAllProteins){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
   }
@@ -65,8 +68,20 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
     }
   }
 
-  df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
-    dplyr::distinct()
+  if(!is.null(whichAlias)){
+    df_edges <- df %>%
+      dplyr::filter(.data$Alias %in% whichAlias) %>%
+      dplyr::select(c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")) %>%
+      dplyr::distinct()
+
+    df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
+      dplyr::distinct()
+  }else {
+    df <- df[,c("TotalGlycanComposition", "GlycanType", "UniprotIDs", "NumberOfNSites")] %>%
+      dplyr::distinct()
+
+    df_edges <- df
+  }
 
   #Get the proteins, colors, and coordinates
   dfprot <- df[,c("UniprotIDs", "NumberOfNSites")] %>%
@@ -154,7 +169,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
   coords <- rbind(data.matrix(dfprot[,c("x", "y")]), circle_coords)
 
   #Now add color to the edge df and add the edges
-  df <- df %>%
+  df <- df_edges %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)
 
   if(highlight == "all"){
