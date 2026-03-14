@@ -26,8 +26,9 @@ PlotGlycoProteinGlycanNetwork(
 verticeSize = c(3,5) means a glycan node size of 3 and a protein node size of 5.}
 
 \item{whichAlias}{Provide a vector of Aliases to only select these aliases
-for plotting.
-#' @param keepAllProteins Works in concert with whichAlias. If you filter for
+for plotting.}
+
+\item{keepAllProteins}{Works in concert with whichAlias. If you filter for
 specific aliases this determines whether to keep only the proteins found in
 the specific aliases or all proteins.}
 
