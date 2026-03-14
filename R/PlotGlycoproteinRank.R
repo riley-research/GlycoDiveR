@@ -9,6 +9,9 @@
 #' or "condition".
 #' @param bins The number of histogram bars.
 #' @param pointSize The point size in the scatter plot.
+#' @param geneLabel Specifu what genes to label. The values should correspond
+#' to the values in your imported data's Genes column. Supply like this:
+#' c("ORM1", "IGHM").
 #' @param whichProtein Filter what proteins to plot. These are the IDs as presented
 #' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
 #' with a UniprotIDs column, or a vector with the UniprotIDs you want to keep.
@@ -37,10 +40,10 @@
 #' }
 PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
                                                      "biologicalReps", "condition"),
-                                 bins = 10, pointSize = 4, whichProtein = NULL,
-                                 whichPeptide = NULL, exactProteinMatch = TRUE,
-                                 whichAlias = NULL, histogramColor = "grey70",
-                                 silent = FALSE){
+                                 bins = 10, pointSize = 4, geneLabel = NULL,
+                                 whichProtein = NULL, whichPeptide = NULL,
+                                 exactProteinMatch = TRUE, whichAlias = NULL,
+                                 histogramColor = "grey70", silent = FALSE){
   grouping <- match.arg(grouping)
   input <- FilterForCutoffs(input, silent)
   input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
@@ -84,10 +87,11 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
   if (grouping == "all"){
     #Get the scatter plot
     df_plot <- df %>%
-      dplyr::summarise(.by = "UniprotIDs",
+      dplyr::summarise(.by = c("UniprotIDs", "Genes"),
                        ProteinIntensity = log10(sum(.data$Intensity, na.rm = TRUE))) %>%
       dplyr::arrange(dplyr::desc(.data$ProteinIntensity)) %>%
-      dplyr::mutate(Rank = dplyr::row_number())
+      dplyr::mutate(Rank = dplyr::row_number(),
+                    label = ifelse(.data$Genes%in% geneLabel, .data$Genes, NA))
 
     #Get the histogram
     df_hist <- df_plot %>%
@@ -109,6 +113,9 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
     #Now the plotting
     scatter_p <- ggplot2::ggplot(df_plot, ggplot2::aes(x = .data$Rank, y = .data$ProteinIntensity)) +
       ggplot2::geom_point(color = .modEnv$colorScheme[1], size = pointSize) +
+      ggrepel::geom_text_repel(data = df_plot %>% dplyr::filter(!is.na(.data$label)),
+                               ggplot2::aes(label = .data$label),
+                               min.segment.length = 0, max.overlaps = Inf) +
       ggplot2::labs(x = "Protein rank", y = "Intensity (log10)") +
       ggplot2::scale_y_continuous(limits = c(minY, maxY)) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0,
@@ -142,12 +149,13 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
 
     df_plot <- df %>%
       dplyr::mutate(group = .data$Alias) %>%
-      dplyr::summarise(.by = c("UniprotIDs", "group"),
+      dplyr::summarise(.by = c("UniprotIDs", "Genes", "group"),
                        ProteinIntensity = log10(sum(.data$Intensity, na.rm = TRUE))) %>%
       dplyr::arrange(.by = "group",
                      dplyr::desc(.data$ProteinIntensity)) %>%
       dplyr::mutate(.by = "group",
-                    Rank = dplyr::row_number()) %>%
+                    Rank = dplyr::row_number(),
+                    label = ifelse(.data$Genes%in% geneLabel, .data$Genes, NA)) %>%
       dplyr::left_join(df_col, dplyr::join_by("group"))
 
   }else if (grouping == "biologicalReps") {
@@ -164,12 +172,13 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
       dplyr::mutate(group = paste0(.data$Condition, "-", .data$BioReplicate)) %>%
       dplyr::arrange(.data$Alias) %>%
       dplyr::mutate(group = factor(.data$group, levels = unique(.data$group))) %>%
-      dplyr::summarise(.by = c("UniprotIDs", "group"),
+      dplyr::summarise(.by = c("UniprotIDs", "Genes","group"),
                        ProteinIntensity = log10(sum(.data$Intensity, na.rm = TRUE))) %>%
       dplyr::arrange(.by = "group",
                      dplyr::desc(.data$ProteinIntensity)) %>%
       dplyr::mutate(.by = "group",
-                    Rank = dplyr::row_number()) %>%
+                    Rank = dplyr::row_number(),
+                    label = ifelse(.data$Genes%in% geneLabel, .data$Genes, NA)) %>%
       dplyr::left_join(df_col, dplyr::join_by("group"))
 
   }else if (grouping == "condition") {
@@ -186,12 +195,13 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
       dplyr::mutate(group = .data$Condition) %>%
       dplyr::arrange(.data$Alias) %>%
       dplyr::mutate(group = factor(.data$group, levels = unique(.data$group))) %>%
-      dplyr::summarise(.by = c("UniprotIDs", "group"),
+      dplyr::summarise(.by = c("UniprotIDs", "Genes", "group"),
                        ProteinIntensity = log10(sum(.data$Intensity, na.rm = TRUE))) %>%
       dplyr::arrange(.by = "group",
                      dplyr::desc(.data$ProteinIntensity)) %>%
       dplyr::mutate(.by = "group",
-                    Rank = dplyr::row_number()) %>%
+                    Rank = dplyr::row_number(),
+                    label = ifelse(.data$Genes%in% geneLabel, .data$Genes, NA)) %>%
       dplyr::left_join(df_col, dplyr::join_by("group"))
   }
 
@@ -238,6 +248,9 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
     scatter_p <- ggplot2::ggplot(df_this_plot, ggplot2::aes(x = .data$Rank, y = .data$ProteinIntensity)) +
       ggplot2::geom_point(ggplot2::aes(color = .data$col),
                          size = pointSize) +
+      ggrepel::geom_text_repel(data = df_this_plot %>% dplyr::filter(!is.na(.data$label)),
+                               ggplot2::aes(label = .data$label),
+                               min.segment.length = 0, max.overlaps = Inf) +
       ggplot2::scale_color_identity() +
       ggplot2::labs(x = "Protein rank", y = "Intensity (log10)",
                     title = allGroups[i]) +

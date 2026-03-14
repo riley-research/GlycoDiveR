@@ -9,6 +9,7 @@ PlotGlycoproteinRank(
   grouping = c("all", "technicalReps", "biologicalReps", "condition"),
   bins = 10,
   pointSize = 4,
+  geneLabel = NULL,
   whichProtein = NULL,
   whichPeptide = NULL,
   exactProteinMatch = TRUE,
@@ -26,6 +27,10 @@ or "condition".}
 \item{bins}{The number of histogram bars.}
 
 \item{pointSize}{The point size in the scatter plot.}
+
+\item{geneLabel}{Specifu what genes to label. The values should correspond
+to the values in your imported data's Genes column. Supply like this:
+c("ORM1", "IGHM").}
 
 \item{whichProtein}{Filter what proteins to plot. These are the IDs as presented
 in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
