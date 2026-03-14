@@ -54,7 +54,7 @@ PlotPeptideLength <- function(input, type = "both", whichAlias = NULL,
       dplyr::distinct(.data$Alias, .data$ModifiedPeptide, .data$Glycan) %>%
       dplyr::mutate(nakedPep = gsub("[^A-Z]", "", .data$ModifiedPeptide),
                     pepLength = nchar(.data$nakedPep, allowNA = TRUE, keepNA = TRUE),
-                    Glycan = factor(Glycan, levels = c("nonGlycosylated", "Glycosylated"))) %>%
+                    Glycan = factor(.data$Glycan, levels = c("nonGlycosylated", "Glycosylated"))) %>%
       dplyr::summarise(.by = c("Glycan", "pepLength"),
                        count = dplyr::n()) %>%
       dplyr::arrange(dplyr::desc(.data$count)) %>%
