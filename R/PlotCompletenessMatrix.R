@@ -8,6 +8,8 @@
 #' include non-modified peptides.
 #' @param plotColors The colors used for the matrix The default is c("lightgrey", "darkgreen").
 #' @param collapseTechReps Do you want to collapse the technical replicates.
+#' @param showGlycanCounts TRUE to show the counts on the y-axis, or FALSE
+#' to not show the counts.
 #' @param exportDataTo If a system folder is provided, a CSV file will be exported
 #' to that folder containing the data presented in the matrix
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
@@ -35,7 +37,7 @@
 #' }
 PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
                                     plotColors = c("grey90", "#44AA99"),
-                                    collapseTechReps = FALSE,
+                                    collapseTechReps = FALSE, showGlycanCounts = TRUE,
                                     whichAlias = NULL, whichPeptide = NULL,
                                     whichProtein = NULL, exactProteinMatch = TRUE,
                                     exportDataTo = FALSE, silent = FALSE){
@@ -80,6 +82,14 @@ PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
     tidyr::pivot_wider(names_from = "Alias", values_from = "Run", values_fn = dplyr::first) %>%
     dplyr::mutate(dplyr::across(-c("ModifiedPeptide", "GlycanType"), ~ ifelse(!is.na(.), 1, 0)))
 
+  if (showGlycanCounts) {
+    dfLabel <- df %>%
+      dplyr::summarise(.by = "GlycanType",
+                       numOfGlycans = dplyr::n()) %>%
+      dplyr::mutate(label = paste0(.data$GlycanType, " (",
+                                      .data$numOfGlycans, ")"))
+  }
+
   #Get the matrix and in the right column order
   mtrx <- data.matrix(df[,3:ncol(df)])
   rownames(mtrx) <- df$ModifiedPeptide
@@ -95,6 +105,22 @@ PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
   #Get heatmap annotation, color, and legend
   colH <- stats::setNames(c(.modEnv$GlycanColors$color, "#BBBBBB"),
                           c(.modEnv$GlycanColors$GlycanType, "NonGlyco"))
+
+  if (showGlycanCounts) {
+    #This is for the colors
+    idx <- match(names(colH), dfLabel$GlycanType)
+
+    replace <- !is.na(idx) & !is.na(dfLabel$GlycanType[idx])
+
+    names(colH)[replace] <- dfLabel$label[idx[replace]]
+
+    #This is the data in the dataframe
+    idx <- match(df$GlycanType, dfLabel$GlycanType)
+
+    replace <- !is.na(idx) & !is.na(dfLabel$GlycanType[idx])
+
+    df$GlycanType[replace] <- dfLabel$label[idx[replace]]
+  }
 
   row_ha = ComplexHeatmap::rowAnnotation(Glycan = df$GlycanType, show_legend = FALSE,
                                          col = list(Glycan = colH))

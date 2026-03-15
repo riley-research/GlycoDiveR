@@ -9,6 +9,7 @@ PlotCompletenessMatrix(
   peptideType = "glyco",
   plotColors = c("grey90", "#44AA99"),
   collapseTechReps = FALSE,
+  showGlycanCounts = TRUE,
   whichAlias = NULL,
   whichPeptide = NULL,
   whichProtein = NULL,
@@ -26,6 +27,9 @@ include non-modified peptides.}
 \item{plotColors}{The colors used for the matrix The default is c("lightgrey", "darkgreen").}
 
 \item{collapseTechReps}{Do you want to collapse the technical replicates.}
+
+\item{showGlycanCounts}{TRUE to show the counts on the y-axis, or FALSE
+to not show the counts.}
 
 \item{whichAlias}{Provide a vector of Aliases to only select these aliases
 for plotting, e.g. whichAlias = c("Alias1", "Alias2").}
