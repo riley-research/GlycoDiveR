@@ -923,7 +923,40 @@ ConvertByonicAssignedModifications <- function(ModPepVec, AssignedModsVec){
   return(returnVal)
 }
 
-ComputeGlycanMass <- function(glycanComposition){
+ComputeGlycanMass <- function(glycanComposition) {
+  if(is.na(glycanComposition) || glycanComposition == "") return(NA)
+
+  # 1. Extract Name(Count) pairs
+  matches <- stringr::str_match_all(glycanComposition, "([A-Za-z0-9]+)\\(([0-9]+)\\)")[[1]]
+
+  if (length(matches) == 0) return(0)
+
+  # 2. Create data frame of found glycans
+  found_counts <- data.frame(
+    ShortName = matches[,2],
+    count = as.numeric(matches[,3]),
+    stringsAsFactors = FALSE
+  )
+
+  # 3. Join with your database
+  final_df <- found_counts %>%
+    dplyr::left_join(GlycanDatabase, by = "ShortName")
+
+  # 4. Check for missing monosaccharides
+  missing_names <- final_df$ShortName[is.na(final_df$GMass)]
+
+  if (length(missing_names) > 0) {
+    warning(paste("The following monosaccharides were not found in GlycanDatabase:",
+                  paste(unique(missing_names), collapse = ", ")))
+  }
+
+  # 5. Calculate total mass (using na.rm = TRUE to ignore missing database entries)
+  totalMass <- sum(final_df$count * final_df$GMass, na.rm = TRUE)
+
+  return(totalMass)
+}
+
+ComputeGlycanMass_legacy <- function(glycanComposition){
   if(is.na(glycanComposition) || glycanComposition == ""){
     return(NA)
   }
@@ -1325,15 +1358,40 @@ GetIntersections <- function(inputList, nintersects){
   return(returndf)
 }
 
+getWURCS <- function(compositionVec) {
+  compositionVec <- unique(mydata$PSMTable$TotalGlycanComposition)
+  compositionVec <- compositionVec[!is.na(compositionVec) & compositionVec != ""]
+
+  .modEnv$GlycanDatabase
+
+
+  # {"hex": "1",
+  #   "hexnac": "2",
+  #   "dhex": "3",
+  #   "neu5ac": "1",
+  #   "neu5gc": "0",
+  #   "P": "1",
+  #   "S": "1",
+  #   "Ac": "1"}
+
+
+
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
-                 "KDN", "HexA", "pseudaminic"),
-    ShortName = c("N", "H", "A", "F", "G", "P", "Kdn", "HexA", "p"),
+                 "KDN", "HexA", "pseudaminic",
+                 "Phospho", "Sulfo", "Acetyl", "NH4", "Na", "Fe", "Ca",
+                 "Al", "K", "Formyl", "Succinyl"),
+    ShortName = c("N", "H", "A", "F", "G", "P", "Kdn", "HexA", "p",
+                  "Phospho", "Sulfo", "Acetyl", "NH4", "Na", "Fe", "Ca",
+                  "Al", "K", "Formyl", "Succinyl"),
     GMass = c(203.07937, 162.05282, 291.09542, 146.05791, 307.09033, 132.0423,
-              250.06889, 176.03209, 232.10592),
-    stringsAsFactors = FALSE
-  )
+              250.06889, 176.03209, 232.10592,
+              79.96633, 79.95682, 42.01056, 17.02655, 21.98194, 52.91146,
+              37.94694, 23.95806, 38.96371, 27.99491, 100.01608),
+    stringsAsFactors = FALSE)
 
   ModificationDatabase <- data.frame(
     FullName = c("Oxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
@@ -1352,14 +1410,14 @@ Databases <- function(){
                                       "#0072BC", "#EE8866", "#BF5A6B",
                                       "#FABC3C", "#664C43"))
 
-  # original <- c(
-  #   "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
-  #   "#ffaabb", "#cc6677", "#882255", "#32006e"
-  # )
-  #  n_new <- 12
-  #  interp_fun <- colorRampPalette(original)
-  #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
-  #  colorScheme <- c(original, extra)
-  #
-  # usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+  original <- c(
+    "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
+    "#ffaabb", "#cc6677", "#882255", "#32006e"
+  )
+   # n_new <- 100
+   # interp_fun <- colorRampPalette(original)
+   # extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
+   # colorScheme <- c(original, extra)
+
+  usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }
