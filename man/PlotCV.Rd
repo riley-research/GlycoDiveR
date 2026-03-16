@@ -6,6 +6,7 @@
 \usage{
 PlotCV(
   input,
+  CV = c("base", "geometric"),
   horizontalLines = c(0, 20, 50, 100),
   whichProtein = NULL,
   type = c("all", "glyco"),
@@ -19,6 +20,9 @@ PlotCV(
 }
 \arguments{
 \item{input}{Formatted data imported through a GlycoDiveR importer.}
+
+\item{CV}{Choose "base" to calculate CV using the non-normalized values, and
+"geometric" to calculate the geometric CV using log transformed values.}
 
 \item{horizontalLines}{What horizontal lines to show in the plot.}
 

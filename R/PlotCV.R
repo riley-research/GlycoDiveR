@@ -6,6 +6,8 @@
 #' other plots using the whichPeptide argument.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param CV Choose "base" to calculate CV using the non-normalized values, and
+#' "geometric" to calculate the geometric CV using log transformed values.
 #' @param horizontalLines What horizontal lines to show in the plot.
 #' @param whichProtein Filter what proteins to plot. These are the IDs as presented
 #' in the UniprotIDs column in your GlycoDiveR data. This can either be a dataframe
@@ -38,10 +40,12 @@
 #'
 #' PlotCV(mydata, type = "all", returnType = "GDdata", returnThreshold = 20)
 #' }
-PlotCV <- function(input, horizontalLines = c(0, 20, 50, 100), whichProtein = NULL,
+PlotCV <- function(input, CV = c("base", "geometric"),
+                   horizontalLines = c(0, 20, 50, 100), whichProtein = NULL,
                    type = c("all", "glyco"), returnType = c("plot", "data", "GDdata"),
                    returnThreshold = NULL, whichPeptide = NULL, exactProteinMatch = TRUE,
                    whichAlias = NULL, silent = FALSE){
+  CV <- match.arg(CV)
   type <- match.arg(type)
   returnType <- match.arg(returnType)
   inputRaw <- input
@@ -83,6 +87,18 @@ PlotCV <- function(input, horizontalLines = c(0, 20, 50, 100), whichProtein = NU
     }
   }
 
+  if (CV == "geometric") {
+    CV_fun <- function(x) {
+      x <- log(x, 10) * log(10)
+      sqrt(exp(stats::sd(x, na.rm = TRUE)^2) - 1) * 100
+      }
+    }else if (CV == "base") {
+    CV_fun <- function(x) {
+      stats::sd(x, na.rm = TRUE) /
+        mean(x, na.rm = TRUE) * 100
+    }
+  }
+
   df_col <- df %>%
     dplyr::mutate(group = .data$Condition) %>%
     dplyr::arrange(.data$Alias) %>%
@@ -96,9 +112,10 @@ PlotCV <- function(input, horizontalLines = c(0, 20, 50, 100), whichProtein = NU
 
   df <- df %>%
     dplyr::summarise(.by = c("Condition", "ModifiedPeptide"),
-                     CV = stats::sd(.data$Intensity, na.rm = TRUE) /
-                       mean(.data$Intensity, na.rm = TRUE) * 100) %>%
+                     CV = CV_fun(.data$Intensity)) %>%
     dplyr::filter(!is.na(.data$CV))
+
+  horizontalLines <- horizontalLines[horizontalLines <= max(df$CV, na.rm = TRUE)]
 
   if(returnType == "plot"){
     p <- df_label <- df %>%
