@@ -66,7 +66,7 @@ PlotPeptideLength <- function(input, type = "both", whichAlias = NULL,
                     fill = NULL) +
       ggplot2::scale_y_continuous(expand = c(0, 0), limits = c(0,NA)) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(hjust = 0.5, vjust = 0.5, angle = 0)) +
-      ggplot2::scale_fill_manual(values = .modEnv$colorScheme)
+      ggplot2::scale_fill_manual(values = .modEnv$colorScheme[2:1])
   }else if (type == "glyco") {
     input$PSMTable %>%
       dplyr::filter(.data$Glycan == "Glycosylated") %>%
