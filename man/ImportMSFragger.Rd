@@ -20,7 +20,8 @@ ImportMSFragger(
   dropNoQuant = FALSE,
   minPeptideCoverage = FALSE,
   thresholdMode = c("group", "total"),
-  useExtendedOGlycanCategories = FALSE
+  useExtendedOGlycanCategories = FALSE,
+  GlyToucan = TRUE
 )
 }
 \arguments{
@@ -83,6 +84,9 @@ within groups.}
 \item{useExtendedOGlycanCategories}{set to FALSE will classify all O-glycans as OGlycan
 Set to TRUE will classify them in "Sialofucosylated", "Sialylated", "Fucosylated",
 and "OGlycan".}
+
+\item{GlyToucan}{set to TRUE will connect to the GlyCosmos API to retrieve
+GlyToucan identifiers.}
 }
 \value{
 Formatted GlycoDiveR data file.

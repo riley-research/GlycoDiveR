@@ -15,7 +15,8 @@ ImportpGlyco(
   cutoffFilter = TRUE,
   dropNoQuant = FALSE,
   minPeptideCoverage = FALSE,
-  thresholdMode = c("group", "total")
+  thresholdMode = c("group", "total"),
+  GlyToucan = TRUE
 )
 }
 \arguments{
@@ -56,6 +57,9 @@ which this threshold must be met.}
 \item{thresholdMode}{Character string specifying the filtering mode: "total"
 applies a global threshold across all data, while "group" identifies the threshold
 within groups.}
+
+\item{GlyToucan}{set to TRUE will connect to the GlyCosmos API to retrieve
+GlyToucan identifiers.}
 }
 \value{
 Formatted GlycoDiveR data file.

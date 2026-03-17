@@ -51,6 +51,8 @@
 #' @param useExtendedOGlycanCategories set to FALSE will classify all O-glycans as OGlycan
 #' Set to TRUE will classify them in "Sialofucosylated", "Sialylated", "Fucosylated",
 #' and "OGlycan".
+#' @param GlyToucan set to TRUE will connect to the GlyCosmos API to retrieve
+#' GlyToucan identifiers.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -66,7 +68,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             convertFPModCodeToMass = TRUE, filterForNoNSequon = FALSE,
                             confidenceLevel = FALSE, TMT = FALSE, cutoffFilter = TRUE,
                             dropNoQuant = FALSE, minPeptideCoverage = FALSE,
-                            thresholdMode = c("group", "total"), useExtendedOGlycanCategories = FALSE){
+                            thresholdMode = c("group", "total"), useExtendedOGlycanCategories = FALSE,
+                            GlyToucan = TRUE){
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation,
@@ -129,7 +132,8 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
   }
 
   filtereddf <- MSFraggerConverter(unfiltereddf, annotationdf, fastaPath, quantdf,
-                                   scrape, normalization, convertFPModCodeToMass, TMT)
+                                   scrape, normalization, convertFPModCodeToMass, TMT,
+                                   GlyToucan)
 
   if(cutoffFilter){
   filtereddf <- FilterPSMTable(filtereddf,

@@ -1,5 +1,5 @@
 MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, scrape,
-                               normalization, convertFPModCodeToMass, TMT){
+                               normalization, convertFPModCodeToMass, TMT, GlyToucan){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = unfiltereddf$ID)
   existingCols <- unique(names(unfiltereddf))
@@ -52,6 +52,17 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
     filtereddf$TotalGlycanComposition <- CleanGlycanNames(filtereddf$TotalGlycanComposition)
     filtereddf <- filtereddf %>%
       dplyr::mutate(TotalGlycanComposition = sub(" %.*$", "", .data$TotalGlycanComposition))
+
+    if ("Glycan.Site.Composition.s." %in% existingCols) {
+      filtereddf <- cbind(filtereddf,
+                          GlycanSiteComposition = gsub("(\\d+)", "(\\1)", unfiltereddf$Glycan.Site.Composition.s.))
+
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(GlycanSiteComposition = dplyr::na_if(.data$GlycanSiteComposition, ""),
+                      TotalGlycanComposition = dplyr::coalesce(.data$GlycanSiteComposition, .data$TotalGlycanComposition)) %>%
+        dplyr::select(-"GlycanSiteComposition")
+    }
+
     fmessage("Successfully imported Total Glycan Composition column.")}
   else {stop("The column Total.Glycan.Composition was not found in the input dataframe.")}
 
@@ -214,6 +225,20 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
     fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
   }
 
+  #GlyToucan ID####
+  if("Total.Glycan.Composition" %in% existingCols & GlyToucan) {
+    fmessage("Connecting to GlyCosmos API to fetch GlyToucan IDs.
+             Set GlyToucan = FALSE to skip this step.")
+  toadd <- CompToGlyToucan(filtereddf$TotalGlycanComposition)
+
+  filtereddf <- filtereddf %>%
+    dplyr::left_join(toadd, by = "TotalGlycanComposition")
+
+  fmessage("Successfully added GlyToucan identifiers.")
+  } else if (!GlyToucan) {
+    fmessage("GlyToucan = FALSE, skipping...")
+  } else {warning("Total.Glycan.Composition column not found. No GlyToucan added.")}
+
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf, by = "Run")
 
@@ -227,7 +252,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
 }
 
 ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
-                            modification_df, scrape){
+                            modification_df, scrape, GlyToucan){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = unfiltereddf$ID)
   existingCols <- unique(names(unfiltereddf))
@@ -400,6 +425,20 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
     filtereddf$Domains <- NA
   }
 
+  #GlyToucan ID####
+  if("Glyco" %in% modification_df$ModificationType & GlyToucan) {
+    fmessage("Connecting to GlyCosmos API to fetch GlyToucan IDs.
+             Set GlyToucan = FALSE to skip this step.")
+    toadd <- CompToGlyToucan(filtereddf$TotalGlycanComposition)
+
+    filtereddf <- filtereddf %>%
+      dplyr::left_join(toadd, by = "TotalGlycanComposition")
+
+    fmessage("Successfully added GlyToucan identifiers.")
+  } else if (!GlyToucan) {
+    fmessage("GlyToucan = FALSE, skipping...")
+  } else {warning("Total.Glycan.Composition column not found. No GlyToucan added.")}
+
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf, by = "Run")
 
@@ -413,7 +452,7 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
 }
 
 pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
-                            modification_df, normalization, scrape){
+                            modification_df, normalization, scrape, GlyToucan){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = unfiltereddf$ID)
   existingCols <- unique(names(unfiltereddf))
@@ -588,6 +627,20 @@ pGlycoConverter <- function(unfiltereddf, annotationdf, fastaPath,
     filtereddf$SubcellularLocalization <- NA
     filtereddf$Domains <- NA
   }
+
+  #GlyToucan ID####
+  if("GlycanComposition" %in% existingCols & GlyToucan) {
+    fmessage("Connecting to GlyCosmos API to fetch GlyToucan IDs.
+             Set GlyToucan = FALSE to skip this step.")
+    toadd <- CompToGlyToucan(filtereddf$TotalGlycanComposition)
+
+    filtereddf <- filtereddf %>%
+      dplyr::left_join(toadd, by = "TotalGlycanComposition")
+
+    fmessage("Successfully added GlyToucan identifiers.")
+  } else if (!GlyToucan) {
+    fmessage("GlyToucan = FALSE, skipping...")
+  } else {warning("Total.Glycan.Composition column not found. No GlyToucan added.")}
 
   filtereddf <- filtereddf %>%
     dplyr::left_join(annotationdf, by = "Run")

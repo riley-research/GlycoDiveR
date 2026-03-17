@@ -1358,24 +1358,113 @@ GetIntersections <- function(inputList, nintersects){
   return(returndf)
 }
 
-getWURCS <- function(compositionVec) {
-  compositionVec <- unique(mydata$PSMTable$TotalGlycanComposition)
-  compositionVec <- compositionVec[!is.na(compositionVec) & compositionVec != ""]
+CompToGlyToucan <- function(compositionVec, returnType = "GlyToucan") {
+  compositionDf <- data.frame(TotalGlycanComposition = compositionVec) %>%
+    dplyr::distinct(.data$TotalGlycanComposition) %>%
+    tidyr::separate_longer_delim(cols = "TotalGlycanComposition", delim = ",") %>%
+    dplyr::distinct() %>%
+    dplyr::filter(.data$TotalGlycanComposition != "" & !is.na(.data$TotalGlycanComposition)) %>%
+    dplyr::mutate(WURCS = NA, GlyToucan = NA)
 
-  .modEnv$GlycanDatabase
+  compositionDf$WURCS <- sapply(compositionDf$TotalGlycanComposition, function(x) getWURCS(x))
+  compositionDf$GlyToucan <- sapply(compositionDf$WURCS, function(x) getGlyToucan(x))
+  compositionDf$GlyToucan <- stringr::str_extract(compositionDf$GlyToucan, "(?<=\"id\":\\s\")[A-Z0-9]+")
 
+  if(returnType == "GlyToucan") {
+    return_df <- data.frame(TotalGlycanComposition = compositionVec) %>%
+      dplyr::distinct(.data$TotalGlycanComposition) %>%
+      dplyr::filter(.data$TotalGlycanComposition != "" & !is.na(.data$TotalGlycanComposition))
 
-  # {"hex": "1",
-  #   "hexnac": "2",
-  #   "dhex": "3",
-  #   "neu5ac": "1",
-  #   "neu5gc": "0",
-  #   "P": "1",
-  #   "S": "1",
-  #   "Ac": "1"}
+    lookup_vec <- stats::setNames(compositionDf$GlyToucan, compositionDf$TotalGlycanComposition)
+    testcase <- strsplit(return_df$TotalGlycanComposition, ",")
+    replaced_list <- lapply(testcase, function(x) {
+      matches <- lookup_vec[x]
+      ifelse(is.na(matches), x, matches)
+    })
 
+    return_df$GlyToucan <- sapply(replaced_list, paste, collapse = ",")
 
+    return(return_df)
+  }
+}
 
+getWURCS <- function(comp) {
+  baseUrl <- "https://api.glycosmos.org/glycancompositionconverter/1.0.0/composition2wurcs/"
+
+  match_df <- data.frame(name = c("hex", "hexnac", "dhex", "neu5ac", "neu5gc", "P",
+                                  "S", "Ac"),
+                         dbName =  c("H", "N", "F", "A", "G", "Phospho",
+                                     "Sulfo", "Acetyl"))
+
+  matches <- stringr::str_match_all(comp, "([A-Za-z0-9]+)\\(([0-9]+)\\)")[[1]]
+  if (length(matches) == 0) return(NA)
+
+  # 2. Create data frame of found glycans
+  found_counts <- data.frame(
+    dbName = matches[,2],
+    count = as.numeric(matches[,3]),
+    stringsAsFactors = FALSE
+  )
+
+  # Using left_join with the mapping table you provided
+  found_counts <- found_counts %>%
+    dplyr::left_join(match_df, by = "dbName") %>%
+    dplyr::mutate(ShortName = ifelse(is.na(.data$dbName), .data$name, .data$dbName))
+
+  # 5. Check for missing database entries
+  missing_names <- found_counts$dbName[is.na(found_counts$name)]
+  if (length(missing_names) > 0) {
+    return(NA)
+  }
+
+  #Now construct the url
+  endUrl <- found_counts %>%
+    dplyr::mutate(se = paste(.data$name, .data$count, sep = ":")) %>%
+    dplyr::summarise(endUrl = paste(.data$se, collapse = "%7C")) %>%
+    dplyr::pull("endUrl")
+
+  finalUrl <- paste0(baseUrl, endUrl)
+
+  response <- tryCatch({
+    httr::GET(finalUrl, httr::timeout(10)) # Added a 10-second timeout
+  }, error = function(e) {
+    message("Connection error: ", e$message)
+    return(NULL)
+  })
+
+  if (is.null(response)) return(NA)
+
+  if (httr::status_code(response) != 200) {
+    warning(paste("API Error:", httr::status_code(response), "at URL:", finalUrl))
+    return(NA)
+  }
+
+  wurcs_result <- httr::content(response, as = "text", encoding = "UTF-8")
+
+  wurcs_result
+}
+
+getGlyToucan <- function(wurcs) {
+  baseUrl <- "https://api.glycosmos.org/sparqlist/wurcs2gtcids?wurcs="
+  fullUrl <- paste0(baseUrl, wurcs)
+
+  response <- tryCatch({
+    httr::GET(fullUrl, httr::timeout(10)) # Added a 10-second timeout
+  }, error = function(e) {
+    message("Connection error: ", e$message)
+    return(NULL)
+  })
+
+  if (is.null(response)) return(NA)
+
+  if (httr::status_code(response) != 200) {
+    warning(paste("API Error:", httr::status_code(response), "at URL:", fullUrl))
+    return(NA)
+  }
+
+  GlyToucan_result <- httr::content(response, as = "text", encoding = "UTF-8")
+
+  GlyToucan_result
 }
 
 Databases <- function(){
@@ -1384,9 +1473,9 @@ Databases <- function(){
                  "KDN", "HexA", "pseudaminic",
                  "Phospho", "Sulfo", "Acetyl", "NH4", "Na", "Fe", "Ca",
                  "Al", "K", "Formyl", "Succinyl"),
-    ShortName = c("N", "H", "A", "F", "G", "P", "Kdn", "HexA", "p",
-                  "Phospho", "Sulfo", "Acetyl", "NH4", "Na", "Fe", "Ca",
-                  "Al", "K", "Formyl", "Succinyl"),
+    ShortName = c("N", "H", "A", "F", "G", "Pen", "Kdn", "HexA", "p",
+                  "P", "S", "C", "NH4", "Na", "Fe", "Ca",
+                  "Al", "K", "M", "U"),
     GMass = c(203.07937, 162.05282, 291.09542, 146.05791, 307.09033, 132.0423,
               250.06889, 176.03209, 232.10592,
               79.96633, 79.95682, 42.01056, 17.02655, 21.98194, 52.91146,
@@ -1414,10 +1503,13 @@ Databases <- function(){
     "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
     "#ffaabb", "#cc6677", "#882255", "#32006e"
   )
-   # n_new <- 100
-   # interp_fun <- colorRampPalette(original)
-   # extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
-   # colorScheme <- c(original, extra)
-
-  usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+  #  n_new <- 100
+  #  interp_fun <- colorRampPalette(original)
+  #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
+  #  set.seed(3)
+  #  #scales::show_col(sample(extra))
+  #  extra <- sample(extra)
+  #  colorScheme <- c(original, extra)
+  #
+  # usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }

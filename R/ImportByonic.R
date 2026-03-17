@@ -32,6 +32,8 @@
 #' @param thresholdMode Character string specifying the filtering mode: "total"
 #' applies a global threshold across all data, while "group" identifies the threshold
 #' within groups.
+#' @param GlyToucan set to TRUE will connect to the GlyCosmos API to retrieve
+#' GlyToucan identifiers.
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -44,7 +46,7 @@
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
                          deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE,
                          dropNoQuant = FALSE, minPeptideCoverage = FALSE,
-                         thresholdMode = c("group", "total")){
+                         thresholdMode = c("group", "total"), GlyToucan = TRUE){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -109,7 +111,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
   .modEnv$ModificationDatabase <- dplyr::bind_rows(.modEnv$ModificationDatabase, modToAdd)
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
-                                modification_df, scrape)
+                                modification_df, scrape, GlyToucan)
 
   if(cutoffFilter){
     filtereddf <- FilterPSMTable(filtereddf,
