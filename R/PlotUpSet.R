@@ -66,7 +66,19 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
     }
   }
 
+  if(level == "protein" & length(unique(input$PSMTable$UniprotIDs)) == 1) {
+    return(fmessage("Only one protein."))
+  }
+
   if(grouping == "technicalReps"){
+    if (length(unique(input$PSMTable$Alias)) == 1) {
+      if(!silent){
+      return(fmessage("Only one sample rep"))
+        } else {
+        return()
+      }
+    }
+
     if(level == "peptide"){
       df_list <- split(input$PSMTable$ModifiedPeptide, input$PSMTable$Alias)
     }else if(level == "protein"){
@@ -107,6 +119,14 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
       df <- input$PSMTable %>%
         dplyr::mutate(ID = paste0(.data$Condition, .data$BioReplicate)) %>%
         dplyr::summarise(.by = c("ID", "ModifiedPeptide", "Condition"))
+
+      if (length(unique(df$ID)) == 1) {
+        if(!silent){
+        return(fmessage("Only one biological rep"))
+        } else {
+          return()
+        }
+      }
 
       df_list <- split(df$ModifiedPeptide, df$ID)
     }else if(level == "protein"){
@@ -151,6 +171,14 @@ PlotUpSet <- function(input, grouping = "condition", type = "glyco",
     if(level == "peptide"){
       df <- input$PSMTable %>%
         dplyr::summarise(.by = c("ModifiedPeptide", "Condition"))
+
+      if (length(unique(df$Condition)) == 1) {
+        if(!silent){
+        return(fmessage("Only one Condition"))
+        } else {
+          return()
+        }
+      }
 
       df_list <- split(df$ModifiedPeptide, df$Condition)
     }else if(level == "protein"){
