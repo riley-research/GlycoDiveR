@@ -208,7 +208,11 @@ PlotGlycoproteinRank <- function(input, grouping = c("all", "technicalReps",
   #Get the axis and breaks the same
   minY <- min(df_plot$ProteinIntensity, na.rm = TRUE)
   maxY <- max(df_plot$ProteinIntensity, na.rm = TRUE)
-  predefined_breaks <- seq(minY, maxY, length.out = bins + 1)
+  if(minY == maxY) {
+    predefined_breaks <- seq(minY-1, maxY+1, length.out = bins + 1)
+  } else {
+    predefined_breaks <- seq(minY, maxY, length.out = bins + 1)
+  }
   bin_width_val <- (maxY - minY) / bins
   minY <- mean(predefined_breaks[1:2]) - 0.55 * bin_width_val
   maxY <- mean(predefined_breaks[bins:bins+1]) + 0.55 * bin_width_val
