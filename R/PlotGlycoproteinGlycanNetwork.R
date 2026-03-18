@@ -172,7 +172,7 @@ PlotGlycoProteinGlycanNetwork <- function(input, edgeWidth = 1.5,
   df <- df_edges %>%
     dplyr::left_join(by = "GlycanType", dfcolmatch)
 
-  if(highlight == "all"){
+  if(identical(highlight, "all")){
     df$colv <- sapply(df$col, function(x) paste0(x, as.character(80)))
   }else{
     df <- df %>%
