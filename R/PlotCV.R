@@ -148,11 +148,15 @@ PlotCV <- function(input, CV = c("base", "geometric"),
       warning("Did not understand returnThreshold")
     }
   }else if (returnType == "GDdata") {
+    dfPepList <- df %>%
+      dplyr::filter(.data$CV <= returnThreshold) %>%
+      dplyr::pull(.data$ModifiedPeptide)
+
     inputRaw$PSMTable <- inputRaw$PSMTable %>%
-      dplyr::filter(.data$ModifiedPeptide %in% df$ModifiedPeptide)
+      dplyr::filter(.data$ModifiedPeptide %in% dfPepList)
 
     inputRaw$PTMTable <- inputRaw$PTMTable %>%
-      dplyr::filter(.data$ModifiedPeptide %in% df$ModifiedPeptide)
+      dplyr::filter(.data$ModifiedPeptide %in% dfPepList)
 
     return(inputRaw)
   } else {
