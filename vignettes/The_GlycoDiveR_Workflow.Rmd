@@ -1,6 +1,6 @@
 ---
 title: "The GlycoDiveR Workflow"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 4
@@ -33,7 +33,7 @@ You can install and load the development version of GlycoDiveR from GitHub with:
 
 ``` {r, eval = FALSE}
 if (!requireNamespace("GlycoDiveR", quietly = TRUE)) {
-  devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
+  devtools::install_github("riley-research/GlycoDiveR")
 }
 ```
 
@@ -198,6 +198,18 @@ Showcase the normalized and raw intensity values.
 PlotQuantificationQC(exampleData, whichQuantification = "both")
 ```
 
+### PlotCV
+
+Generate CV plots calculated using the base CV formula that uses non-transformed
+intensity values, or the geometric CV that uses log transformed CV values. You
+can use the returnType argument to return a visualization, the CV values of all
+peptides, or a cleaned GlycoDiveR dataframe based on the cutoff you determine
+using the returnThreshold argument.
+
+```{r, message = FALSE, warning = FALSE, fig.width=6, fig.height=4}
+PlotCV(exampleData, CV = "base")
+```
+
 ### PlotPCA
 
 Perform a PCA with a diverse set of options. In this case, the PCA is applied to 
@@ -207,6 +219,13 @@ only the glycopeptides using normalized quantitative data, and kNN to impute mis
 PlotPCA(exampleData, quantType = "normalized", dropNoQuant = TRUE,
   minPeptideCoverage = 0.5, thresholdMode = "total", type = "glyco",
   label = FALSE)
+```
+
+The PCA function can also return a loadings plot or the loadings plot data using
+the returnType argument.
+
+```{r, message = FALSE, warning = FALSE, fig.width=5, fig.height=4}
+PlotPCA(exampleData, returnType = "loadingsPlot", loadingsPlotLabels = 2)
 ```
 
 ### PlotPSMCount
@@ -250,12 +269,49 @@ The retention time versus the number of identified (glyco)PSMs.
 PlotPSMsVsTime(exampleData, type = "allGlyco", whichAlias = c("NPA_1_i1"))
 ```
 
+### PlotErrorVersusRt
+
+Visualize the ppm error over the retention time.
+
+```{r, message = FALSE, warning = FALSE, fig.width=6, fig.height=4}
+PlotErrorVersusRt(exampleData, type = "glyco", lowerLimit = -20, upperLimit = 20)
+```
+
+### PlotPeptideLength
+
+The peptide length of all (glyco)peptides.
+
+```{r, message = FALSE, fig.width=6, fig.height=4}
+PlotPeptideLength(exampleData, type = "glyco")
+```
+
 ### PlotGlycositeIdsPerRun
 
 What runs identified specific glycosylation sites.
 
 ```{r, message = FALSE, fig.width=6, fig.height=4}
 PlotGlycositeIdsPerRun(exampleData, whichProtein = "P00748")
+```
+
+### PlotGlycoproteinRank
+
+Visualize the glycoproteins based on the summed intensity of their glycopeptides.
+
+```{r, message = FALSE, fig.width=7, fig.height=6}
+PlotGlycoproteinRank(exampleData, grouping = "condition", geneLabel = c("IGHM", "IGHG2"))
+```
+
+### PlotVennDiagram
+
+Supports two- and three-way venn diagrams for glycans, (glyco)peptides, 
+(glyco)proteins.
+
+```{r, message = FALSE, fig.width=6, fig.height=4}
+PlotVennDiagram(exampleData, groups = c("NP0", "NPA", "NPB"))
+```
+
+```{r, message = FALSE, fig.width=6, fig.height=4}
+PlotVennDiagram(exampleData, groups = c("NP0_1_i1", "NP0_1_i2"), grouping = "technicalReps")
 ```
 
 ### PlotUpSet
