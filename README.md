@@ -7,6 +7,12 @@
 
 <!-- badges: end -->
 
+<div style="text-align: center;">
+
+<img src="man/logo/GlycoDiveR_logo.png" alt="" width="200px" />
+
+</div>
+
 GlycoDiveR generates graphics from (quantitative) glycoproteomics
 datasets directly from search engine output files. It currently supports
 FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts
@@ -17,11 +23,16 @@ directly compatible with all GlycoDiveR graphics.
 ## Installation
 
 You can install the development version of GlycoDiveR from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/riley-research/GlycoDiveR) with:
 
 ``` r
-install.packages("devtools") #This line only needs to be ran once
-devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
+# Install devtools if not already installed
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+
+# Install GlycoDiveR from GitHub
+devtools::install_github("riley-research/GlycoDiveR")
 ```
 
 ## How to get started

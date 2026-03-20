@@ -18,6 +18,12 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
+```{r, echo=FALSE, out.width="200px", results='asis'}
+cat('<div style="text-align: center;">')
+knitr::include_graphics("man/logo/GlycoDiveR_logo.png")
+cat('</div>')
+```
+
 GlycoDiveR generates graphics from (quantitative) glycoproteomics 
     datasets directly from search engine output files. It currently supports 
     FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts the
@@ -27,11 +33,17 @@ GlycoDiveR generates graphics from (quantitative) glycoproteomics
 
 ## Installation
 
-You can install the development version of GlycoDiveR from [GitHub](https://github.com/) with:
+You can install the development version of GlycoDiveR from 
+[GitHub](https://github.com/riley-research/GlycoDiveR) with:
 
 ``` r
-install.packages("devtools") #This line only needs to be ran once
-devtools::install_github("riley-research/GlycoDiveR", build_vignettes = TRUE)
+# Install devtools if not already installed
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+
+# Install GlycoDiveR from GitHub
+devtools::install_github("riley-research/GlycoDiveR")
 
 ```
 
