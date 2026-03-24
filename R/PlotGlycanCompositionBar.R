@@ -50,6 +50,7 @@ PlotGlycanCompositionBar <- function(input, summaryFunction = "count", grouping 
   if(!is.null(whichAlias)){
     df <- df %>%
       dplyr::filter(.data$Alias %in% whichAlias)
+    df$Alias <- droplevels(df$Alias)
   }
 
   if(nrow(df) == 0){return("Nothing left after filtering.")}
