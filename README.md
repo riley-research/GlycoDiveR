@@ -8,9 +8,9 @@
 <!-- badges: end -->
 
 <div style="text-align: center;">
-
-<img src="man/logo/GlycoDiveR_logo.png" alt="" width="200px" />
-
+<p align="center">
+  <img src="man/logo/GlycoDiveR_logo.png" alt="" width="200px" />
+</p>
 </div>
 
 GlycoDiveR generates graphics from (quantitative) glycoproteomics
