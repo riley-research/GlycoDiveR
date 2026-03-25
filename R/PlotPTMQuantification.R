@@ -105,7 +105,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
 
       if(!is.null(whichAlias)){
         levels_mtrx <- levels(input$PTMTable$Alias)
-        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+        levels_mtrx <- levels_mtrx[levels_mtrx %in% whichAlias]
       }else{
         levels_df <- input$PSMTable %>%
           dplyr::filter(.by = c("Condition", "BioReplicate"),
@@ -120,7 +120,7 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
 
       if(!is.null(whichAlias)){
         levels_mtrx <- levels(input$PTMTable$Alias)
-        levels_mtrx <- levels_mtrx[levels_mtrx %in% df$Alias]
+        levels_mtrx <- levels_mtrx[levels_mtrx %in% whichAlias]
       }else{
         levels_mtrx <- levels(input$PTMTable$Alias)
       }
