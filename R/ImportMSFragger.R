@@ -88,6 +88,7 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
 
   fileList <- list.files(path, recursive = TRUE)
   fileList <- fileList[grepl("psm.tsv", fileList)]
+  fileList <- fileList[!grepl("unfiltered_psm.tsv", fileList)]
 
   if(length(fileList) == 0){
     stop("No files found")

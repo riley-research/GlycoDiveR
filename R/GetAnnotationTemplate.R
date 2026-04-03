@@ -18,6 +18,7 @@ GetAnnotationTemplate <- function(path, tool){
   if(tool == "MSFragger"){
     fileList <- list.files(path, recursive = TRUE)
     fileList <- fileList[grepl("psm.tsv", fileList)]
+    fileList <- fileList[!grepl("unfiltered_psm.tsv", fileList)]
     unfiltereddf <- data.frame()
 
     if(length(fileList) == 0){stop("No files found.")}
@@ -43,6 +44,7 @@ GetAnnotationTemplate <- function(path, tool){
   }else if(tool == "MSFraggerTMT"){
     fileList <- list.files(path, recursive = TRUE)
     fileList <- fileList[grepl("psm.tsv", fileList)]
+    fileList <- fileList[!grepl("unfiltered_psm.tsv", fileList)]
     unfiltereddf <- data.frame()
 
     if(length(fileList) == 0){stop("No files found.")}
