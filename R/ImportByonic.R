@@ -11,7 +11,8 @@
 #' @param fastaPath The path to the fasta file that was used.
 #' @param peptideScoreCutoff The score cutoff from the "Score" column. The cutoff
 #' is the lower limit.
-#' @param glycanScoreCutoff The score cutoff in the Log Prob column. The score is the
+#' @param glycanScoreCutoff The score cutoff for the Log Prob column. The Log Prob
+#' column is converted using 10^(-|Log Prob|). The cutoff is the
 #' upper limit.
 #' @param deltaModCutoff The score cutoff for the Delta Mod score. The score is the
 #' lower limit.
@@ -43,7 +44,7 @@
 #' fastaPath = "C:/fastafile.fasta",
 #' peptideScoreCutoff = 0,
 #' glycanScoreCutoff = 1)}
-ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycanScoreCutoff,
+ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff = 0, glycanScoreCutoff = 0.01,
                          deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE,
                          dropNoQuant = FALSE, minPeptideCoverage = FALSE,
                          thresholdMode = c("group", "total"), GlyToucan = TRUE){
@@ -99,7 +100,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff, glycan
         list(.data$ModificationType,
              .data$Rule,
              .data$Mass),
-        ~ if (..1 == "Glyco") ComputeGlycanMass(..2) else ..3))
+        ~ if (..1 == "Glyco") as.character(ComputeGlycanMass(..2)) else ..3))
 
   #Add variable mods to ModificationDatabase
   modToAdd <- modification_df %>%

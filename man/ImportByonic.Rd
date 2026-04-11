@@ -8,8 +8,8 @@ ImportByonic(
   path,
   annotation,
   fastaPath,
-  peptideScoreCutoff,
-  glycanScoreCutoff,
+  peptideScoreCutoff = 0,
+  glycanScoreCutoff = 0.01,
   deltaModCutoff = 1,
   scrape = TRUE,
   removeReverse = TRUE,
@@ -32,7 +32,8 @@ GetAnnotationTemplate("path", tool = "Byonic")}
 \item{peptideScoreCutoff}{The score cutoff from the "Score" column. The cutoff
 is the lower limit.}
 
-\item{glycanScoreCutoff}{The score cutoff in the Log Prob column. The score is the
+\item{glycanScoreCutoff}{The score cutoff for the Log Prob column. The Log Prob
+column is converted using 10^(-|Log Prob|). The cutoff is the
 upper limit.}
 
 \item{deltaModCutoff}{The score cutoff for the Delta Mod score. The score is the

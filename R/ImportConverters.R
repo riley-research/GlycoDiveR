@@ -273,6 +273,14 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
                     ModifiedPeptide = gsub("\\+", "", .data$ModifiedPeptide))
 
     fmessage("Successfully imported Peptide ProteinMetrics Confidential  column.")}
+  else if("Peptide\n< ProteinMetrics Confidential >"  %in% existingCols) {
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(ModifiedPeptide = as.character(unfiltereddf$`Peptide\n< ProteinMetrics Confidential >`),
+                    ModifiedPeptide = stringr::str_extract(.data$ModifiedPeptide, "(?<=\\.).*(?=\\.[^\\.]*$)"),
+                    ModifiedPeptide = gsub("\\+", "", .data$ModifiedPeptide))
+
+    fmessage("Successfully imported Peptide ProteinMetrics Confidential  column.")
+  }
   else{stop("The column Peptide ProteinMetrics Confidential was not found in the input dataframe.")}
 
   #RawIntensity & Intensity####
@@ -392,6 +400,9 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   if ("Starting\r\nposition" %in% existingCols) {
     filtereddf <- filtereddf %>%
       dplyr::mutate(ProteinStart = as.numeric(unfiltereddf$`Starting\r\nposition`))
+    }else if ("Starting\nposition" %in% existingCols) {
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(ProteinStart = as.numeric(unfiltereddf$`Starting\nposition`))
     }else {filtereddf$ProteinStart = NA
   warning("The column Protein Start was not found in the input dataframe.")}
 
@@ -405,6 +416,8 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   #ppmError####
   if ("Mass error\r\n(ppm)" %in% existingCols) {
     filtereddf$ppmError <- as.numeric(unfiltereddf$`Mass error\r\n(ppm)`)
+  }else if ("Mass error\n(ppm)" %in% existingCols) {
+    filtereddf$ppmError <- as.numeric(unfiltereddf$`Mass error\n(ppm)`)
   } else {
     warning("Mass error\r\n(ppm) not found in the data.")
   }
