@@ -12,6 +12,9 @@
 #' that you want to keep. Inputted data with the comparison importer functions is
 #' directly usable, also after filtering using the FilterComparison function.
 #' @param normalization "none" or "ZScore".
+#' @param removeSingletons Works in conjunction with normalization = "ZScore". If
+#' TRUE, it will remove any rows with fewer than 1 valid value. If set to TRUE,
+#' the singleton in a row will be colored light grey and the missing values white.
 #' @param collapseTechReps Collapse the technical replicates.
 #' @param plotColors Defines the colors of the barplot.
 #' Default: plotColors = c("#00394c", "#27b56e", "white").
@@ -28,6 +31,7 @@
 #' to remove the line
 #' @param rowFontSize font size for the row labels
 #' @param showRowNames set to TRUE or FALSE
+#' @param clusterColumns set to TRUE to cluster columns
 #' @param silent silence printed information
 #'
 #' @returns The PTM quantification for a specific protein
@@ -38,11 +42,14 @@
 #'
 #' PlotPTMQuantification(mydata, whichProtein = "P07361", rowFontSize = 10,
 #'                       showRowNames = FALSE, lineWidth = 0)}
-PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NULL, normalization = "none",
+PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NULL,
+                                  normalization = c("none", "ZScore"), removeSingletons = TRUE,
                                   collapseTechReps = FALSE, plotColors = c("#BAA5CC", "#32006e", "white"),
-                                  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
+                                  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255", "#1a88c0"),
                                   exactProteinMatch = TRUE, whichAlias = NULL, lineWidth = 2,
-                                  rowFontSize = 12, showRowNames = TRUE, silent = FALSE){
+                                  rowFontSize = 12, showRowNames = TRUE, clusterColumns = FALSE,
+                                  silent = FALSE){
+  normalization <- match.arg(normalization)
   input <- FilterForCutoffs(input, silent)
   input$PTMTable <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
   input$PTMTable <- FilterForPeptides(input$PTMTable, whichPeptide)
@@ -155,6 +162,16 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
     mtrx <- mtrx[row_indices, , drop = FALSE]
 
     if(normalization == "ZScore"){
+      if(removeSingletons) {
+        mtrx <- mtrx[rowSums(mtrx != 0 & !is.na(mtrx)) > 1, ]
+        colorSeries <- c("white", "white", "white")
+        if(nrow(mtrx) == 0) {
+          return(fmessage("No rows left after removing singletons"))
+        }
+      }else {
+        colorSeries <- c("white", "grey95", "white")
+      }
+
       mtrx <- t(apply(mtrx, 1, function(row) {
         nz <- row != 0
         m  <- mean(row[nz])
@@ -163,46 +180,63 @@ PlotPTMQuantification <- function(input, whichProtein = NULL, whichPeptide = NUL
         row
       }))
       legendTitle <- "Z-score normalized\nintensity"
-      notFoundVal <- min(mtrx, na.rm = TRUE) - 100
-      mtrx[is.na(mtrx)] <- notFoundVal
-      mtrx[mtrx == 0] <- notFoundVal
-    }else{
+      notFoundVal <- min(mtrx, na.rm = TRUE) - 1000
+      mtrx[mtrx == 0 & !is.na(mtrx)] <- notFoundVal
+      mtrx[is.na(mtrx)] <- 0
+
+      col_fun = circlize::colorRamp2(
+        c(notFoundVal, -999, -3, -2, -0.00000001, 0, 0.00000001, 2, 3),
+        c("white", "white",
+          heatmapColors[5], heatmapColors[2],
+          colorSeries,
+          heatmapColors[3], heatmapColors[4])
+      )
+
+      lgd = ComplexHeatmap::Legend(
+        col_fun = col_fun,
+        title = legendTitle,
+        direction = "horizontal",
+        at = c(-3, -2, -1, 0, 1, 2, 3),
+        labels = c("-3", "-2", "-1", "0", "1", "2", "3")
+      )
+
+    }else if (normalization == "none"){
       legendTitle <- "log2 Intensity"
       notFoundVal <- 0
-    }
 
-    #Get the color scheme
-    valuesInMtrx <- sort(unique(as.vector(mtrx)))
-    valuesInMtrx <- valuesInMtrx[valuesInMtrx != notFoundVal]
+      #Get the color scheme
+      valuesInMtrx <- sort(unique(as.vector(mtrx)))
+      valuesInMtrx <- valuesInMtrx[valuesInMtrx != notFoundVal]
 
-    if(sum(valuesInMtrx != notFoundVal) > 1){
-      lowestVal <- floor(valuesInMtrx[1])
-      secondLowestVal <- valuesInMtrx[2]
-      highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
+      if(sum(valuesInMtrx != notFoundVal) > 1){
+        lowestVal <- floor(valuesInMtrx[1])
+        secondLowestVal <- valuesInMtrx[2]
+        highestVal <- ceiling(valuesInMtrx[length(valuesInMtrx)])
 
-      col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
-                                     c(heatmapColors[1], heatmapColors))
+        col_fun = circlize::colorRamp2(c(lowestVal-1, lowestVal - 0.0001 ,lowestVal, mean(c(lowestVal, highestVal), na.rm =TRUE), highestVal),
+                                       c(heatmapColors[1], heatmapColors[-5]))
 
-      #Get the legend right
-      lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = legendTitle, direction = "horizontal",
-                                   at = round(seq(lowestVal, highestVal, length.out= 4), 2))
-    }else if(length(valuesInMtrx) == notFoundVal){
-      col_fun = circlize::colorRamp2(c(-1, 1), c(heatmapColors[1], heatmapColors[1]))
-    }else{
-      col_fun <- circlize::colorRamp2(c(valuesInMtrx[1]-0.01, valuesInMtrx[1]), c(heatmapColors[1], heatmapColors[4]))
-      #col_fun(seq(low, high, length.out = 5))
+        #Get the legend right
+        lgd = ComplexHeatmap::Legend(col_fun = col_fun, title = legendTitle, direction = "horizontal",
+                                     at = round(seq(lowestVal, highestVal, length.out= 4), 2))
+      }else if(length(valuesInMtrx) == notFoundVal){
+        col_fun = circlize::colorRamp2(c(-1, 1), c(heatmapColors[1], heatmapColors[1]))
+      }else{
+        col_fun <- circlize::colorRamp2(c(valuesInMtrx[1]-0.01, valuesInMtrx[1]), c(heatmapColors[1], heatmapColors[4]))
+        #col_fun(seq(low, high, length.out = 5))
 
-      lgd <- ComplexHeatmap::Legend(
-        col_fun = col_fun,
-        title = "log2 Intensity",
-        direction = "horizontal",
-        at = round(seq(valuesInMtrx[1]-0.01, valuesInMtrx, length.out = 2), 2))
+        lgd <- ComplexHeatmap::Legend(
+          col_fun = col_fun,
+          title = "log2 Intensity",
+          direction = "horizontal",
+          at = round(seq(valuesInMtrx[1]-0.01, valuesInMtrx, length.out = 2), 2))
+      }
     }
 
     #Get the right split
     splitVec <- sapply(rownames(mtrx), function(x) strsplit(x, "-")[[1]][1])
 
-    p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(ComplexHeatmap::Heatmap(mtrx, cluster_columns = FALSE, cluster_rows = TRUE,
+    p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(ComplexHeatmap::Heatmap(mtrx, cluster_columns = clusterColumns, cluster_rows = TRUE,
                                                                            rect_gp = grid::gpar(col = "black", lwd = lineWidth),
                                                                            column_title = plotTitle,
                                                                            col = col_fun,

@@ -8,15 +8,17 @@ PlotPTMQuantification(
   input,
   whichProtein = NULL,
   whichPeptide = NULL,
-  normalization = "none",
+  normalization = c("none", "ZScore"),
+  removeSingletons = TRUE,
   collapseTechReps = FALSE,
   plotColors = c("#BAA5CC", "#32006e", "white"),
-  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255"),
+  heatmapColors = c("white", "#88CCEE", "#8877A1", "#882255", "#1a88c0"),
   exactProteinMatch = TRUE,
   whichAlias = NULL,
   lineWidth = 2,
   rowFontSize = 12,
   showRowNames = TRUE,
+  clusterColumns = FALSE,
   silent = FALSE
 )
 }
@@ -34,6 +36,9 @@ that you want to keep. Inputted data with the comparison importer functions is
 directly usable, also after filtering using the FilterComparison function.}
 
 \item{normalization}{"none" or "ZScore".}
+
+\item{removeSingletons}{Works in conjunction with normalization = "ZScore". If
+TRUE, it will remove any rows with fewer than 1 valid value.}
 
 \item{collapseTechReps}{Collapse the technical replicates.}
 
@@ -58,6 +63,8 @@ to remove the line}
 \item{rowFontSize}{font size for the row labels}
 
 \item{showRowNames}{set to TRUE or FALSE}
+
+\item{clusterColumns}{set to TRUE to cluster columns}
 
 \item{silent}{silence printed information}
 }

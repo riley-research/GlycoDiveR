@@ -12,6 +12,20 @@ test_that("PlotPTMQuantification: defaults", {
 }
 })
 
+test_that("PlotPTMQuantification: ZScore", {
+  skip_if_not(exists("mydata"), "User data not loaded")
+  testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
+
+  result <- PlotPTMQuantification(mydata, whichProtein = testProtein, normalization = "ZScore", silent = TRUE)
+
+  if ((is.character(result) && grepl("No data|No quantitative data", result)) |
+      is.null(result)) {
+    expect_true(TRUE)   # message means function behaved correctly
+  } else {
+    expect_s3_class(result, "gg")
+  }
+})
+
 test_that("PlotPTMQuantification: linewidth", {
   skip_if_not(exists("mydata"), "User data not loaded")
   testProtein <- subset(FilterForCutoffs(mydata, silent = TRUE)$PTMTable, GlycanType != "NonGlyco")$UniprotIDs[1]
