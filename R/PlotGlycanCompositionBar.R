@@ -6,7 +6,7 @@
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param summaryFunction Use "count" to use glycopeptide count, "intensity"
 #' to summarize by glycopeptide intensity.
-#' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition".
+#' @param grouping Grouping is "all", "technicalReps", "biologicalReps", or "condition".
 #' @param scales  Controls plot normalization, choose "fill" or "stack".
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
 #' for plotting.
@@ -112,6 +112,20 @@ PlotGlycanCompositionBar <- function(input, summaryFunction = "count", grouping 
                        GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Condition, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x=.data$Condition, y=.data$GlycanCount, fill=.data$GlycanType)) +
+      ggplot2::geom_bar(stat="identity", position = scales, width=1, color= "black") +
+      ggplot2::coord_flip() +
+      ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
+      ggplot2::labs(fill = NULL, y = yAxis, x = NULL) +
+      ggplot2::scale_y_continuous(expand=c(0,0)) +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5, vjust = 0.5),
+                     axis.ticks.y = ggplot2::element_blank())
+
+    return(p)
+  }else if(grouping == "all") {
+    p <- df %>%
+      dplyr::summarise(.by = c("GlycanType"),
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
+      ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
       ggplot2::geom_bar(stat="identity", position = scales, width=1, color= "black") +
       ggplot2::coord_flip() +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
