@@ -22,7 +22,7 @@ PlotGlycanCompositionBar(
 \item{summaryFunction}{Use "count" to use glycopeptide count, "intensity"
 to summarize by glycopeptide intensity.}
 
-\item{grouping}{Grouping is "technicalReps", "biologicalReps", or "condition".}
+\item{grouping}{Grouping is "all", "technicalReps", "biologicalReps", or "condition".}
 
 \item{scales}{Controls plot normalization, choose "fill" or "stack".}
 
