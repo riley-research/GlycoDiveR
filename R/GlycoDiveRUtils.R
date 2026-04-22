@@ -119,7 +119,7 @@ CleanGlycanComp <- function(AssModVec, TotGlycoVec){
   return(tdf$CorrectGlyco)
 }
 
-GlycanComptToGlycanType <- function(mod, glycanComp){
+GlycanComptToGlycanType_legacy <- function(mod, glycanComp){
   modType <- c()
   allModsVec <- if (grepl(",", mod, fixed = TRUE)) strsplit(mod, ",")[[1]] else mod
 
@@ -178,6 +178,56 @@ GlycanComptToGlycanType <- function(mod, glycanComp){
         modType <- append(modType, "NonGlyco")
       }
   }
+
+  return(paste(modType, collapse = ", "))
+}
+
+GlycanComptToGlycanType <- function(mod, glycanComp) {
+  rule_df <- .modEnv$GlycanCategories
+
+  if (is.na(mod) || mod == "") return("Unmodified")
+
+  allModsVec <- if (grepl(",", mod, fixed = TRUE)) strsplit(mod, ",")[[1]] else mod
+
+  h_count <- as.numeric(stringr::str_match(glycanComp, "H\\((\\d+)\\)")[,2]) %>% tidyr::replace_na(0)
+  n_count <- as.numeric(stringr::str_match(glycanComp, "N\\((\\d+)\\)")[,2]) %>% tidyr::replace_na(0)
+
+  modType <- sapply(allModsVec, function(i) {
+    res_part <- sub("\\(.*", "", i)
+    modifiedResidue <- substr(res_part, nchar(res_part), nchar(res_part))
+
+    glycanMass <- sub(".*\\((.*)\\).*", "\\1", i)
+
+    if (glycanMass %in% .modEnv$ModificationDatabase$ModificationMass) {
+      return("NonGlyco")
+    }
+
+    if (!is.na(glycanComp) && glycanComp != "") {
+
+      match <- rule_df %>%
+        dplyr::filter(
+          stringr::str_detect(modifiedResidue, .data$Residue),
+          stringr::str_detect(glycanComp, .data$Pattern),
+          h_count >= .data$Min_H & h_count <= .data$Max_H,
+          n_count >= .data$Min_N & n_count <= .data$Max_N
+        ) %>%
+        dplyr::arrange(.data$Priority) %>%
+        dplyr::slice(1)
+
+      if (nrow(match) > 0) {
+        if (modifiedResidue %in% c("S", "T") && !.modEnv$useExtendedOGlycanCategories) {
+          return("OGlycan")
+        }
+        return(match$Category)
+      }
+
+      if (modifiedResidue %in% c("S", "T")) return("OGlycan")
+      return("NonCanonicalGlyco")
+
+    } else {
+      return("NonGlyco")
+    }
+  })
 
   return(paste(modType, collapse = ", "))
 }
@@ -1215,25 +1265,18 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
   return(rawdata)
 }
 
-GetPSMGlycanCategory <- function(GType){
-  glycoPSMTypes <- .modEnv$GlycanColors$GlycanType
+GetPSMGlycanCategory <- function(GType, color_df = .modEnv$GlycanColors) {
+  categories <- color_df$GlycanType[color_df$GlycanType != "Multi"]
+  regex_pattern <- paste(categories, collapse = "|")
 
-  tempdf <- data.frame(GType = GType) %>%
-    dplyr::mutate(PSMType = dplyr::case_when(stringr::str_count(.data$GType, paste(glycoPSMTypes, collapse = "|")) > 1 ~ "Multi",
-                                             stringr::str_count(.data$GType, paste(glycoPSMTypes, collapse = "|")) == 0 ~ "nonGlyco",
-                                             grepl("Sialofucosylated", .data$GType) ~ "Sialofucosylated",
-                                             grepl("Phospho", .data$GType) ~ "Phosphomannose",
-                                             grepl("Sialylated", .data$GType) ~ "Sialylated",
-                                             grepl("Complex/Hybrid", .data$GType) ~ "Complex/Hybrid",
-                                             grepl("Fucosylated", .data$GType) ~ "Fucosylated",
-                                             grepl("Truncated", .data$GType) ~ "Truncated",
-                                             grepl("Oligomannose", .data$GType) ~ "Oligomannose",
-                                             grepl("Paucimannose", .data$GType) ~ "Paucimannose",
-                                             grepl("OGlycan", .data$GType) ~ "OGlycan",
-                                             grepl("NonCanonicalGlyco", .data$GType) ~ "NonCanonicalGlyco",
-                                             TRUE ~ "Other"))
+  found_matches <- stringr::str_extract_all(GType, regex_pattern)
+  match_counts <- sapply(found_matches, function(x) length(x))
 
-  return(tempdf$PSMType)
+  as.vector(dplyr::case_when(
+    match_counts > 1 ~ "Multi",
+    match_counts == 0 ~ "nonGlyco",
+    TRUE ~ sapply(found_matches, function(x) x[1])
+  ))
 }
 
 FilterForMinPeptides <- function(df, minPeptideCoverage, thresholdMode = c("group", "total"), silent = FALSE){
