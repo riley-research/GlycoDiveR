@@ -70,6 +70,10 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                             dropNoQuant = FALSE, minPeptideCoverage = FALSE,
                             thresholdMode = c("group", "total"), useExtendedOGlycanCategories = FALSE,
                             GlyToucan = TRUE){
+  if(!convertFPModCodeToMass & normalization %in% c("FP_MaxLFQ", "FP_Normalized")) {
+    convertFPModCodeToMass <- TRUE
+    fmessage(paste0("Setting convertFPModCodeToMass to TRUE because of ", normalization))
+  }
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation,
