@@ -21,7 +21,7 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
   action <- match.arg(action)
 
   prepare_edit <- function(edit) {
-    if(edit == "glycan_light"){
+    if(identical(edit, "glycan_light")){
       edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
                                 "Fucosylated", "Oligomannose", "Truncated",
                                 "Paucimannose", "Phosphomannose", "OGlycan",
@@ -30,7 +30,7 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
                            "#FFA1A1", "#A0E2BE", "#686963",
                            "#0072BC", "#EE8866", "#BF5A6B",
                            "#FABC3C", "#664C43"))
-    }else if(edit == "glycan_dark"){
+    }else if(identical(edit, "glycan_dark")){
       edit = data.frame(GlycanType = c("Complex/Hybrid", "Sialofucosylated", "Sialylated",
                                        "Fucosylated", "Oligomannose", "Truncated",
                                        "Paucimannose", "Phosphomannose", "OGlycan",
@@ -56,7 +56,7 @@ ManageGlycanColors <- function(edit = NULL, action = c("View", "Append", "Replac
     edit <- prepare_edit(edit)
 
     .modEnv$GlycanColors <- .modEnv$GlycanColors %>%
-      dplyr::select(!(.data$GlycanType %in% edit$GlycanType))
+      dplyr::filter(!(.data$GlycanType %in% edit$GlycanType))
 
     .modEnv$GlycanColors <- dplyr::bind_rows(.modEnv$GlycanColors, edit)
   } else if(action == "Replace") {

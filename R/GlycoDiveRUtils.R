@@ -990,7 +990,7 @@ ComputeGlycanMass <- function(glycanComposition) {
 
   # 3. Join with your database
   final_df <- found_counts %>%
-    dplyr::left_join(GlycanDatabase, by = "ShortName")
+    dplyr::left_join(.modEnv$GlycanDatabase, by = "ShortName")
 
   # 4. Check for missing monosaccharides
   missing_names <- final_df$ShortName[is.na(final_df$GMass)]
@@ -1010,7 +1010,7 @@ ComputeGlycanMass_legacy <- function(glycanComposition){
   if(is.na(glycanComposition) || glycanComposition == ""){
     return(NA)
   }
-  glycanMass_df <- GlycanDatabase %>%
+  glycanMass_df <- .modEnv$GlycanDatabase %>%
     dplyr::mutate(count = 0, mass = 0)
 
   for(i in seq_len(nrow(glycanMass_df))){
