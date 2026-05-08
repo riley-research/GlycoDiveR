@@ -3,7 +3,8 @@
 #' Visualize the glycan composition per site.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
-#' @param grouping Grouping is "none", "technicalReps", "biologicalReps", or "condition".
+#' @param grouping Grouping is "none", "technicalReps", "biologicalReps", or "condition",
+#' or "all".
 #' @param intensity Raw log2, or log10 transformed intensity values.
 #' @param scales  Controls plot normalization, choose "fill" or "stack".
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
@@ -145,7 +146,24 @@ PlotSiteGlycanCompositionBar <- function(input, grouping = "condition", scales =
           ggplot2::theme(axis.ticks.y = ggplot2::element_blank(),
                          strip.background = ggplot2::element_blank(),
                          strip.text = ggplot2::element_text(face="bold", size = 12))
-  }else{
+  } else if(grouping == "all"){
+    p <- df %>%
+      dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0) %>%
+      dplyr::arrange(.data$ProteinPTMLocalization) %>%
+      dplyr::summarise(.by = c("UniprotIDs", "Genes", "ModificationID", "GlycanType"),
+                       Intensity = sum(.data$Intensity, na.rm=TRUE)) %>%
+      tidyr::complete(.data$UniprotIDs, .data$Genes,
+                      .data$ModificationID, fill = list(Intensity = 0.001,
+                                                                         GlycanType = "None")) %>%
+      ggplot2::ggplot(ggplot2::aes(x=.data$ModificationID, y=.data$Intensity, fill=.data$GlycanType)) +
+      ggplot2::geom_bar(stat="identity", position = scales, width=1, color= "black") +
+      ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
+      ggplot2::labs(fill = NULL, y = yAxis, x = NULL) +
+      ggplot2::scale_y_continuous(expand=c(0,0)) +
+      ggplot2::theme(axis.ticks.y = ggplot2::element_blank(),
+                     strip.background = ggplot2::element_blank(),
+                     strip.text = ggplot2::element_text(face="bold", size = 12))
+  } else{
     return(fmessage("Your grouping argument was not recognized."))
   }
 
