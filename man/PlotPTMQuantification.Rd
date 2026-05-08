@@ -38,7 +38,8 @@ directly usable, also after filtering using the FilterComparison function.}
 \item{normalization}{"none" or "ZScore".}
 
 \item{removeSingletons}{Works in conjunction with normalization = "ZScore". If
-TRUE, it will remove any rows with fewer than 1 valid value.}
+TRUE, it will remove any rows with fewer than 1 valid value. If set to TRUE,
+the singleton in a row will be colored light grey and the missing values white.}
 
 \item{collapseTechReps}{Collapse the technical replicates.}
 
