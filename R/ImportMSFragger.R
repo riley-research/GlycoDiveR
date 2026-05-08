@@ -74,6 +74,11 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
     convertFPModCodeToMass <- TRUE
     fmessage(paste0("Setting convertFPModCodeToMass to TRUE because of ", normalization))
   }
+  if(TMT){
+    dropNoQuant = TRUE
+    fmessage("TMT enabled, so setting dropNoQuant = TRUE")
+  }
+
   unfiltereddf <- data.frame()
   quantdf <- data.frame()
   annotationdf <- utils::read.csv(annotation,
@@ -147,11 +152,50 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                                filterForNoNSequon,
                                confidenceLevel,
                                deltaModCutoff = FALSE,
-                               searchEngine = "MSFragger")}
+                               searchEngine = "MSFragger")
+
+  if(!all(is.na(filtereddf$Intensity)) &
+     sum(filtereddf$Intensity != 0) &
+     normalization == "median") {
+    globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(
+        .by = .data$Run,
+        Intensity = medianNormalization(
+          intensityVec = .data$Intensity,
+          globalMedian = globalMedian
+        )
+      )
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(Intensity = dplyr::coalesce(.data$Intensity, 0))
+
+    fmessage("Successfully median normalized after quality filtering.")
+  }
+  }
 
   if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0)}
 
-  if(!identical(minPeptideCoverage, FALSE)){filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)}
+  if(!identical(minPeptideCoverage, FALSE)){
+    filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)
+
+    if(!all(is.na(filtereddf$Intensity)) &
+       sum(filtereddf$Intensity != 0) &
+       normalization == "median") {
+      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(
+          .by = .data$Run,
+          Intensity = medianNormalization(
+            intensityVec = .data$Intensity,
+            globalMedian = globalMedian
+          )
+        )
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(Intensity = dplyr::coalesce(.data$Intensity, 0))
+
+      fmessage("Successfully median normalized after quality filtering.")
+    }
+    }
 
   PTMdf <- PSMToPTMTable(filtereddf)
 

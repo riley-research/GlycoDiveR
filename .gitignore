@@ -11,3 +11,4 @@ docs/*
 !docs/
 !docs/*.html
 !docs/*.pdf
+.positai

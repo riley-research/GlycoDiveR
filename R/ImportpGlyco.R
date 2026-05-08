@@ -93,11 +93,34 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                                  filterForNoNSequon = FALSE,
                                  confidenceLevels = FALSE,
                                  deltaModCutoff = FALSE,
-                                 searchEngine = "pGlyco")}
+                                 searchEngine = "pGlyco")
+
+
+    if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0) & normalization == "median"){
+
+      globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+      filtereddf <- filtereddf %>%
+        dplyr::mutate(.by = .data$Run,
+                      Intensity = medianNormalization(intensityVec = .data$Intensity,
+                                                      globalMedian = globalMedian))
+      fmessage("Successfully median normalized the intensities after quality filtering.")
+    }
+    }
 
   if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0)}
 
-  if(!identical(minPeptideCoverage, FALSE)){filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)}
+  if(!identical(minPeptideCoverage, FALSE)){filtereddf <- FilterForMinPeptides(filtereddf, minPeptideCoverage, thresholdMode)
+
+  if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0) & normalization == "median"){
+
+    globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
+    filtereddf <- filtereddf %>%
+      dplyr::mutate(.by = .data$Run,
+                    Intensity = medianNormalization(intensityVec = .data$Intensity,
+                                                    globalMedian = globalMedian))
+    fmessage("Successfully median normalized the intensities after quality filtering.")
+  }
+  }
 
   PTMdf <- PSMToPTMTable(filtereddf)
 
