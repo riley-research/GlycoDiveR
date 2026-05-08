@@ -19,7 +19,8 @@ PlotSiteGlycanCompositionBar(
 \arguments{
 \item{input}{Formatted data imported through a GlycoDiveR importer.}
 
-\item{grouping}{Grouping is "none", "technicalReps", "biologicalReps", or "condition".}
+\item{grouping}{Grouping is "none", "technicalReps", "biologicalReps", or "condition",
+or "all".}
 
 \item{scales}{Controls plot normalization, choose "fill" or "stack".}
 
