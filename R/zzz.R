@@ -13,7 +13,7 @@ NULL
     Priority = 1:11,
     Residue  = c("N", "N", "N", "N", "N", "N", "N", "S|T", "S|T", "S|T", "S|T"),
     Pattern  = c(
-      "(?=.*(A|G))(?=.*F)", "A|G", "F", "Phospho",
+      "(?=.*(A|G))(?=.*F)", "A|G", "F", "Phospho|pH",
       ".*", ".*", ".*", # N-linked placeholders
       "(?=.*(A|G))(?=.*F)", "A|G", "F", ".*" # O-linked placeholders
     ),
