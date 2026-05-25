@@ -7,6 +7,7 @@
 PlotGlycanCompositionPie(
   input,
   grouping = "condition",
+  summaryFunction = "count",
   scales = "free",
   whichAlias = NULL,
   whichPeptide = NULL,
@@ -19,6 +20,9 @@ PlotGlycanCompositionPie(
 \item{input}{Formatted data imported through a GlycoDiveR importer.}
 
 \item{grouping}{Grouping is "technicalReps", "biologicalReps", or "condition".}
+
+\item{summaryFunction}{Use "count" to use glycopeptide count, "intensity"
+to summarize by glycopeptide intensity.}
 
 \item{scales}{Controls plot normalization, choose "fixed" or "free".}
 
