@@ -3,6 +3,8 @@
 #' Visualize glycan compositions as a pie chart.
 #'
 #' @param input Formatted data imported through a GlycoDiveR importer.
+#' @param summaryFunction Use "count" to use glycopeptide count, "intensity"
+#' to summarize by glycopeptide intensity.
 #' @param grouping Grouping is "technicalReps", "biologicalReps", or "condition".
 #' @param scales Controls plot normalization, choose "fixed" or "free".
 #' @param whichAlias Provide a vector of Aliases to only select these aliases
@@ -30,7 +32,8 @@
 #' PlotGlycanCompositionPie(mydata, grouping = "technicalReps",
 #'                          whichProtein = c("P10204", "Q92930"))
 #' }
-PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "free",
+PlotGlycanCompositionPie <- function(input, grouping = "condition",
+                                     summaryFunction = "count", scales = "free",
                                      whichAlias = NULL, whichPeptide = NULL,
                                      whichProtein = NULL, exactProteinMatch = TRUE,
                                      silent = FALSE){
@@ -62,19 +65,36 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
     }
   }
 
+  if(scales == "fill"){
+    if(summaryFunction == "count"){yAxis <- "Number of glycosites\n(Normalized to total)"
+    }else{yAxis <- "Glycosite intensity\n(Normalized to total)"}
+  }else{
+    if(summaryFunction == "count"){
+      yAxis <- "Number of glycosites"
+    }else{yAxis <- "Glycosite intensity"}
+  }
+
+  summary_fun <- function(x = NULL) {
+    if (summaryFunction == "count") {
+      dplyr::n()
+    } else {
+      sum(x, na.rm = TRUE)
+    }
+  }
+
   colH <- stats::setNames(.modEnv$GlycanColors$color, .modEnv$GlycanColors$GlycanType)
 
   if(grouping == "technicalReps"){
     p <- df %>%
       dplyr::summarise(.by = c("Run", "Alias", "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Run, .data$Alias, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
       ggplot2::geom_bar(stat="identity", width=1, linewidth=1.25, color= "white") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Alias, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
-      ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
+      ggplot2::labs(fill = NULL, y = yAxis, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())
 
@@ -83,7 +103,7 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
     p <- df %>%
       dplyr::summarise(.by = c("Condition", "BioReplicate",
                                "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Condition, .data$BioReplicate, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       dplyr::mutate(x = paste0(.data$Condition, .data$BioReplicate)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
@@ -91,21 +111,21 @@ PlotGlycanCompositionPie <- function(input, grouping = "condition", scales = "fr
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$x, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
-      ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
+      ggplot2::labs(fill = NULL, y = yAxis, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())
     return(p)
   }else if(grouping == "condition"){
     p <- df %>%
       dplyr::summarise(.by = c("Condition", "GlycanType"),
-                       GlycanCount = dplyr::n()) %>%
+                       GlycanCount = summary_fun(.data$Intensity)) %>%
       tidyr::complete(.data$Condition, .data$GlycanType, fill = list(GlycanCount = 0)) %>%
       ggplot2::ggplot(ggplot2::aes(x="", y=.data$GlycanCount, fill=.data$GlycanType)) +
       ggplot2::geom_bar(stat="identity", width=1, linewidth=1.25, color= "white") +
       ggplot2::coord_polar("y", start=0) +
       ggplot2::facet_wrap(~.data$Condition, scales = scales) +
       ggplot2::scale_fill_manual(values = colH, guide = ggplot2::guide_legend(reverse = TRUE)) +
-      ggplot2::labs(fill = NULL, y = NULL, x = NULL) +
+      ggplot2::labs(fill = NULL, y = yAxis, x = NULL) +
       ggplot2::theme_void() +
       ggplot2::theme(axis.text.x = ggplot2::element_blank())
     return(p)
