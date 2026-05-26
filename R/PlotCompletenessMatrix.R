@@ -6,6 +6,9 @@
 #' @param input Formatted data imported through a GlycoDiveR importer.
 #' @param peptideType Choose "glyco" to only view glycopeptide and "other" to  also
 #' include non-modified peptides.
+#' @param useMultiCategory Set to TRUE shows multiple glycosylated peptides
+#' using the "Multi" glycan category. Set to FALSE separates multiple glycosylated
+#' peptides into each of the glycan categories.
 #' @param plotColors The colors used for the matrix The default is c("lightgrey", "darkgreen").
 #' @param collapseTechReps Do you want to collapse the technical replicates.
 #' @param showGlycanCounts TRUE to show the counts on the y-axis, or FALSE
@@ -36,29 +39,34 @@
 #' PlotCompletenessMatrix(mydata, peptideType = "other", silent = FALSE)
 #' }
 PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
+                                   useMultiCategory = TRUE,
                                     plotColors = c("grey90", "#44AA99"),
                                     collapseTechReps = FALSE, showGlycanCounts = TRUE,
                                     whichAlias = NULL, whichPeptide = NULL,
                                     whichProtein = NULL, exactProteinMatch = TRUE,
                                     exportDataTo = FALSE, silent = FALSE){
-
   input <- FilterForCutoffs(input, silent)
-  input$PSMTable <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
-  input$PSMTable <- FilterForPeptides(input$PSMTable, whichPeptide)
-  input$PSMTable <- input$PSMTable %>%
+  if(useMultiCategory) {
+    df <- FilterForProteins(input$PSMTable, whichProtein, exactProteinMatch)
+  } else if (!useMultiCategory) {
+    df <- FilterForProteins(input$PTMTable, whichProtein, exactProteinMatch)
+  }
+
+  df <- FilterForPeptides(df, whichPeptide)
+  df <- df %>%
     dplyr::filter(!is.na(.data$Intensity))
 
   if(collapseTechReps){
-    df <- GetMeanTechReps(input$PSMTable)
-  }else{
-    df <- input$PSMTable
+    df <- GetMeanTechReps(df)
   }
 
-  df <- df %>%
-    dplyr::mutate(
-      GlycanType = gsub(", NonGlyco|NonGlyco, | NonGlyco|, Unmodified| Unmodified, |Unmodified", "", .data$GlycanType),
-      GlycanType = ifelse(grepl(", ", .data$GlycanType), "Multi", .data$GlycanType),
-      GlycanType = ifelse(.data$GlycanType == "", "NonGlyco", .data$GlycanType))
+  if(useMultiCategory) {
+    df <- df %>%
+      dplyr::mutate(
+        GlycanType = gsub(", NonGlyco|NonGlyco, | NonGlyco|, Unmodified| Unmodified, |Unmodified", "", .data$GlycanType),
+        GlycanType = ifelse(grepl(", ", .data$GlycanType), "Multi", .data$GlycanType),
+        GlycanType = ifelse(.data$GlycanType == "", "NonGlyco", .data$GlycanType))
+  }
 
   if(peptideType == "glyco"){
     df <- df %>%
@@ -78,9 +86,10 @@ PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
     }
   }
 
-  df <- df[,c("Alias", "GlycanType", "ModifiedPeptide", "Run")] %>%
+  df <- df %>%
+    dplyr::select("Alias", "GlycanType", "id" = "ModifiedPeptide", "Run") %>%
     tidyr::pivot_wider(names_from = "Alias", values_from = "Run", values_fn = dplyr::first) %>%
-    dplyr::mutate(dplyr::across(-c("ModifiedPeptide", "GlycanType"), ~ ifelse(!is.na(.), 1, 0)))
+    dplyr::mutate(dplyr::across(-c("id", "GlycanType"), ~ ifelse(!is.na(.), 1, 0)))
 
   if (showGlycanCounts) {
     dfLabel <- df %>%
@@ -92,7 +101,7 @@ PlotCompletenessMatrix <- function(input, peptideType  = "glyco",
 
   #Get the matrix and in the right column order
   mtrx <- data.matrix(df[,3:ncol(df)])
-  rownames(mtrx) <- df$ModifiedPeptide
+  rownames(mtrx) <- df$id
 
   cols_to_use <- levels(input$PTMTable$Alias)
   cols_to_use <- cols_to_use[cols_to_use %in% colnames(mtrx)]

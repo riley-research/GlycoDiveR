@@ -7,6 +7,7 @@
 PlotCompletenessMatrix(
   input,
   peptideType = "glyco",
+  useMultiCategory = TRUE,
   plotColors = c("grey90", "#44AA99"),
   collapseTechReps = FALSE,
   showGlycanCounts = TRUE,
@@ -23,6 +24,10 @@ PlotCompletenessMatrix(
 
 \item{peptideType}{Choose "glyco" to only view glycopeptide and "other" to  also
 include non-modified peptides.}
+
+\item{useMultiCategory}{Set to TRUE shows multiple glycosylated peptides
+using the "Multi" glycan category. Set to FALSE separates multiple glycosylated
+peptides into each of the glycan categories.}
 
 \item{plotColors}{The colors used for the matrix The default is c("lightgrey", "darkgreen").}
 
