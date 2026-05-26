@@ -65,6 +65,8 @@ different sections.
 - [How to add additional columns to imported
   data](https://github.com/riley-research/GlycoDiveR/wiki/How-to-add-additional-columns-to-imported-data)
 
+- [Exporting and sharing data](https://github.com/riley-research/GlycoDiveR/wiki/Exporting-and-sharing-data)
+
 ## Troubleshooting, tips, and ideas
 
 For any troubleshooting, tips, and ideas please refer to the Issues tab
