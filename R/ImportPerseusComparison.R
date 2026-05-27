@@ -5,7 +5,7 @@
 #' file. Perseus formats column names as such: Condition1_Condition2. GlycoDiveR
 #' creates identical mapping.
 #'
-#' @param input The GlycoDiveR inputted data.
+#' @param input Your already imported GlycoDiveR data.
 #' @param path The path to the Perseus .txt file.
 #' @param cleanCCarbamidomethylation Removes \\[57.0215\\] from the MSstats
 #' ModifiedPeptide column (default = TRUE)
@@ -117,6 +117,12 @@ ImportPerseusComparison <- function(input, path, cleanCCarbamidomethylation = TR
   Perseus_raw <- Perseus_raw %>%
     dplyr::select("UniprotIDs", "Proteins" = "Protein", "ModificationID", "ModifiedPeptide",
                   "Label", "log2FC", "pvalue", "adjpvalue")
+
+  to_add <- input$PSMTable %>%
+    dplyr::distinct(.data$ModifiedPeptide, .data$TotalGlycanComposition)
+
+  Perseus_raw <- Perseus_raw %>%
+    dplyr::left_join(to_add, by = "ModifiedPeptide")
   return(Perseus_raw)
 }
 

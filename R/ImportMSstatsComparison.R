@@ -4,6 +4,7 @@
 #' work fully: Protein, PeptideSequence, Label, log2FC, pvalue, adj.pvalue.
 #'
 #' @param path The filepath to the MSstats output file.
+#' @param input Your already imported GlycoDiveR data.
 #' @param cleanCCarbamidomethylation Removes \\[57.0215\\] from the MSstats
 #' ModifiedPeptide column (default = TRUE)
 #'
@@ -11,7 +12,7 @@
 #' @export
 #'
 #' @examples \dontrun{ImportMSstatsComparison("C:/MSstatsFile.csv")}
-ImportMSstatsComparison <- function(path, cleanCCarbamidomethylation = TRUE){
+ImportMSstatsComparison <- function(path, input = NULL, cleanCCarbamidomethylation = TRUE){
   MSstats_raw <- utils::read.csv(path)
   existingCols <- names(MSstats_raw)
   comparison_df <- data.frame(UniprotIDs = rep(NA_character_, nrow(MSstats_raw)))
@@ -69,6 +70,17 @@ ImportMSstatsComparison <- function(path, cleanCCarbamidomethylation = TRUE){
     comparison_df$adjpvalue <- as.double(MSstats_raw$adj.pvalue)
     fmessage("Successfully imported adjpvalue column.")
   }else{warning("The column adj.pvalue was not found in the input dataframe.")}
+
+  if(!is.null(input)){
+    to_add <- input$PSMTable %>%
+      dplyr::distinct(.data$ModifiedPeptide, .data$TotalGlycanComposition)
+
+    comparison_df <- comparison_df %>%
+      dplyr::left_join(to_add, by = "ModifiedPeptide")
+  }else {
+    fmessage("No main dataframe supplied. Couldn't add additional columns.")
+  }
+
 
   return(comparison_df)
 }

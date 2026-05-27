@@ -7,7 +7,7 @@
 ImportPerseusComparison(input, path, cleanCCarbamidomethylation = TRUE)
 }
 \arguments{
-\item{input}{The GlycoDiveR inputted data.}
+\item{input}{Your already imported GlycoDiveR data.}
 
 \item{path}{The path to the Perseus .txt file.}
 

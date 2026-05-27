@@ -4,7 +4,7 @@
 #' conditions. Comparisons are done on the glycopeptide level using the
 #' max intensity value for duplicate PSMs.
 #'
-#' @param input formatted data
+#' @param input Your already imported GlycoDiveR data.
 #' @param comparisons the comparisons you would like to include
 #' @param whichAlias provide a vector of Aliases to only select these aliases
 #' for plotting
@@ -26,7 +26,8 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
   modID_df <- input$PTMTable %>%
     dplyr::filter(.data$GlycanType != "NonGlyco") %>%
     dplyr::reframe(.by = "ModifiedPeptide",
-                   ModificationID = paste(.data$ModificationID, sep =";")) %>%
+                   ModificationID = paste(.data$ModificationID, sep =";"),
+                   TotalGlycanComposition = TotalGlycanComposition) %>%
     dplyr::distinct()
 
   df <- df %>%
@@ -41,7 +42,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
     dplyr::select(-c(.data$Condition, .data$BioReplicate)) %>%
     tidyr::pivot_wider(names_from = .data$sampleName, values_from = "Intensity")
 
-  tempColumns <- names(df)[5:length(names(df))]
+  tempColumns <- names(df)[6:length(names(df))]
 
   for(i in 1:length(comparisons)){
     compi <- comparisons[i][[1]]
@@ -61,7 +62,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
 
   df <- df %>%
     dplyr::select(-tidyselect::all_of(tempColumns)) %>%
-    tidyr::pivot_longer(cols = -tidyselect::all_of(c("UniprotIDs", "Proteins", "ModifiedPeptide", "ModificationID")),
+    tidyr::pivot_longer(cols = -tidyselect::all_of(c("UniprotIDs", "Proteins", "ModifiedPeptide", "ModificationID", "TotalGlycanComposition")),
                         names_to = "Label", values_to = "LabelLog2Fc") %>%
     tidyr::separate_wider_delim(cols = "LabelLog2Fc",  names = c("log2FC", "pvalue"), delim = ";") %>%
     dplyr::mutate(.by = "Label",

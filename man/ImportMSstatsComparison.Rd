@@ -4,10 +4,12 @@
 \alias{ImportMSstatsComparison}
 \title{ImportMSstatsComparison}
 \usage{
-ImportMSstatsComparison(path, cleanCCarbamidomethylation = TRUE)
+ImportMSstatsComparison(path, input = NULL, cleanCCarbamidomethylation = TRUE)
 }
 \arguments{
 \item{path}{The filepath to the MSstats output file.}
+
+\item{input}{Your already imported GlycoDiveR data.}
 
 \item{cleanCCarbamidomethylation}{Removes \[57.0215\] from the MSstats
 ModifiedPeptide column (default = TRUE)}

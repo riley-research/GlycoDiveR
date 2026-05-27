@@ -7,7 +7,7 @@
 GetComparison(input, comparisons, type = "glyco", whichAlias = NULL)
 }
 \arguments{
-\item{input}{formatted data}
+\item{input}{Your already imported GlycoDiveR data.}
 
 \item{comparisons}{the comparisons you would like to include}
 
