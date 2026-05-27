@@ -27,7 +27,7 @@ GetComparison <- function(input, comparisons, type = "glyco", whichAlias = NULL)
     dplyr::filter(.data$GlycanType != "NonGlyco") %>%
     dplyr::reframe(.by = "ModifiedPeptide",
                    ModificationID = paste(.data$ModificationID, sep =";"),
-                   TotalGlycanComposition = TotalGlycanComposition) %>%
+                   TotalGlycanComposition = .data$TotalGlycanComposition) %>%
     dplyr::distinct()
 
   df <- df %>%

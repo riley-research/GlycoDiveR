@@ -7,6 +7,7 @@
 PlotComparisonVolcano(
   input,
   whichComparison,
+  labelFormat = c("protein-site", "protein-site-composition"),
   statisticalCutoff = 0.05,
   log2FCCutoff = 1,
   statistic = "adjpvalue",
@@ -20,6 +21,8 @@ PlotComparisonVolcano(
 ImportMSstatsComparison function)}
 
 \item{whichComparison}{Which comparison as in the Label column.}
+
+\item{labelFormat}{Determine how the labels should be displayed}
 
 \item{statisticalCutoff}{What statistical cutoff.}
 

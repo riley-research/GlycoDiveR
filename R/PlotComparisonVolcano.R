@@ -6,6 +6,7 @@
 #' @param input Formatted comparison dataframe (e.g. using GlycoDiveR's
 #' ImportMSstatsComparison function)
 #' @param whichComparison Which comparison as in the Label column.
+#' @param labelFormat Determine how the labels should be displayed
 #' @param statisticalCutoff What statistical cutoff.
 #' @param log2FCCutoff What log2 fold-change cutoff).
 #' @param statistic Choose "adjpvalue" or "pvalue".
@@ -23,9 +24,15 @@
 #' PlotComparisonVolcano(comparison, whichComparison = "Sal-PBS",
 #' statistic = "pvalue", statisticalCutoff = 0.01)}
 PlotComparisonVolcano <- function(input, whichComparison,
+                                  labelFormat = c("protein-site", "protein-site-composition"),
                                   statisticalCutoff = 0.05, log2FCCutoff = 1,
                                   statistic = "adjpvalue", whichLabel = "significant",
                                   plotColors = c("#88CCEE", "#BBBBBB", "#882255"), maxOverlaps = 10){
+  labelFormat <- match.arg(labelFormat)
+  if(!("TotalGlycanComposition" %in% names(input))){
+    labelFormat <- "protein-site"
+    fmessage("Set labelFormat to 'protein-site' as TotalGlycanComposition was not found.")
+  }
 
   if(statistic == "pvalue"){
     df <- input %>%
@@ -48,20 +55,29 @@ PlotComparisonVolcano <- function(input, whichComparison,
                                          .data$statistic < statisticalCutoff & .data$log2FC > log2FCCutoff ~ plotColors[3],
                                          TRUE ~ plotColors[2]))
 
-  if(identical(whichLabel, "significant")){
+  if (labelFormat == "protein-site-composition" && "TotalGlycanComposition" %in% colnames(df)) {
+    df <- df %>%
+      dplyr::mutate(fullLabel = paste(.data$Proteins, .data$ModificationID, .data$TotalGlycanComposition, sep = "-"))
+  } else {
+    df <- df %>%
+      dplyr::mutate(fullLabel = paste(.data$Proteins, .data$ModificationID, sep = "-"))
+  }
+
+  if (identical(whichLabel, "none")) {
+    df <- df %>% dplyr::mutate(plotLabel = NA_character_)
+  } else if (identical(whichLabel, "significant")) {
     df <- df %>%
       dplyr::mutate(plotLabel = ifelse(.data$col != plotColors[2],
-                                       paste(.data$Proteins, .data$ModificationID, sep = "-"),
+                                       .data$fullLabel,
                                        NA_character_))
-  }else if(identical(whichLabel, "none")){
+  } else {
     df <- df %>%
-      dplyr::mutate(plotLabel = NA_character_)
-  }else{
-    df <- df %>%
-      dplyr::mutate(plotLabel = ifelse(paste(.data$Proteins, .data$ModificationID, sep = "-") %in% whichLabel,
-                                       paste(.data$Proteins, .data$ModificationID, sep = "-"),
-                                       NA_character_))
+      dplyr::mutate(combined_id = paste(.data$Proteins, .data$ModificationID, sep = "-"),
+                    plotLabel = ifelse(.data$combined_id %in% whichLabel, .data$fullLabel, NA_character_)) %>%
+      dplyr::select(-"combined_id")
   }
+
+  df <- df %>% dplyr::select(-"fullLabel")
 
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$log2FC, y = -log(.data$statistic, 10))) +
     ggplot2::geom_point(color = df$col, alpha = 0.8, size = 3) +
