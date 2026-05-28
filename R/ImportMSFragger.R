@@ -5,7 +5,9 @@
 #' OPair. During import, this function will look for all the psm.tsv files in the
 #' specified folder and all the subfolders. It will also use the
 #' combined_modified_peptide.tsv if you choose to use FragPipe computed
-#' normalized intensities.
+#' normalized intensities, or the abundance_multi-mass_MD.tsv files
+#' whenever FP_TMT normalization is selected, note: this only works for Glyco-TMT
+#' data.
 #'
 #' @param path Path to search engine output folder
 #' @param annotation Path to annotation file
@@ -16,12 +18,14 @@
 #' column in the search engine output file.
 #' @param scrape set TRUE/FALSE to use scraping of Uniprot data.
 #' @param normalization The (glyco)peptide normalization used.
-#' Choose between "median" (default), FP_Normalized, FP_MaxLFQ, or none.
+#' Choose between "median" (default), FP_Normalized, FP_MaxLFQ, FP_TMT, or none.
 #' median: performs median normalization.
 #' FP_Normalized: extracts the intensity values in the Intensity columns of the
 #' combined_modified_peptide.tsv files.
 #' FP_MaxLFQ: extracts the intensity values in the MaxLFQ.Intensity columns of the
 #' combined_modified_peptide.tsv files.
+#' FP_TMT: Uses the abundance_multi-mass_MD.tsv files to import the FragPipe
+#' calculated normalized intensities.
 #' none: uses the raw intensity values from the PSM.tsv files.
 #' @param convertFPModCodeToMass MSFragger uses modification code in peptide
 #' modified sequences. This replaces the code with the mass of the modification.
@@ -133,6 +137,21 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
 
     if(length(quantPath) == 0){
       stop("No combined_modified_peptide.tsv files found. Select the right location or using different quantification.")
+    }
+    for(quant in quantPath){
+      fmessage(paste0("Now importing: ", quant))
+      temptable <- data.table::fread(paste0(path, "/", quant), sep = "\t", check.names = TRUE, fill = TRUE)
+      quantdf <- plyr::rbind.fill(quantdf, temptable)
+    }
+  }else if (normalization == "FP_TMT") {
+    if(!TMT){
+      return(fmessage("FP_TMT selected but TMT workflow not enabled."))
+    }
+    quantPath <- list.files(path, recursive = TRUE)
+    quantPath <- quantPath[grepl("abundance_multi-mass_MD.tsv", quantPath)]
+
+    if(length(quantPath) == 0){
+      stop("No abundance_multi-mass_MD.tsv files found. Select the correct folder or using different quantification.")
     }
     for(quant in quantPath){
       fmessage(paste0("Now importing: ", quant))

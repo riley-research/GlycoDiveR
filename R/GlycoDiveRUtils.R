@@ -28,7 +28,7 @@ GetProteinLength <- function(IDVec, fastaFile){
   return(as.vector(nchar(seqs)))
 }
 
-PSMToPTMTable <- function(PSMTable){
+PSMToPTMTable <- function(PSMTable, silent = FALSE){
   tempdf <- PSMTable %>%
     dplyr::filter(!is.na(.data$AssignedModifications) & .data$AssignedModifications != "") %>%
     tidyr::separate_rows(.data$AssignedModifications, sep = ",")
@@ -85,7 +85,9 @@ PSMToPTMTable <- function(PSMTable){
   # tempdf$GlycanType <- apply(tempdf[,c("AssignedModifications", "TotalGlycanComposition")],
   #                            1, function(x) GlycanComptToGlycanType(mod = x[1], glycanComp = x[2]))
 
-  message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
+  if(!silent){
+    message("\033[30m[", base::substr(Sys.time(), 1, 16), "] INFO: Generated PTM table.\033[0m")
+  }
 
   return(tempdf)
 }
@@ -1263,6 +1265,159 @@ UpdateFPIntensities <- function(rawdata, quantdata, normalization){
     dplyr::filter(!(is.na(.data$RawIntensity) & !is.na(.data$Intensity)))
 
   return(rawdata)
+}
+
+UpdateFPIntensitiesTMT <- function(clean_df, raw_df, quant_data){
+  #Get a clean PTM table for matching
+  clean_df_PTM <- PSMToPTMTable(clean_df, silent = TRUE)
+
+  clean_df_PTM <- clean_df_PTM %>%
+    dplyr::filter(.data$GlycanType != "NonGlyco") %>%
+    dplyr::distinct(.data$ModifiedPeptide, .data$ModificationID, .data$TotalGlycanComposition, .keep_all = TRUE) %>%
+    dplyr::select(c("ModifiedPeptide", "ModificationID", "TotalGlycanComposition", "ID")) %>%
+    dplyr::mutate(glycan_mass = purrr::map_dbl(.data$TotalGlycanComposition, ~ ComputeGlycanMass(.x)),
+                  modification_site = as.numeric(gsub("\\D", "", .data$ModificationID))) %>%
+    dplyr::mutate(glycan_mass = format(.data$glycan_mass, nsmall = 4)) %>%
+    dplyr::left_join(raw_df[c("ID", "MSFragger.Localization", "Protein.ID")], by = "ID") %>%
+    dplyr::arrange(.data$modification_site) %>%
+    dplyr::summarise(.by = "ModifiedPeptide",
+                     match_column = paste(unique(.data$Protein.ID),
+                                          paste0(.data$ModificationID),
+                                          paste0(.data$glycan_mass),
+                                          sep = "-")) %>%
+    dplyr::mutate(match_column = gsub(" ", "", .data$match_column))
+
+  #First Clean the index column
+  quant_data <- quant_data %>%
+    dplyr::mutate(
+      match_column = sapply(
+        strsplit(.data$Index, "_"),
+        function(x) paste(x[c(1,6,8)], collapse = "-")))
+
+  #This shennanigans is to correct for potential subtle mass differences
+  #missing_keys <- tibble(match_column = setdiff(quant_data$match_column, clean_df_PTM$match_column))
+  missing_keys <- data.frame(match_column = setdiff(quant_data$match_column,
+                                                    clean_df_PTM$match_column))
+
+  if (nrow(missing_keys) > 0) {
+
+    # Parse quant missing keys into clean structure
+    quant_parsed <- missing_keys %>%
+      tidyr::separate_wider_delim(
+        cols = "match_column", delim = "-", names = c("Protein", "Site", "Mass"), cols_remove = FALSE
+      ) %>%
+      dplyr::mutate(Mass_num = as.numeric(.data$Mass))
+
+    # Parse ALL unique clean_df_PTM keys into a reference structure
+    ptm_parsed <- data.frame(match_column = unique(clean_df_PTM$match_column)) %>%
+      tidyr::separate_wider_delim(
+        cols = "match_column", delim = "-", names = c("Protein", "Site", "Mass"), cols_remove = FALSE
+      ) %>%
+      dplyr::mutate(Mass_num = as.numeric(.data$Mass))
+
+    # Map them using a numeric proximity loop
+    repair_lookup <- quant_parsed %>%
+      dplyr::inner_join(ptm_parsed, by = c("Protein", "Site"), suffix = c("_old", "_new")) %>%
+      dplyr::mutate(mass_dev = abs(.data$Mass_num_old - .data$Mass_num_new)) %>%
+      dplyr::filter(.data$mass_dev <= 0.01) %>%
+      dplyr::group_by(.data$match_column_old) %>%
+      dplyr::slice_min(.data$mass_dev, n = 1, with_ties = FALSE) %>%
+      dplyr::ungroup() %>%
+      dplyr::select("match_column_old", "match_column_new")
+
+    quant_data <- quant_data %>%
+      dplyr::left_join(repair_lookup, by = c("match_column" = "match_column_old")) %>%
+      dplyr::mutate(
+        match_column = dplyr::coalesce(.data$match_column_new, .data$match_column)
+      ) %>%
+      dplyr::select(-c("match_column_new"))
+  }
+
+  start_data <- which(names(quant_data) == "ReferenceIntensity") + 1
+  quant_data <- quant_data[,start_data:ncol(quant_data)]
+
+  # Start with the longest file name and match as greedy as possible
+  # Then go with the next. This is to ensure the script works for names
+  # containing -
+  re_escape <- function(string) {
+    gsub("([.\\|+*?\\[^\\]$(){}=!<>|:-])", "\\\\\\1", string)
+  }
+
+  filenames <- unique(clean_df$Run)
+  search_ids <- names(quant_data)
+  search_ids <- search_ids[search_ids != "match_column"]
+
+  search_ids <- search_ids[order(nchar(search_ids), decreasing = TRUE)]
+
+  mapping_results <- data.frame(
+    Filename = character(),
+    Matched_ID = character(),
+    stringsAsFactors = FALSE
+  )
+
+  available_filenames <- filenames
+
+  for (id in search_ids) {
+    if (length(available_filenames) == 0) break
+
+    matches <- stringr::str_ends(available_filenames, stringr::fixed(id))
+
+    if (any(matches)) {
+      matched_files <- available_filenames[matches]
+
+      new_rows <- data.frame(Filename = matched_files, Matched_ID = id)
+      mapping_results <- rbind(mapping_results, new_rows)
+
+      available_filenames <- available_filenames[!matches]
+    }
+  }
+
+  quant_runs <- length(search_ids)
+  mapping_runs <- nrow(mapping_results)
+  quant_ids <- length(unique(quant_data$match_column))
+  psm_ids <- length(unique(clean_df_PTM$match_column))
+
+  if(mapping_runs != quant_runs) {
+    warning("Different number of psm.tsv runs and abundance_multi-mass_MD runs found.")
+  }
+
+  fmessage(paste0("Intensity values found for ", quant_ids, " of the ",
+                  psm_ids, " peptides."))
+
+  #Now replace the column names and do the actual mapping
+  rename_vector <- stats::setNames(mapping_results$Filename, mapping_results$Matched_ID)
+
+  cols_to_rename <- colnames(quant_data) %in% names(rename_vector)
+
+  colnames(quant_data)[cols_to_rename] <- rename_vector[colnames(quant_data)[cols_to_rename]]
+
+  quant_data <- quant_data %>%
+    tidyr::pivot_longer(cols = colnames(quant_data)[colnames(quant_data) != "match_column"],
+                        names_to = "Run", values_to = "Intensity") %>%
+    dplyr::mutate(Intensity = ifelse(.data$Intensity > 0 & is.finite(.data$Intensity),
+                                     2^.data$Intensity, .data$Intensity))
+
+  number_valid_quant <- sum(is.finite(quant_data$Intensity))
+  nrow_clean_df <- nrow(clean_df)
+
+  clean_df <- clean_df %>%
+    dplyr::left_join(clean_df_PTM[c("ModifiedPeptide", "match_column")] %>% dplyr::distinct(),
+                     by = "ModifiedPeptide") %>%
+    dplyr::select(-c("Intensity")) %>%
+    dplyr::left_join(quant_data, by = c("Run", "match_column")) %>%
+    dplyr::select(-c("match_column"))
+
+  number_valid_quant_post <- sum(is.finite(quant_data$Intensity))
+  nrow_clean_df_post <- nrow(clean_df)
+
+  if(number_valid_quant != number_valid_quant_post) {
+    warning(paste0("Number of valid values before and after import: ", number_valid_quant, " - ", number_valid_quant_post))
+  }
+  if(nrow_clean_df != nrow_clean_df_post) {
+    warning(paste0("Number of rows before and after import: ", nrow_clean_df, " - ", nrow_clean_df_post))
+  }
+
+  return(clean_df)
 }
 
 GetPSMGlycanCategory <- function(GType, color_df = .modEnv$GlycanColors) {

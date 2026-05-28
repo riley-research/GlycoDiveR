@@ -219,6 +219,9 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
     }else if(normalization %in% c("FP_Normalized", "FP_MaxLFQ") & !TMT){
       filtereddf <- UpdateFPIntensities(filtereddf, quantdf, normalization)
       fmessage(paste0("Successfully imported Intensity column using: ", normalization))
+    }else if(normalization == "FP_TMT") {
+      filtereddf <- UpdateFPIntensitiesTMT(filtereddf, unfiltereddf, quantdf)
+      fmessage(paste0("Successfully imported Intensity column using: ", normalization))
     }else{
       fmessage("normalization not recognized. Using raw intensity values.")
   }}else{

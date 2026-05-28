@@ -40,12 +40,14 @@ column in the search engine output file.}
 \item{scrape}{set TRUE/FALSE to use scraping of Uniprot data.}
 
 \item{normalization}{The (glyco)peptide normalization used.
-Choose between "median" (default), FP_Normalized, FP_MaxLFQ, or none.
+Choose between "median" (default), FP_Normalized, FP_MaxLFQ, FP_TMT, or none.
 median: performs median normalization.
 FP_Normalized: extracts the intensity values in the Intensity columns of the
 combined_modified_peptide.tsv files.
 FP_MaxLFQ: extracts the intensity values in the MaxLFQ.Intensity columns of the
 combined_modified_peptide.tsv files.
+FP_TMT: Uses the abundance_multi-mass_MD.tsv files to import the FragPipe
+calculated normalized intensities.
 none: uses the raw intensity values from the PSM.tsv files.}
 
 \item{convertFPModCodeToMass}{MSFragger uses modification code in peptide
@@ -97,7 +99,9 @@ N-glycopeptide searches and O-glycopeptides searches with or without
 OPair. During import, this function will look for all the psm.tsv files in the
 specified folder and all the subfolders. It will also use the
 combined_modified_peptide.tsv if you choose to use FragPipe computed
-normalized intensities.
+normalized intensities, or the abundance_multi-mass_MD.tsv files
+whenever FP_TMT normalization is selected, note: this only works for Glyco-TMT
+data.
 }
 \examples{
 \dontrun{ImportMSFragger(path = "Z:/Folder",
