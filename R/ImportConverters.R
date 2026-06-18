@@ -746,7 +746,7 @@ GlycanFinderConverter <- function(unfiltereddf, annotationdf, fastaPath, scrape,
   if ("Accession" %in% existingCols) {
       filtereddf$merged <- GetProteinAndGeneGlycanFinder(unfiltereddf$Accession)
       filtereddf <- filtereddf |>
-        tidyr::separate_wider_delim(cols = merged, delim = ";", names = c("UniprotIDs", "Genes"))
+        tidyr::separate_wider_delim(cols = "merged", delim = ";", names = c("UniprotIDs", "Genes"))
       fmessage("Successfully imported UniprotIDs and Genes.")
     } else {
     warning("The column Protein.ID was not found in the input dataframe.")}
