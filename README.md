@@ -59,8 +59,7 @@ different sections.
 - [GlycoDiveR manual and workflow
   examples](https://github.com/riley-research/GlycoDiveR/blob/main/docs/)
 
-- [Viewing and manually editing imported
-  data](https://github.com/riley-research/GlycoDiveR/wiki/Viewing-and-manually-editing-imported-data)
+- [The GlycoDiveR data format: viewing and editing](https://github.com/riley-research/GlycoDiveR/wiki/The-GlycoDiveR-data-format:-viewing-and-editing)
 
 - [How to add additional columns to imported
   data](https://github.com/riley-research/GlycoDiveR/wiki/How-to-add-additional-columns-to-imported-data)
