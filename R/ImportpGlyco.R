@@ -99,7 +99,7 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                                  AScoreCutoff = FALSE)
 
 
-    if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0) & normalization == "median"){
+    if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity, na.rm = TRUE) != 0 & normalization == "median"){
 
       globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
       filtereddf <- filtereddf %>%

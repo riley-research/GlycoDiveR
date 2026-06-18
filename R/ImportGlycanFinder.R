@@ -113,7 +113,7 @@ ImportGlycanFinder <- function(path, annotation, fastaPath, peptideScoreCutoff =
                                  AScoreCutoff)
 
     if(!all(is.na(filtereddf$Intensity)) &
-       sum(filtereddf$Intensity != 0) &
+       sum(filtereddf$Intensity, na.rm = TRUE) != 0 &
        normalization == "median") {
       globalMedian = stats::median(filtereddf$Intensity[filtereddf$Intensity != 0], na.rm = TRUE)
       filtereddf <- filtereddf %>%
