@@ -15,7 +15,7 @@
 
 GlycoDiveR generates graphics from (quantitative) glycoproteomics
 datasets directly from search engine output files. It currently supports
-FragPipe, Byonic, pGlyco, Perseus, and MSstats output files. It converts
+FragPipe, Byonic, pGlyco, GlycanFinder, Perseus, and MSstats output files. It converts
 the data into a generic GlycoDiveR format that incorporates key metadata
 along with UniProt-derived metadata. The GlycoDiveR formatted input is
 directly compatible with all GlycoDiveR graphics.
