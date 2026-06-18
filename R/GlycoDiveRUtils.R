@@ -760,12 +760,12 @@ calculateElbowCoords <- function(xVec, yVec, return = "x"){
 
 medianNormalization <- function(intensityVec, globalMedian){
   nonzero <- intensityVec != 0 & !is.na(intensityVec)
-  intensityVec_log2 <- rep(NA_real_, length(intensityVec))
-  intensityVec_log2[nonzero] <- log2(intensityVec[nonzero])
-  localMedian <- stats::median(intensityVec_log2[nonzero], na.rm = TRUE)
+  output <- intensityVec
+  intensityVec_log2 <- log2(intensityVec[nonzero])
+  localMedian <- stats::median(intensityVec_log2, na.rm = TRUE)
   deltaMedian <- log2(globalMedian) - localMedian
-  intensityVec_log2[nonzero] <- intensityVec_log2[nonzero] + deltaMedian
-  return(2^intensityVec_log2)
+  output[nonzero] <- 2^(intensityVec_log2 + deltaMedian)
+  return(output)
 }
 
 FPModCodeToModMass <- function(modifiedPep, assignedMods){
