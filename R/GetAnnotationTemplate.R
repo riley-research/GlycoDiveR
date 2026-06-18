@@ -121,6 +121,31 @@ GetAnnotationTemplate <- function(path, tool){
     }else{
       utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
       fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
+  }else if(tool == "GlycanFinder"){
+    fileList <- list.files(path, recursive = TRUE)
+    fileList <- fileList[grepl("glycan.glycopsms.csv", fileList)]
+    unfiltereddf <- data.frame()
+
+    if(length(fileList) == 0){stop("No files found.")}
+    for(file in fileList){
+      print(paste0(path, "/", file))
+      temptable <- data.table::fread(paste0(path, "/", file), sep = ",", check.names = TRUE, fill = TRUE)
+      unfiltereddf <- plyr::rbind.fill(unfiltereddf, temptable)
+    }
+    unfiltereddf$Run <- unfiltereddf$Source.File
+
+    tempdf <- data.frame(Run = unique(unfiltereddf$Run),
+                         Condition = NA,
+                         Alias = NA,
+                         BioReplicate = NA,
+                         TechReplicate = NA)
+
+    if(grepl("/$", path)){
+      utils::write.csv(tempdf, paste0(path,"annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"annotation.csv")))
+    }else{
+      utils::write.csv(tempdf, paste0(path,"/annotation.csv"), row.names=FALSE)
+      fmessage(paste0("Annotation dataframe exported to: ", paste0(path,"/annotation.csv")))}
   }
   else{
     warning("tool does not match any recognized tools.")

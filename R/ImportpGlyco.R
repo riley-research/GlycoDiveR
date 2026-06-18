@@ -93,7 +93,10 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                                  filterForNoNSequon = FALSE,
                                  confidenceLevels = FALSE,
                                  deltaModCutoff = FALSE,
-                                 searchEngine = "pGlyco")
+                                 searchEngine = "pGlyco",
+                                 SScoreCutoff = FALSE,
+                                 structureConfidenceCutoff = FALSE,
+                                 AScoreCutoff = FALSE)
 
 
     if(!all(is.na(filtereddf$Intensity)) & sum(filtereddf$Intensity != 0) & normalization == "median"){
@@ -133,7 +136,10 @@ ImportpGlyco <- function(path, annotation, fastaPath, peptideScoreCutoff = 0.01,
                glycanScoreCutoff = glycanScoreCutoff,
                filterForNoNSequon = FALSE,
                confidenceLevels = FALSE,
-               deltaModCutoff = FALSE)
+               deltaModCutoff = FALSE,
+               SScoreCutoff = FALSE,
+               structureConfidenceCutoff = FALSE,
+               AScoreCutoff = FALSE)
 
   return(data)
   }

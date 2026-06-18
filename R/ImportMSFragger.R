@@ -171,7 +171,10 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                                filterForNoNSequon,
                                confidenceLevel,
                                deltaModCutoff = FALSE,
-                               searchEngine = "MSFragger")
+                               searchEngine = "MSFragger",
+                               SScoreCutoff = FALSE,
+                               structureConfidenceCutoff = FALSE,
+                               AScoreCutoff = FALSE)
 
   if(!all(is.na(filtereddf$Intensity)) &
      sum(filtereddf$Intensity != 0) &
@@ -227,7 +230,10 @@ ImportMSFragger <- function(path, annotation, fastaPath, peptideScoreCutoff = 0,
                glycanScoreCutoff = glycanScoreCutoff,
                filterForNoNSequon = filterForNoNSequon,
                confidenceLevels = confidenceLevel,
-               deltaModCutoff = FALSE)
+               deltaModCutoff = FALSE,
+               SScoreCutoff = FALSE,
+               structureConfidenceCutoff = FALSE,
+               AScoreCutoff = FALSE)
 
   return(data)
 }

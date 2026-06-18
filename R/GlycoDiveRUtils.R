@@ -377,6 +377,44 @@ FilterForCutoffs <- function(input, silent = FALSE){
       dplyr::filter(.data$PSMScore <= input$peptideScoreCutoff | is.na(.data$PSMScore)) %>%
       dplyr::filter(.data$GlycanQValue <= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
 
+  }else if(input$searchEngine %in% c("GlycanFinder")){
+    if(!silent){
+      fmessage(paste0("Filtering for PSMScore >= ", input$peptideScoreCutoff, " and glycan score >= ", input$glycanScoreCutoff))
+    }
+
+    input$PSMTable <- input$PSMTable %>%
+      dplyr::filter(.data$PSMScore >= input$peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue >= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
+
+    input$PTMTable <- input$PTMTable %>%
+      dplyr::filter(.data$PSMScore >= input$peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue >= input$glycanScoreCutoff | is.na(.data$GlycanQValue))
+
+    if("SScore" %in% existingColsPSMTable & !identical(input$SScoreCutoff,FALSE)){
+      if(!silent){fmessage(paste0("Filtering for S Score >= ", input$SScoreCutoff))}
+
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$SScore >= input$SScoreCutoff | is.na(.data$SScore))
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$SScore >= input$SScoreCutoff | is.na(.data$SScore))
+    }
+    if("StructureConfidence" %in% existingColsPSMTable & !identical(input$structureConfidenceCutoff,FALSE)){
+      if(!silent){fmessage(paste0("Filtering for structure Confidence == ", input$structureConfidenceCutoff))}
+
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$StructureConfidence %in% input$structureConfidenceCutoff | is.na(.data$StructureConfidence))
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$StructureConfidence %in% input$structureConfidenceCutoff | is.na(.data$StructureConfidence))
+    }
+    if("AScore" %in% existingColsPSMTable & !identical(input$AScoreCutoff,FALSE)){
+      if(!silent){fmessage(paste0("Filtering for AScore >= ", input$AScoreCutoff))}
+
+      input$PSMTable <- input$PSMTable %>%
+        dplyr::filter(.data$AScore >= input$AScoreCutoff | is.na(.data$AScore))
+      input$PTMTable <- input$PTMTable %>%
+        dplyr::filter(.data$AScore >= input$AScoreCutoff | is.na(.data$AScore))
+    }
+
   }else{
     warning("No search engine recognized, returning unfiltered dataframe.")
     return(input)
@@ -395,7 +433,10 @@ FilterPSMTable <- function(df,
                            filterForNoNSequon,
                            confidenceLevels,
                            deltaModCutoff,
-                           searchEngine){
+                           searchEngine,
+                           SScoreCutoff,
+                           structureConfidenceCutoff,
+                           AScoreCutoff){
   existingColsPSMTable <- names(df)
   preFilterPSMRows <- nrow(df)
 
@@ -444,9 +485,40 @@ FilterPSMTable <- function(df,
     df <- df %>%
       dplyr::filter(.data$PSMScore <= peptideScoreCutoff | is.na(.data$PSMScore)) %>%
       dplyr::filter(.data$GlycanQValue <= glycanScoreCutoff | is.na(.data$GlycanQValue))
+  }else if(searchEngine %in% c("pGlyco")){
+
+    fmessage(paste0("Filtering for PSMScore >= ", peptideScoreCutoff, " and glycan score >= ", glycanScoreCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$PSMScore >= peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue >= glycanScoreCutoff | is.na(.data$GlycanQValue))
+  }else if(searchEngine %in% c("GlycanFinder")){
+    fmessage(paste0("Filtering for PSMScore >= ", peptideScoreCutoff, " and glycan score >= ", glycanScoreCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$PSMScore >= peptideScoreCutoff | is.na(.data$PSMScore)) %>%
+      dplyr::filter(.data$GlycanQValue >= glycanScoreCutoff | is.na(.data$GlycanQValue))
   }
 
   fmessage(paste0("Filtered PSM table: ", preFilterPSMRows, " to ", nrow(df), " rows."))
+  if("SScore" %in% existingColsPSMTable & !identical(SScoreCutoff,FALSE)){
+    fmessage(paste0("Filtering for S Score >= ", SScoreCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$SScore >= SScoreCutoff | is.na(.data$SScore))
+  }
+  if("StructureConfidence" %in% existingColsPSMTable & !identical(structureConfidenceCutoff,FALSE)){
+    fmessage(paste0("Filtering for structure Confidence == ", structureConfidenceCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$StructureConfidence %in% structureConfidenceCutoff | is.na(.data$StructureConfidence))
+  }
+  if("AScore" %in% existingColsPSMTable & !identical(AScoreCutoff,FALSE)){
+    fmessage(paste0("Filtering for AScore >= ", AScoreCutoff))
+
+    df <- df %>%
+      dplyr::filter(.data$AScore >= AScoreCutoff | is.na(.data$AScore))
+  }
 
   return(df)
 }
@@ -1665,6 +1737,56 @@ getGlyToucan <- function(wurcs) {
   GlyToucan_result
 }
 
+getModifiedPeptideForGlycanFinder <- function(rawModPep){
+  formatted_column <-length(rawModPep)
+
+  for(i in 1:length(rawModPep)){
+    mod_in_string <- rawModPep[i]
+    clean_mod <- c()
+    while(grepl("\\[", mod_in_string)) {
+      this_mod <- stringr::str_extract(mod_in_string, "\\[.*?\\]")
+      site_number <- as.integer(regexpr(this_mod, mod_in_string, perl = TRUE)) - 2
+      aa <- substring(mod_in_string, site_number, site_number)
+      mass <- gsub("\\[|\\]", "", this_mod)
+      mod_in_string <- sub(this_mod, "", mod_in_string, fixed = TRUE)
+
+      if(length(clean_mod) == 0) {
+        clean_mod <- paste0(site_number, aa, "(", mass, ")")
+      } else {
+        clean_mod <- paste0(clean_mod, ",", paste0(site_number, aa, "(", mass, ")"))
+      }
+    }
+    formatted_column[i] <- clean_mod
+  }
+  formatted_column
+}
+
+GetProteinAndGeneGlycanFinder <- function(raw_col){
+  raw_col <- strsplit(raw_col, ";")
+  raw_col <- lapply(raw_col, function(x) sub("_.*", "", x))
+  genes <- unlist(lapply(raw_col, function(x) paste(sub(".*\\|", "", x), collapse = ",")))
+  prots <- unlist(lapply(raw_col, function(x) paste(sub("\\|.*", "", x), collapse = ",")))
+
+  combined <- paste(prots, genes, sep = ";")
+  combined
+}
+
+GetProteinStartGlycanFinder <- function(glyco_in_peptide, glyco_in_protein) {
+  glyco_in_protein <- sub(";.*", "",  glyco_in_protein)
+  glyco_in_protein <- sub("_.*", "",  glyco_in_protein)
+  glyco_in_protein <- as.integer(gsub("\\D", "", glyco_in_protein))
+  glyco_in_peptide <- as.integer(sub("_.*", "",  glyco_in_peptide))
+
+  glyco_in_protein - glyco_in_peptide + 1
+}
+
+GetAScore <- function(Ascore) {
+  Ascore <- strsplit(Ascore, ";")
+  Ascore <- lapply(Ascore, function(x) as.double(sub(".*:", "", x)))
+  highest <- sapply(Ascore, max)
+  highest
+}
+
 Databases <- function(){
   GlycanDatabase <- data.frame(
     FullName = c("HexNAc", "Hex", "NeuAc", "Fuc", "NeuGc", "Pent",
@@ -1681,10 +1803,11 @@ Databases <- function(){
     stringsAsFactors = FALSE)
 
   ModificationDatabase <- data.frame(
-    FullName = c("Oxidation", "CCarbamidomethylation1", "CCarbamidomethylation2",
+    FullName = c("Oxidation", "Oxidation2", "CCarbamidomethylation1", "CCarbamidomethylation2",
+                 "CCarbamidomethylation3",
                  "NAcetylation", "Carbamidomethyl", "TMT0",
                  "TMT2", "TMT6", "TMT10", "TMT11", "TMT16", "TMT18", "TMT35"),
-    ModificationMass = c("15.9949", "57.0214", "57.0215", "42.0106", "57.0215", "295.18959",
+    ModificationMass = c("15.9949", "15.99", "57.0214", "57.0215", "57.02", "42.0106", "57.0215", "295.18959",
                          "225.1558", "229.1629", "229.1629", "229.1629", "304.2071", "304.2071", "304.2071")
   )
 
@@ -1697,17 +1820,17 @@ Databases <- function(){
                                       "#0072BC", "#EE8866", "#BF5A6B",
                                       "#FABC3C", "#664C43"))
 
-  original <- c(
-    "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
-    "#ffaabb", "#cc6677", "#882255", "#32006e"
-  )
-  #  n_new <- 100
-  #  interp_fun <- colorRampPalette(original)
-  #  extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
-  #  set.seed(3)
-  #  #scales::show_col(sample(extra))
-  #  extra <- sample(extra)
-  #  colorScheme <- c(original, extra)
-  #
-  # usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
+#   original <- c(
+#     "#baa5cc", "#9adcee", "#44aa99", "#ddcc77",
+#     "#ffaabb", "#cc6677", "#882255", "#32006e"
+#   )
+#    n_new <- 100
+#    interp_fun <- colorRampPalette(original)
+#    extra <- interp_fun(length(original) + n_new)[-(1:length(original))]
+#    set.seed(3)
+#    #scales::show_col(sample(extra))
+#    extra <- sample(extra)
+#    colorScheme <- c(original, extra)
+#
+#   usethis::use_data(GlycanDatabase, colorScheme, ModificationDatabase, GlycanColors, internal = TRUE, overwrite = TRUE)
 }

@@ -121,7 +121,10 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff = 0, gl
                                  filterForNoNSequon = FALSE,
                                  confidenceLevels = FALSE,
                                  deltaModCutoff,
-                                 searchEngine = "Byonic")}
+                                 searchEngine = "Byonic",
+                                 SScoreCutoff = FALSE,
+                                 structureConfidenceCutoff = FALSE,
+                                 AScoreCutoff = FALSE)}
 
   if(dropNoQuant){filtereddf <- filtereddf %>% dplyr::filter(!is.na(.data$Intensity) & .data$Intensity != 0)}
 
@@ -138,7 +141,10 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff = 0, gl
                glycanScoreCutoff = glycanScoreCutoff,
                filterForNoNSequon = FALSE,
                confidenceLevels = FALSE,
-               deltaModCutoff = deltaModCutoff)
+               deltaModCutoff = deltaModCutoff,
+               SScoreCutoff = FALSE,
+               structureConfidenceCutoff = FALSE,
+               AScoreCutoff = FALSE)
 
   return(data)
 }
