@@ -255,7 +255,7 @@ MSFraggerConverter <- function(unfiltereddf, annotationdf, fastaPath, quantdf, s
 }
 
 ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
-                            modification_df, scrape, GlyToucan){
+                            modification_df, scrape, GlyToucan, normalization){
   fmessage("Now starting import.")
   filtereddf <- data.frame(ID = unfiltereddf$ID)
   existingCols <- unique(names(unfiltereddf))
@@ -287,6 +287,40 @@ ByonicConverter <- function(unfiltereddf, annotationdf, fastaPath,
   else{stop("The column Peptide ProteinMetrics Confidential was not found in the input dataframe.")}
 
   #RawIntensity & Intensity####
+  if ("Intensity" %in% existingCols) {
+
+    filtereddf$RawIntensity <- filtereddf$Intensity
+
+    if (!all(is.na(filtereddf$Intensity)) &&
+        any(filtereddf$Intensity != 0, na.rm = TRUE)) {
+      if (normalization == "none") {
+        fmessage("Successfully imported Intensity column without normalization.")
+      } else if (normalization == "median") {
+        globalMedian <- stats::median(
+          filtereddf$Intensity[!is.na(filtereddf$Intensity) & filtereddf$Intensity != 0],
+          na.rm = TRUE
+        )
+
+        filtereddf <- filtereddf %>%
+          dplyr::mutate(
+            .by = .data$Run,
+            Intensity = medianNormalization(
+              intensityVec = .data$Intensity,
+              globalMedian = globalMedian
+            )
+          ) %>%
+          dplyr::mutate(
+            Intensity = dplyr::coalesce(.data$Intensity, 0)
+          )
+        fmessage("Successfully median normalized the intensities.")
+      } else {
+        fmessage("Normalization not recognized. Using raw intensity values.")
+      }
+    } else {
+      fmessage("Successfully imported Intensity column. Note: No quantitative values found.")
+    }
+  }
+
   filtereddf <- filtereddf %>%
     dplyr::mutate(RawIntensity = 0,
                   Intensity = 0)
