@@ -35,6 +35,8 @@
 #' within groups.
 #' @param GlyToucan set to TRUE will connect to the GlyCosmos API to retrieve
 #' GlyToucan identifiers.
+#' @param normalization The (glyco)peptide normalization used.
+#' Choose between "none" (default) or "median".
 #'
 #' @returns Formatted GlycoDiveR data file.
 #' @export
@@ -47,7 +49,8 @@
 ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff = 0, glycanScoreCutoff = 0.01,
                          deltaModCutoff = 1, scrape = TRUE, removeReverse = TRUE, cutoffFilter = TRUE,
                          dropNoQuant = FALSE, minPeptideCoverage = FALSE,
-                         thresholdMode = c("group", "total"), GlyToucan = TRUE){
+                         thresholdMode = c("group", "total"), GlyToucan = TRUE,
+                         normalization = "none"){
   unfiltereddf <- data.frame()
   modification_df <- data.frame()
   annotationdf <- utils::read.csv(annotation)
@@ -112,7 +115,7 @@ ImportByonic <- function(path, annotation, fastaPath, peptideScoreCutoff = 0, gl
   .modEnv$ModificationDatabase <- dplyr::bind_rows(.modEnv$ModificationDatabase, modToAdd)
 
   filtereddf <- ByonicConverter(unfiltereddf, annotationdf, fastaPath,
-                                modification_df, scrape, GlyToucan)
+                                modification_df, scrape, GlyToucan, normalization)
 
   if(cutoffFilter){
     filtereddf <- FilterPSMTable(filtereddf,

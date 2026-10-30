@@ -17,7 +17,8 @@ ImportByonic(
   dropNoQuant = FALSE,
   minPeptideCoverage = FALSE,
   thresholdMode = c("group", "total"),
-  GlyToucan = TRUE
+  GlyToucan = TRUE,
+  normalization = "none"
 )
 }
 \arguments{
@@ -64,6 +65,9 @@ within groups.}
 
 \item{GlyToucan}{set to TRUE will connect to the GlyCosmos API to retrieve
 GlyToucan identifiers.}
+
+\item{normalization}{The (glyco)peptide normalization used.
+Choose between "none" (default) or "median".}
 }
 \value{
 Formatted GlycoDiveR data file.
